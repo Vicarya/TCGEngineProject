@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 namespace TCG.Core {
+    [System.Serializable]
     public abstract class CardData
     {
         public string CardGuid;

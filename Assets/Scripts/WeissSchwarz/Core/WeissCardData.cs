@@ -3,7 +3,7 @@ using TCG.Core;
 using System;
 
 namespace TCG.Weiss {
-    [CreateAssetMenu(fileName = "WeissCardData", menuName = "TCG/WeissCardData")]
+    [System.Serializable]
     public class WeissCardData : CardData
     {
         public int Level;               // レベル
