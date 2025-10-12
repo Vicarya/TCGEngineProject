@@ -4,7 +4,7 @@ using System;
 
 namespace TCG.Weiss {
     [CreateAssetMenu(fileName = "WeissCardData", menuName = "TCG/WeissCardData")]
-    public class WeissCardData : CardDataBase
+    public class WeissCardData : CardData
     {
         public int Level;               // レベル
         public int Cost;                // コスト

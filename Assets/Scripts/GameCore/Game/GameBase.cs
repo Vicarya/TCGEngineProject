@@ -13,10 +13,13 @@ namespace TCG.Core
             GameState = new GameState(this);
         }
 
-        public virtual void StartGame(GameState state)
+        public virtual void StartGame()
         {
-            SetupGame(state);
+            SetupGame(this.GameState);
         }
+
+        public virtual void Update() { }
+
 
         protected abstract void SetupGame(GameState state);
 

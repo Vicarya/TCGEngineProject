@@ -4,7 +4,12 @@ using System;
 namespace TCG.Weiss {
     public class WeissCard : CardBase<WeissCardData>
     {
-        public WeissCard(WeissCardData data, Player owner) : base(data, owner) { }
+        public bool IsReversed { get; private set; }
+
+        public WeissCard(WeissCardData data, Player owner) : base(data, owner) 
+        {
+            IsReversed = false;
+        }
 
         public void Rest()
         {
@@ -16,6 +21,11 @@ namespace TCG.Weiss {
         {
             SetRested(false);
             IsTapped = false;
+        }
+
+        public void SetReversed(bool reversed)
+        {
+            IsReversed = reversed;
         }
     }
 }

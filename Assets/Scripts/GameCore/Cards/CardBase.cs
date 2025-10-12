@@ -1,6 +1,6 @@
 namespace TCG.Core
 {
-    public abstract class CardBase<TData> : Card where TData : CardDataBase
+    public abstract class CardBase<TData> : Card where TData : CardData
     {
         public TData Data { get; private set; }
 
