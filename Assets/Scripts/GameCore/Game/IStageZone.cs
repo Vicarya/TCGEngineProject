@@ -5,6 +5,7 @@ namespace TCG.Core
     public interface IStageSlot<TCard> : IZone<TCard> where TCard : Card
     {
         TCard Current { get; }
+        void PlaceCharacter(TCard card);
     }
 
     /// <summary>

@@ -91,15 +91,41 @@ namespace TCG.Weiss {
         }
     }
 
-    // メインフェイズ（詳細は後回し）
+    // メインフェイズ
     public class MainPhase : PhaseBase {
         public MainPhase() : base("turn.main", "Main Phase") {}
         public override void OnEnter(GameState state) {
             base.OnEnter(state);
-            var player = state.ActivePlayer;
+            var player = state.ActivePlayer as WeissPlayer;
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfMainPhase"));
-            // TODO: メインフェイズのアクションループを実装する。プレイヤーが「フェイズ終了」を選択するまで、キャラのプレイ、イベントの使用、能力の起動などを実行できるようにする。
+
+            while (true)
+            {
+                var action = player.Controller.ChooseMainPhaseAction(player);
+
+                if (action == MainPhaseAction.EndPhase)
+                {
+                    break;
+                }
+                else if (action == MainPhaseAction.PlayCard)
+                {
+                    var cardToPlay = player.Controller.ChooseCardFromHand(player, optional: true);
+                    if (cardToPlay != null)
+                    {
+                        // TODO: Implement card playing logic (move from hand to stage/resolution zone, pay costs, etc.)
+                        player.GetZone<IHandZone<WeissCard>>().RemoveCard(cardToPlay);
+                        // This is a simplification. Real logic would depend on card type.
+                        player.GetZone<IStageZone<WeissCard>>().Slots.First(s => s.Current == null)?.PlaceCharacter(cardToPlay);
+                        state.EventBus.Raise(new GameEvent(BaseGameEvents.CardPlayed, new { Player = player, Card = cardToPlay }));
+                    }
+                }
+                else if (action == MainPhaseAction.UseAbility)
+                {
+                    // TODO: Implement ability usage logic
+                }
+            }
+
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "AfterMainActions"));
         }
     }
@@ -123,121 +149,125 @@ namespace TCG.Weiss {
         }
     }
 
-    /// <summary>
-    /// アタックフェイズを管理するクラス。
-    /// アタック宣言からバトル解決までの一連のサブフェイズのループを制御します。
-    /// </summary>
     public class AttackPhase : PhaseBase
     {
-        public AttackPhase() : base("turn.attack", "Attack Phase")
-        {
-            // アタックのサブフェイズを定義
-            AddSubPhase(new SimplePhase("turn.attack.declare", "Attack Declaration Step"));
-            AddSubPhase(new SimplePhase("turn.attack.trigger", "Trigger Step"));
-            AddSubPhase(new SimplePhase("turn.attack.counter", "Counter Step"));
-            AddSubPhase(new SimplePhase("turn.attack.damage", "Damage Step"));
-            AddSubPhase(new SimplePhase("turn.attack.battle", "Battle Step"));
-        }
+        public AttackPhase() : base("turn.attack", "Attack Phase") { }
 
         public override void OnEnter(GameState state)
         {
             base.OnEnter(state);
             var player = state.ActivePlayer as WeissPlayer;
+            var ruleEngine = (state.Game as WeissGame).RuleEngine;
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfAttackPhase"));
 
-            // アタック可能なキャラがいなくなるか、プレイヤーがアタック終了を選択するまでループ
             while (true)
             {
-                // 7.2.1.3 アタック可能なキャラをリストアップ
                 var stage = player.GetZone<StageZone>();
                 var attackableCharacters = stage.Slots
-                    .Where(s => s.Current != null && s.Current.IsRested == false && stage.IsFrontRow(s as StageSlot))
+                    .Where(s => s.Current != null && !s.Current.IsRested && stage.IsFrontRow(s as StageSlot))
                     .Select(s => s.Current)
                     .ToList();
 
-                // 7.2.1.3.1.3 アタック可能なキャラがいない場合
-                if (!attackableCharacters.Any())
-                {
-                    break; // ループを抜けてアンコールステップへ
-                }
-
-                // TODO: [PlayerController] プレイヤーにアタックするか、アタックを終了するか選択させる
-                // 仮実装: 常にアタックを選択
-                bool endAttack = false; // player.Controller.ChooseToEndAttack();
-                if (endAttack)
+                if (!attackableCharacters.Any() || player.Controller.ChooseToEndAttack(player))
                 {
                     break;
                 }
 
-                // TODO: [PlayerController] プレイヤーに攻撃するキャラを選択させる
-                // 仮実装: 攻撃可能なキャラの最初の1枚を選択
-                var attacker = attackableCharacters[0];
+                var attacker = player.Controller.ChooseAttacker(player, attackableCharacters);
+                if (attacker == null) continue; // Should not happen with dummy controller
 
-                // 7.2.1.4 攻撃方法の選択
-                var opponent = state.Players.First(p => p != player);
+                var opponent = state.Players.First(p => p != player) as WeissPlayer;
                 var attackerSlot = stage.FindSlot(attacker);
-                var defendingSlot = stage.GetOpposingSlot(attackerSlot, opponent.GetZone<StageZone>());
+                var opponentStage = opponent.GetZone<StageZone>();
+                var defendingSlot = stage.GetOpposingSlot(attackerSlot, opponentStage);
                 var defender = defendingSlot?.Current;
 
                 AttackType attackType;
                 if (defender == null)
                 {
-                    // 7.2.1.4.1 ダイレクトアタック
                     attackType = AttackType.Direct;
-                    // TODO: [ルール実装] アタッカーのソウルを+1する
                 }
                 else
                 {
-                    // TODO: [PlayerController] プレイヤーにフロントアタックかサイドアタックかを選択させる
-                    // 仮実装: 常にフロントアタック
-                    attackType = AttackType.Front;
+                    attackType = player.Controller.ChooseAttackType(player, attacker, defender);
                 }
 
-                // 7.2.1.5 アタック状態の記録とキャラのレスト
-                // TODO: アタック状態を管理するクラスを作成して記録
                 attacker.Rest();
                 state.EventBus.Raise(new GameEvent(WeissGameEvents.AttackDeclared, new { Attacker = attacker, Defender = defender, Type = attackType }));
 
-                // 7.2.1.6 チェックタイミング -> サブフェイズ実行
-                ExecuteSubPhases(state, attackType);
+                // Execute sub-phases
+                ExecuteTriggerStep(state, ruleEngine);
 
-                // TODO: [ルール実装] 先攻第1ターンのアタックは1回のみ、というルールを実装する
+                if (attackType == AttackType.Front)
+                {
+                    ExecuteCounterStep(state);
+                }
+
+                ExecuteDamageStep(state, ruleEngine, attacker, opponent, attackType);
+
+                if (attackType == AttackType.Front && defender != null)
+                {
+                    ExecuteBattleStep(state, attacker, defender);
+                }
+                
+                // TODO: Implement first turn, one attack rule
             }
 
-            // 7.7 アンコールステップへ
-            // TODO: [フェーズ実装] EncoreStepのフェーズを作成し、そこに遷移するロジックを実装する
+            // TODO: Implement EncoreStep
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfEncoreStep"));
         }
 
-        private void ExecuteSubPhases(GameState state, AttackType attackType)
+        private void ExecuteTriggerStep(GameState state, WeissRuleEngine ruleEngine)
         {
-            // 7.3 トリガーステップ
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfTriggerStep"));
-            var ruleEngine = (state.Game as WeissGame).RuleEngine;
             ruleEngine.TriggerCheck(state.ActivePlayer);
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfTriggerStep"));
+        }
 
-            if (attackType == AttackType.Front)
-            {
-                // 7.4 カウンターステップ
-                state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfCounterStep"));
-                // TODO: [ルール実装] 非ターンプレイヤーにカウンターカードの使用タイミングを与える
-                state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfCounterStep"));
-            }
+        private void ExecuteCounterStep(GameState state)
+        {
+            state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfCounterStep"));
+            // TODO: Allow non-active player to play counter cards
+            state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfCounterStep"));
+        }
 
-            // 7.5 ダメージステップ
+        private void ExecuteDamageStep(GameState state, WeissRuleEngine ruleEngine, WeissCard attacker, WeissPlayer opponent, AttackType attackType)
+        {
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfDamageStep"));
-            // TODO: [ルール実装] ダメージ計算（アタッカーのソウル値）と適用（RuleEngine.ApplyDamage呼び出し）を実装する
-            state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfDamageStep"));
-
-            if (attackType == AttackType.Front)
+            var soul = (attacker.Data as WeissCardData).Soul;
+            if (attackType == AttackType.Direct)
             {
-                // 7.6 バトルステップ
-                state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfBattleStep"));
-                // TODO: [ルール実装] アタッカーとディフェンダーのパワーを比較し、低い方をリバース状態にする
-                state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfBattleStep"));
+                soul += 1;
             }
+            ruleEngine.ApplyDamage(opponent, soul);
+            state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfDamageStep"));
+        }
+
+        private void ExecuteBattleStep(GameState state, WeissCard attacker, WeissCard defender)
+        {
+            state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfBattleStep"));
+            var attackerPower = (attacker.Data as WeissCardData).Power;
+            var defenderPower = (defender.Data as WeissCardData).Power;
+
+            if (attackerPower < defenderPower)
+            {
+                attacker.SetReversed(true);
+                state.EventBus.Raise(new GameEvent(WeissGameEvents.CharacterReversed, attacker));
+            }
+            else if (defenderPower < attackerPower)
+            {
+                defender.SetReversed(true);
+                state.EventBus.Raise(new GameEvent(WeissGameEvents.CharacterReversed, defender));
+            }
+            else // Same power
+            {
+                attacker.SetReversed(true);
+                defender.SetReversed(true);
+                state.EventBus.Raise(new GameEvent(WeissGameEvents.CharacterReversed, attacker));
+                state.EventBus.Raise(new GameEvent(WeissGameEvents.CharacterReversed, defender));
+            }
+            state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfBattleStep"));
         }
     }
 
