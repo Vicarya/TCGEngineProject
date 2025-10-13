@@ -3,7 +3,7 @@ using System.Linq;
 using TCG.Core;
 using TCG.Weiss;
 
-namespace WeissSchwarz.Abilities
+namespace TCG.Weiss.Effects
 {
     public class ConcentrateEffect : IEffect
     {

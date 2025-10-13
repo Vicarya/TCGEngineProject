@@ -1,7 +1,7 @@
 using System.Linq;
 using TCG.Core;
 
-namespace TCG.Core.Costs
+namespace TCG.Weiss
 {
     public class StockCost<TCard> : ICost where TCard : Card
     {

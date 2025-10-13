@@ -1,6 +1,7 @@
+using TCG.Core;
 using System.Collections.Generic;
 
-namespace TCG.Core
+namespace TCG.Weiss
 {
     public interface IStageSlot<TCard> : IZone<TCard> where TCard : Card
     {
