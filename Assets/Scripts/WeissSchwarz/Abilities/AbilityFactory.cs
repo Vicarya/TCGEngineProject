@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using TCG.Core;
-using TCG.Core.Costs;
 using TCG.Weiss.Triggers;
-using WeissSchwarz.Abilities; // For ConcentrateEffect
+using TCG.Weiss.Effects;
 
 namespace TCG.Weiss 
 {
@@ -26,8 +25,7 @@ namespace TCG.Weiss
                 }
                 if (def.Cost.RestSelf)
                 {
-                    // RestSelfCostはまだWeissSchwarz名前空間にあると仮定
-                    ability.Costs.Add(new TCG.WeissSchwarz.Costs.RestSelfCost<WeissCard>(self));
+                    ability.Costs.Add(new RestSelfCost<WeissCard>(self));
                 }
             }
 

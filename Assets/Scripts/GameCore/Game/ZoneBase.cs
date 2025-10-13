@@ -60,7 +60,7 @@ namespace TCG.Core
     /// 通常のゾーン操作に加え、シャッフル、ドロー、ピーク（カードを覗き見る）といった
     /// 山札特有の機能を提供します。
     /// </summary>
-    public abstract class DeckZoneBase<TCard> : ZoneBase<TCard>, IDeckZone<TCard> where TCard : Card
+    public abstract class DeckZoneBase<TCard> : ZoneBase<TCard> where TCard : Card
     {
         public DeckZoneBase(string name, Player owner) : base(name, owner) {}
 

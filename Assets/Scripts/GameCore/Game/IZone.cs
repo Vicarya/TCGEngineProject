@@ -19,7 +19,7 @@ namespace TCG.Core
     {
         IReadOnlyList<TCard> Cards { get; }
 
-        new void AddCard(TCard card);
-        new void RemoveCard(TCard card);
+        void AddCard(TCard card);
+        void RemoveCard(TCard card);
     }
 }

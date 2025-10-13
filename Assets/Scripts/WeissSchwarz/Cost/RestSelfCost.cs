@@ -1,7 +1,7 @@
 using TCG.Core;
 using TCG.Weiss;
 
-namespace TCG.WeissSchwarz.Costs
+namespace TCG.Weiss
 {
     /// <summary>
     /// 自身をレスト状態にするコスト

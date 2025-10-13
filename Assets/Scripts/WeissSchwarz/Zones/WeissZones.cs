@@ -166,7 +166,7 @@ namespace TCG.Weiss
             return null;
         }
 
-        public new IEnumerable<StageSlot> Slots =>
+        public IEnumerable<StageSlot> Slots =>
             new[] { FrontLeft, FrontCenter, FrontRight, BackLeft, BackRight };
     }
 
@@ -297,7 +297,7 @@ namespace TCG.Weiss
         }
 
         public IReadOnlyList<(WeissCard Card, bool FaceUp)> LevelCards => levelCards;
-        public new int Count => levelCards.Count;
+        public int Count => levelCards.Count;
     }
 
     /// <summary>
@@ -352,7 +352,7 @@ namespace TCG.Weiss
         public MemoryZone(Player owner) : base("Memory", owner, isPublic: true) { }
 
         public IReadOnlyList<(WeissCard Card, bool FaceUp)> MemoryCards => memoryCards;
-        public new int Count => memoryCards.Count;
+        public int Count => memoryCards.Count;
 
         /// <summary>
         /// カードを追加

@@ -10,7 +10,7 @@ namespace TCG.Weiss
     /// </summary>
     public class WeissGame : GameBase
     {
-        public new WeissRuleEngine RuleEngine { get; protected set; }
+        public WeissRuleEngine RuleEngine { get; protected set; }
 
         public WeissGame()
         {
