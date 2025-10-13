@@ -42,5 +42,11 @@ namespace TCG.Weiss
             // TODO: Implement actual user input
             return AttackType.Front;
         }
+
+        public List<WeissCard> ChooseMulliganCards(WeissPlayer player, List<WeissCard> hand)
+        {
+            // TODO: Implement actual user input for mulligan
+            return new List<WeissCard>(); // Do not mulligan
+        }
     }
 }
