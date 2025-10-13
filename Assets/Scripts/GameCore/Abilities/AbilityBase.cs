@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TCG.Core;
-using CostsCollection = Costs.Costs;
+using CostsCollection = TCG.Core.Costs;
 
 namespace TCG.Core
 {

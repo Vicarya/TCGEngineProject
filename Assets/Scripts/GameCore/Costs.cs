@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TCG.Core;
 
-namespace Costs
+namespace TCG.Core
 {
     public class Costs
     {
