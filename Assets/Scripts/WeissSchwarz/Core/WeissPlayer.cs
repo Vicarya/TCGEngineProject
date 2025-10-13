@@ -4,10 +4,10 @@ namespace TCG.Weiss
 
     public class WeissPlayer : Player
     {
-        public IPlayerController Controller { get; }
+        public IWeissPlayerController Controller { get; }
         public int HandLimit { get; set; } = 7;
 
-        public WeissPlayer(string name, IPlayerController controller) : base(name)
+        public WeissPlayer(string name, IWeissPlayerController controller) : base(name)
         {
             Controller = controller;
         }

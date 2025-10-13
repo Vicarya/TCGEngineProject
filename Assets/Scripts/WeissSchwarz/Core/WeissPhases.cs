@@ -72,11 +72,11 @@ namespace TCG.Weiss {
         public ClockPhase() : base("turn.clock", "Clock Phase") {}
         public override void OnEnter(GameState state) {
             base.OnEnter(state);
-            var player = state.ActivePlayer;
+            var player = state.ActivePlayer as WeissPlayer;
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfClockPhase"));
             // 任意: 手札1枚をクロックに置ける
-            var chosen = ((WeissPlayer)player).Controller.ChooseCardFromHand(player, optional: true);
+            var chosen = player.Controller.ChooseCardFromHand(player, optional: true);
             if (chosen != null) {
                 player.GetZone<IHandZone<WeissCard>>().RemoveCard(chosen);
                 player.GetZone<IClockZone<WeissCard>>().AddCard(chosen);
@@ -135,11 +135,11 @@ namespace TCG.Weiss {
         public ClimaxPhase() : base("turn.climax", "Climax Phase") {}
         public override void OnEnter(GameState state) {
             base.OnEnter(state);
-            var player = state.ActivePlayer;
+            var player = state.ActivePlayer as WeissPlayer;
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfClimaxPhase"));
             // 任意: クライマックスカードを1枚だけ置ける
-            var chosen = ((WeissPlayer)player).Controller.ChooseClimaxFromHand(player, optional: true);
+            var chosen = player.Controller.ChooseClimaxFromHand(player, optional: true);
             if (chosen != null) {
                 player.GetZone<IHandZone<WeissCard>>().RemoveCard(chosen);
                 player.GetZone<IClimaxZone<WeissCard>>().AddCard(chosen);
@@ -276,12 +276,12 @@ namespace TCG.Weiss {
         public EndPhase() : base("turn.end", "End Phase") {}
         public override void OnEnter(GameState state) {
             base.OnEnter(state);
-            var player = state.ActivePlayer;
+            var player = state.ActivePlayer as WeissPlayer;
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfEndPhase"));
             // 手札上限調整
-            while (player.GetZone<IHandZone<WeissCard>>().Cards.Count > ((WeissPlayer)player).HandLimit) {
-                var discard = ((WeissPlayer)player).Controller.ChooseCardFromHand(player, optional: false);
+            while (player.GetZone<IHandZone<WeissCard>>().Cards.Count > player.HandLimit) {
+                var discard = player.Controller.ChooseCardFromHand(player, optional: false);
                 player.GetZone<IHandZone<WeissCard>>().RemoveCard(discard);
                 player.GetZone<IDiscardPile<WeissCard>>().AddCard(discard);
                 state.EventBus.Raise(new GameEvent(new GameEventType("DiscardForHandLimit"), discard));

@@ -5,39 +5,39 @@ using TCG.Core;
 
 namespace TCG.Weiss
 {
-    public class ConsolePlayerController : IPlayerController
+    public class ConsolePlayerController : IWeissPlayerController
     {
-        public MainPhaseAction ChooseMainPhaseAction(Player player)
+        public MainPhaseAction ChooseMainPhaseAction(WeissPlayer player)
         {
             // TODO: Implement actual user input
             return MainPhaseAction.EndPhase;
         }
 
-        public WeissCard ChooseCardFromHand(Player player, bool optional)
+        public WeissCard ChooseCardFromHand(WeissPlayer player, bool optional)
         {
             // TODO: Implement actual user input
             return null;
         }
 
-        public WeissCard ChooseClimaxFromHand(Player player, bool optional)
+        public WeissCard ChooseClimaxFromHand(WeissPlayer player, bool optional)
         {
             // TODO: Implement actual user input
             return null;
         }
 
-        public bool ChooseToEndAttack(Player player)
+        public bool ChooseToEndAttack(WeissPlayer player)
         {
             // TODO: Implement actual user input
             return false; // Always attack if possible
         }
 
-        public WeissCard ChooseAttacker(Player player, List<WeissCard> attackableCharacters)
+        public WeissCard ChooseAttacker(WeissPlayer player, List<WeissCard> attackableCharacters)
         {
             // TODO: Implement actual user input
             return attackableCharacters.FirstOrDefault();
         }
 
-        public AttackType ChooseAttackType(Player player, WeissCard attacker, WeissCard defender)
+        public AttackType ChooseAttackType(WeissPlayer player, WeissCard attacker, WeissCard defender)
         {
             // TODO: Implement actual user input
             return AttackType.Front;
