@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using TCG.Weiss;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace TCG.Weiss {
     public static class WeissPhaseFactory {
@@ -38,7 +39,11 @@ namespace TCG.Weiss {
         public override void OnEnter(GameState state) {
             base.OnEnter(state);
             state.TurnCounter++;
-            var player = state.ActivePlayer;
+            var player = state.ActivePlayer as WeissPlayer;
+
+            // Reset controller state for the new turn
+            player?.Controller.ResetTurnState();
+
             // 舞台のキャラを全てスタンド
             foreach (var slot in player.GetZone<IStageZone<WeissCard>>().Slots) {
                 if(slot.Current != null) slot.Current.SetRested(false);
@@ -165,7 +170,44 @@ namespace TCG.Weiss {
                 }
                 else if (action == MainPhaseAction.UseAbility)
                 {
-                    // TODO: Implement ability usage logic
+                    // 1. Find all activatable abilities
+                    var stageZone = player.GetZone<IStageZone<WeissCard>>();
+                    var activatableAbilities = new List<KeyValuePair<WeissCard, string>>();
+
+                    foreach (var slot in stageZone.Slots)
+                    {
+                        var card = slot.Current;
+                        if (card != null && !card.IsRested && card.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
+                        {
+                            if (abilitiesObj is List<string> abilities)
+                            {
+                                foreach (var abilityText in abilities)
+                                {
+                                    if (abilityText.StartsWith("【起】"))
+                                    {
+                                        activatableAbilities.Add(new KeyValuePair<WeissCard, string>(card, abilityText));
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // 2. Have the player choose an ability
+                    if (activatableAbilities.Any())
+                    {
+                        var chosenAbility = player.Controller.ChooseAbilityToActivate(player, activatableAbilities);
+
+                        // 3. Activate the chosen ability via the rule engine
+                        if (chosenAbility.Key != null)
+                        {
+                            var ruleEngine = (state.Game as WeissGame).RuleEngine;
+                            ruleEngine.ActivateAbility(chosenAbility.Key, chosenAbility.Value);
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("There are no activatable abilities.");
+                    }
                 }
             }
 

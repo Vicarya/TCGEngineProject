@@ -77,6 +77,25 @@
       ],
       "flavor": "ぽるかおるか？おるよ！",
       "illustrator": "アカバネ"
+    },
+    {
+      "cardCode": "SMP/W00-001",
+      "name": "練習中のレベル0",
+      "set": "サンプルセット",
+      "rarity": "C",
+      "cardType": "キャラクター",
+      "color": "Yellow",
+      "level": 0,
+      "cost": 0,
+      "power": 500,
+      "soul": 1,
+      "trigger": "None",
+      "traits": ["サンプル", "練習"],
+      "text": [
+        "【起】 このカードを【レスト】する：あなたは1枚引く。"
+      ],
+      "flavor": "何かできるかな？",
+      "illustrator": "Gemini"
     }
   ]
 }
