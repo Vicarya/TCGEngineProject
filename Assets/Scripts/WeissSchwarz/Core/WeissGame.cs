@@ -1,5 +1,6 @@
 using TCG.Core;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace TCG.Weiss
@@ -55,12 +56,38 @@ namespace TCG.Weiss
                 player.RegisterZone<MemoryZone>(memoryZone);
                 player.RegisterZone<ResolutionZone>(resolutionZone);
 
-                // 4. 各プレイヤーのデッキにカードデータを読み込む (サンプルとして全カードを5枚ずつ追加)
-                foreach (var cardData in CardLoader.AllCards)
+                // 4. 各プレイヤーのデッキをファイルから読み込む
+                string deckFilePath = Application.streamingAssetsPath + "/WeissSchwarz/Decks/deck1.txt";
+                if (System.IO.File.Exists(deckFilePath))
                 {
-                    for (int i = 0; i < 5; i++)
+                    var deckList = System.IO.File.ReadAllLines(deckFilePath);
+                    foreach (string line in deckList)
                     {
-                        deckZone.AddCard(new WeissCard(cardData, player));
+                        var parts = line.Split(' ');
+                        if (parts.Length == 2 && int.TryParse(parts[1], out int quantity))
+                        {
+                            string cardCode = parts[0];
+                            var cardData = CardLoader.AllCards.FirstOrDefault(c => c.CardCode == cardCode);
+                            if (cardData != null)
+                            {
+                                for (int i = 0; i < quantity; i++)
+                                {
+                                    deckZone.AddCard(new WeissCard(cardData, player));
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"Deck file not found at {deckFilePath}. Using sample deck.");
+                    // Fallback to sample deck if file not found
+                    foreach (var cardData in CardLoader.AllCards.Take(10))
+                    {
+                        for (int i = 0; i < 5; i++)
+                        {
+                            deckZone.AddCard(new WeissCard(cardData, player));
+                        }
                     }
                 }
 
