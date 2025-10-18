@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TCG.Core;
 using TCG.Weiss;
+using UnityEngine;
 
 namespace TCG.Weiss 
 {
@@ -107,6 +108,77 @@ namespace TCG.Weiss
                 foreach (var c in cardsForLevelUp.Where(card => card != chosen)) {
                     waitingRoom.AddCard(c);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 指定されたカードの能力を起動します。
+        /// </summary>
+        /// <param name="card">能力を起動するカード</param>
+        /// <param name="abilityText">起動する能力のテキスト</param>
+        public void ActivateAbility(WeissCard card, string abilityText)
+        {
+            Debug.Log($"Activating ability for [{card.Data.CardCode} {card.Data.Name}]: {abilityText}");
+
+            // 1. Parse ability text
+            // A simple parser for "【起】 (Cost)：(Effect)" format
+            string costText = string.Empty;
+            string effectText = string.Empty;
+
+            var match = System.Text.RegularExpressions.Regex.Match(abilityText, @"^【起】(?<cost>.*)：(?<effect>.*)$");
+            if (match.Success)
+            {
+                costText = match.Groups["cost"].Value.Trim();
+                effectText = match.Groups["effect"].Value.Trim();
+            }
+            else
+            {
+                Debug.LogError($"Could not parse ability text: {abilityText}");
+                return;
+            }
+
+            // 2. Pay cost
+            bool costPaid = false;
+            if (costText == "このカードを【レスト】する")
+            {
+                if (!card.IsRested)
+                {
+                    card.Rest();
+                    costPaid = true;
+                    State.EventBus.Raise(new GameEvent(new GameEventType("AbilityCostPaid"), new { Player = card.Owner, Card = card, Cost = costText }));
+                }
+                else
+                {
+                    Debug.Log("Cost not met: Card is already rested.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"Unknown cost: {costText}");
+            }
+
+            // 3. Resolve effect
+            if (costPaid)
+            {
+                if (effectText == "あなたは1枚引く")
+                {
+                    var player = card.Owner as WeissPlayer;
+                    var deck = player.GetZone<IDeckZone<WeissCard>>();
+                    var hand = player.GetZone<IHandZone<WeissCard>>();
+                    var drawnCard = deck.DrawTop();
+                    if (drawnCard != null)
+                    {
+                        hand.AddCard(drawnCard);
+                        State.EventBus.Raise(new GameEvent(BaseGameEvents.CardDrawn, new { Player = player, Card = drawnCard }));
+                        Debug.Log($"{player.Name} drew a card due to ability effect.");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"Unknown effect: {effectText}");
+                }
+
+                State.EventBus.Raise(new GameEvent(new GameEventType("AbilityResolved"), new { Player = card.Owner, Card = card, Effect = effectText }));
             }
         }
     }

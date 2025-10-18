@@ -8,5 +8,7 @@ namespace TCG.Weiss
         MainPhaseAction ChooseMainPhaseAction(WeissPlayer player);
         WeissCard ChooseClimaxFromHand(WeissPlayer player, bool optional);
         AttackType ChooseAttackType(WeissPlayer player, WeissCard attacker, WeissCard defender);
+        KeyValuePair<WeissCard, string> ChooseAbilityToActivate(WeissPlayer player, List<KeyValuePair<WeissCard, string>> activatableAbilities);
+        void ResetTurnState();
     }
 }
