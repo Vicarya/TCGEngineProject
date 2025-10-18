@@ -6,6 +6,7 @@ namespace TCG.Core {
         public EventBus EventBus { get; }
         public string CurrentPhaseId { get; set; }
         public int CurrentPlayerIndex { get; set; } = 0;
+        public int TurnCounter { get; set; } = 0;
         public Player ActivePlayer => Players.Count > CurrentPlayerIndex ? Players[CurrentPlayerIndex] : null;
         public List<Player> Players { get; } = new();
 
