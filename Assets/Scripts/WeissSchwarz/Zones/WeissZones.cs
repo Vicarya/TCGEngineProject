@@ -310,6 +310,14 @@ namespace TCG.Weiss
         // Inherits from ZoneBase, which uses a List.
         // Weiss Stock is LIFO, so we override AddCard to insert at the beginning.
         public override void AddCard(WeissCard card) => cards.Insert(0, card);
+
+        public WeissCard RemoveTopCard()
+        {
+            if (cards.Count == 0) return null;
+            var card = cards[0];
+            cards.RemoveAt(0);
+            return card;
+        }
     }
 
     /// <summary>

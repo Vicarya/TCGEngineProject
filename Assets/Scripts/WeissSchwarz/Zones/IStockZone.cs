@@ -7,5 +7,6 @@ namespace TCG.Weiss
     /// </summary>
     public interface IStockZone<TCard> : IZone<TCard> where TCard : Card
     {
+        TCard RemoveTopCard();
     }
 }

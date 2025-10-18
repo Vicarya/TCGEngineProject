@@ -1,4 +1,5 @@
 using TCG.Core;
+using UnityEngine;
 using System;
 using TCG.Weiss;
 using System.Linq;
@@ -36,9 +37,8 @@ namespace TCG.Weiss {
         public StandPhase() : base("turn.stand", "Stand Phase") {}
         public override void OnEnter(GameState state) {
             base.OnEnter(state);
+            state.TurnCounter++;
             var player = state.ActivePlayer;
-
-            state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfStandPhase"));
             // 舞台のキャラを全てスタンド
             foreach (var slot in player.GetZone<IStageZone<WeissCard>>().Slots) {
                 if(slot.Current != null) slot.Current.SetRested(false);
@@ -94,7 +94,8 @@ namespace TCG.Weiss {
     // メインフェイズ
     public class MainPhase : PhaseBase {
         public MainPhase() : base("turn.main", "Main Phase") {}
-        public override void OnEnter(GameState state) {
+        public override void OnEnter(GameState state)
+        {
             base.OnEnter(state);
             var player = state.ActivePlayer as WeissPlayer;
 
@@ -111,13 +112,55 @@ namespace TCG.Weiss {
                 else if (action == MainPhaseAction.PlayCard)
                 {
                     var cardToPlay = player.Controller.ChooseCardFromHand(player, optional: true);
-                    if (cardToPlay != null)
+                    if (cardToPlay == null) continue;
+
+                    var data = cardToPlay.Data as WeissCardData;
+                    var playerLevel = player.GetZone<LevelZone>().Count;
+                    var stockZone = player.GetZone<IStockZone<WeissCard>>();
+
+                    // 1. レベルチェック
+                    if (data.Level > playerLevel)
                     {
-                        // TODO: Implement card playing logic (move from hand to stage/resolution zone, pay costs, etc.)
+                        Debug.Log($"プレイするにはレベルが足りません。プレイヤーレベル: {playerLevel}, カードレベル: {data.Level}");
+                        continue;
+                    }
+
+                    // 2. コストチェック
+                    if (stockZone.Cards.Count < data.Cost)
+                    {
+                        Debug.Log($"プレイするにはストックが足りません。必要ストック: {data.Cost}, 現在のストック: {stockZone.Cards.Count}");
+                        continue;
+                    }
+
+                    // 3. カード種別ごとの処理
+                    if (data.CardType == WeissCardType.Character.ToString())
+                    {
+                        var stageZone = player.GetZone<IStageZone<WeissCard>>();
+                        var emptySlot = stageZone.Slots.FirstOrDefault(s => s.Current == null);
+                        if (emptySlot == null)
+                        {
+                            Debug.Log("舞台に空きがありません。");
+                            continue;
+                        }
+                        
+                        // 全てのチェックをクリアしたので、コストを支払い、カードをプレイする
+                        PayCost(player, data.Cost);
                         player.GetZone<IHandZone<WeissCard>>().RemoveCard(cardToPlay);
-                        // This is a simplification. Real logic would depend on card type.
-                        player.GetZone<IStageZone<WeissCard>>().Slots.First(s => s.Current == null)?.PlaceCharacter(cardToPlay);
+                        emptySlot.PlaceCharacter(cardToPlay);
                         state.EventBus.Raise(new GameEvent(BaseGameEvents.CardPlayed, new { Player = player, Card = cardToPlay }));
+                    }
+                    else if (data.CardType == WeissCardType.Event.ToString())
+                    {
+                        // 全てのチェックをクリアしたので、コストを支払い、カードをプレイする
+                        PayCost(player, data.Cost);
+                        player.GetZone<IHandZone<WeissCard>>().RemoveCard(cardToPlay);
+                        player.GetZone<ResolutionZone>().AddCard(cardToPlay);
+                        state.EventBus.Raise(new GameEvent(BaseGameEvents.CardPlayed, new { Player = player, Card = cardToPlay }));
+                        // TODO: イベントカードの効果を解決する
+                    }
+                    else
+                    {
+                        Debug.Log($"このカードタイプ({data.CardType})はメインフェイズにプレイできません。");
                     }
                 }
                 else if (action == MainPhaseAction.UseAbility)
@@ -127,6 +170,20 @@ namespace TCG.Weiss {
             }
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "AfterMainActions"));
+        }
+
+        private void PayCost(WeissPlayer player, int stockCost)
+        {
+            if (stockCost <= 0) return;
+
+            var stockZone = player.GetZone<IStockZone<WeissCard>>();
+            var waitingRoom = player.GetZone<IDiscardPile<WeissCard>>();
+
+            for (int i = 0; i < stockCost; i++)
+            {
+                var card = stockZone.RemoveTopCard();
+                if(card != null) waitingRoom.AddCard(card);
+            }
         }
     }
 
@@ -160,6 +217,9 @@ namespace TCG.Weiss {
             var ruleEngine = (state.Game as WeissGame).RuleEngine;
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfAttackPhase"));
+
+            bool isFirstTurn = state.TurnCounter == 1;
+            int attacksThisTurn = 0;
 
             while (true)
             {
@@ -211,7 +271,12 @@ namespace TCG.Weiss {
                     ExecuteBattleStep(state, attacker, defender);
                 }
                 
-                // TODO: Implement first turn, one attack rule
+                attacksThisTurn++;
+                if (isFirstTurn && attacksThisTurn >= 1)
+                {
+                    Debug.Log("最初のターンは1回しかアタックできません。");
+                    break;
+                }
             }
 
             // TODO: Implement EncoreStep
