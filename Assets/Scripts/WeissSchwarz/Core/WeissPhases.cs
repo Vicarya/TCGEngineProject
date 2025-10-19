@@ -62,9 +62,9 @@ namespace TCG.Weiss {
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfDrawPhase"));
             // 山札から1枚ドロー
-            var deck = player.GetZone<IDeckZone<WeissCard>>();
+            var ruleEngine = (state.Game as WeissGame).RuleEngine;
             var hand = player.GetZone<IHandZone<WeissCard>>();
-            var card = deck.DrawTop();
+            var card = ruleEngine.DrawCard(player);
             if (card != null) hand.AddCard(card);
 
             state.EventBus.Raise(new GameEvent(BaseGameEvents.CardDrawn, new { Player = player, Card = card }));
@@ -86,8 +86,9 @@ namespace TCG.Weiss {
                 player.GetZone<IHandZone<WeissCard>>().RemoveCard(chosen);
                 player.GetZone<IClockZone<WeissCard>>().AddCard(chosen);
                 // 2ドロー
+                var ruleEngine = (state.Game as WeissGame).RuleEngine;
                 for (int i = 0; i < 2; i++) {
-                    var c = player.GetZone<IDeckZone<WeissCard>>().DrawTop();
+                    var c = ruleEngine.DrawCard(player);
                     if (c != null) player.GetZone<IHandZone<WeissCard>>().AddCard(c);
                 }
                 state.EventBus.Raise(new GameEvent(new GameEventType("CardClocked"), new { Player = player, Card = chosen }));

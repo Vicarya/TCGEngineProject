@@ -125,9 +125,6 @@ namespace TCG.Weiss
                         var newCard = deckZone.DrawTop();
                         if (newCard != null) handZone.AddCard(newCard);
                     }
-                    
-                    // TODO: ヴァイスシュヴァルツの公式ルールでは、マリガンで控え室に置かれたカードは山札に戻してシャッフルする。
-                    // 現在の実装は簡略版。
                 }
             }
 
