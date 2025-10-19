@@ -148,9 +148,7 @@ namespace TCG.Weiss
                 // よってリストの先頭から7枚が対象
                 var cardsForLevelUp = clock.Cards.Take(7).ToList();
 
-                // TODO: [PlayerController] プレイヤーにレベルアップに使うカードを1枚選ばせる (IPlayerController経由で)
-                // 仮実装: 最初の1枚を選択
-                var chosen = cardsForLevelUp[0];
+                var chosen = (player as WeissPlayer).Controller.ChooseLevelUpCard(player as WeissPlayer, cardsForLevelUp);
 
                 level.AddCard(chosen);
                 State.EventBus.Raise(new GameEvent(new GameEventType("LevelUp"), new { Player = player, Card = chosen }));
@@ -227,73 +225,61 @@ namespace TCG.Weiss
             return card;
         }
 
-        /// <summary>
-        /// 指定されたカードの能力を起動します。
-        /// </summary>
-        /// <param name="card">能力を起動するカード</param>
-        /// <param name="abilityText">起動する能力のテキスト</param>
         public void ActivateAbility(WeissCard card, string abilityText)
         {
             Debug.Log($"Activating ability for [{card.Data.CardCode} {card.Data.Name}]: {abilityText}");
 
-            // 1. Parse ability text
-            // A simple parser for "【起】 (Cost)：(Effect)" format
-            string costText = string.Empty;
-            string effectText = string.Empty;
+            // This is a proof-of-concept implementation for a single, hardcoded ability.
+            // A full implementation would require a robust parsing and resolution system (M4).
 
-            var match = System.Text.RegularExpressions.Regex.Match(abilityText, @"^【起】(?<cost>.*)：(?<effect>.*)$");
-            if (match.Success)
-            {
-                costText = match.Groups["cost"].Value.Trim();
-                effectText = match.Groups["effect"].Value.Trim();
-            }
-            else
-            {
-                Debug.LogError($"Could not parse ability text: {abilityText}");
-                return;
-            }
+            const string targetAbilityText = "【起】 あなたは自分のキャラを1枚選び、【レスト】する。そうしたら、あなたは1枚引く。";
 
-            // 2. Pay cost
-            bool costPaid = false;
-            if (costText == "このカードを【レスト】する")
+            if (abilityText == targetAbilityText)
             {
-                if (!card.IsRested)
-                {
-                    card.Rest();
-                    costPaid = true;
-                    State.EventBus.Raise(new GameEvent(new GameEventType("AbilityCostPaid"), new { Player = card.Owner, Card = card, Cost = costText }));
-                }
-                else
-                {
-                    Debug.Log("Cost not met: Card is already rested.");
-                }
-            }
-            else
-            {
-                Debug.LogWarning($"Unknown cost: {costText}");
-            }
+                var player = card.Owner as WeissPlayer;
+                if (player == null) return;
 
-            // 3. Resolve effect
-            if (costPaid)
-            {
-                if (effectText == "あなたは1枚引く")
+                // --- Cost: None for this ability, but the activation itself is the cost ---
+                // In a real system, we would parse a cost like [1] or [Rest a character] here.
+                bool costPaid = true; // Assuming the cost of activating is met.
+
+                // --- Effect Resolution ---
+                if (costPaid)
                 {
-                    var player = card.Owner as WeissPlayer;
-                    var hand = player.GetZone<IHandZone<WeissCard>>();
-                    var drawnCard = this.DrawCard(player);
-                    if (drawnCard != null)
+                    // 1. Choose target
+                    var stage = player.GetZone<IStageZone<WeissCard>>();
+                    var validTargets = stage.Cards.Where(c => c != null && !c.IsRested).ToList();
+                    string prompt = "Choose 1 of your characters to rest.";
+
+                    var targetToRest = player.Controller.ChooseTargetCard(player, validTargets, prompt, false);
+
+                    if (targetToRest != null)
                     {
-                        hand.AddCard(drawnCard);
-                        State.EventBus.Raise(new GameEvent(BaseGameEvents.CardDrawn, new { Player = player, Card = drawnCard }));
-                        Debug.Log($"{player.Name} drew a card due to ability effect.");
+                        // 2. Resolve first part of the effect: Rest the target
+                        targetToRest.Rest();
+                        Debug.Log($"[{targetToRest.Data.Name}] was rested by ability effect.");
+
+                        // 3. Resolve second part of the effect: Draw 1 card
+                        var hand = player.GetZone<IHandZone<WeissCard>>();
+                        var drawnCard = this.DrawCard(player);
+                        if (drawnCard != null)
+                        {
+                            hand.AddCard(drawnCard);
+                            State.EventBus.Raise(new GameEvent(BaseGameEvents.CardDrawn, new { Player = player, Card = drawnCard }));
+                            Debug.Log($"{player.Name} drew a card due to ability effect.");
+                        }
+                        
+                        State.EventBus.Raise(new GameEvent(new GameEventType("AbilityResolved"), new { Player = card.Owner, Card = card, Effect = abilityText }));
+                    }
+                    else
+                    {
+                        Debug.Log("No target chosen. Ability effect fails.");
                     }
                 }
-                else
-                {
-                    Debug.LogWarning($"Unknown effect: {effectText}");
-                }
-
-                State.EventBus.Raise(new GameEvent(new GameEventType("AbilityResolved"), new { Player = card.Owner, Card = card, Effect = effectText }));
+            }
+            else
+            {
+                Debug.LogWarning($"Unknown or not-yet-implemented ability: {abilityText}");
             }
         }
 

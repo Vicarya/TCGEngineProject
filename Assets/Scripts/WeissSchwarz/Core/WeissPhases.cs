@@ -299,6 +299,9 @@ namespace TCG.Weiss {
                 attacker.Rest();
                 state.EventBus.Raise(new GameEvent(WeissGameEvents.AttackDeclared, new { Attacker = attacker, Defender = defender, Type = attackType }));
 
+                // アタック時自動能力の解決
+                ResolveOnAttackAbilities(state, attacker);
+
                 // Execute sub-phases
                 int soulBoost = ExecuteTriggerStep(state, ruleEngine);
 
@@ -499,6 +502,41 @@ namespace TCG.Weiss {
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfEncoreStep"));
             Debug.Log("End of Encore Step");
+        }
+
+        private void ResolveOnAttackAbilities(GameState state, WeissCard attacker)
+        {
+            var player = attacker.Owner as WeissPlayer;
+            if (player == null) return;
+
+            // Proof-of-concept: Check for a specific hardcoded auto ability
+            const string onAttackAbilityText = "【自】 このカードがアタックした時、あなたは自分の山札の上から1枚を、ストック置場に置いてよい。";
+
+            if (attacker.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
+            {
+                if (abilitiesObj is List<string> abilities && abilities.Contains(onAttackAbilityText))
+                {
+                    // Found the ability, ask the player if they want to use it.
+                    bool useAbility = player.Controller.AskYesNo(player, $"Use ability? \"{onAttackAbilityText}\"");
+
+                    if (useAbility)
+                    {
+                        Debug.Log($"Player chose to use on-attack ability for [{attacker.Data.Name}].");
+                        // Resolve the effect: top card of deck to stock.
+                        var deck = player.GetZone<IDeckZone<WeissCard>>();
+                        var stock = player.GetZone<IStockZone<WeissCard>>();
+                        var ruleEngine = (state.Game as WeissGame).RuleEngine;
+
+                        var cardToStock = ruleEngine.DrawCard(player);
+                        if (cardToStock != null)
+                        {
+                            stock.AddCard(cardToStock);
+                            state.EventBus.Raise(new GameEvent(new GameEventType("CardToStock"), new { Card = cardToStock, Source = attacker }));
+                            Debug.Log($"[{cardToStock.Data.Name}] was moved from Deck to Stock.");
+                        }
+                    }
+                }
+            }
         }
     }
 
