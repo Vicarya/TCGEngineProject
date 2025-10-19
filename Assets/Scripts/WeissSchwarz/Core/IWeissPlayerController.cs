@@ -16,5 +16,8 @@ namespace TCG.Weiss
         WeissCard ChooseCardFromWaitingRoom(WeissPlayer player, List<WeissCard> cards, bool optional);
         KeyValuePair<WeissCard, string> ChooseAbilityToActivate(WeissPlayer player, List<KeyValuePair<WeissCard, string>> activatableAbilities);
         EncoreChoice ChooseToEncore(WeissPlayer player, WeissCard character);
+        WeissCard ChooseLevelUpCard(WeissPlayer player, List<WeissCard> cards);
+        bool AskYesNo(WeissPlayer player, string question);
+        WeissCard ChooseTargetCard(WeissPlayer player, List<WeissCard> validTargets, string prompt, bool optional);
     }
 }
