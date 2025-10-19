@@ -16,19 +16,49 @@ namespace TCG.Core {
 
     public class EventBus
     {
-        private Dictionary<int, List<Action<GameEvent>>> handlers = new();
+        private readonly Dictionary<int, List<Action<GameEvent>>> _handlers = new();
+        private readonly List<Action<GameEvent>> _allHandlers = new();
 
         public void Subscribe(GameEventType type, Action<GameEvent> handler)
         {
-            if (!handlers.ContainsKey(type.Index))
-                handlers[type.Index] = new List<Action<GameEvent>>();
-            handlers[type.Index].Add(handler);
+            if (!_handlers.ContainsKey(type.Index))
+            {
+                _handlers[type.Index] = new List<Action<GameEvent>>();
+            }
+            _handlers[type.Index].Add(handler);
+        }
+
+        public void Unsubscribe(GameEventType type, Action<GameEvent> handler)
+        {
+            if (_handlers.TryGetValue(type.Index, out var list))
+            {
+                list.Remove(handler);
+            }
+        }
+
+        public void SubscribeToAll(Action<GameEvent> handler)
+        {
+            _allHandlers.Add(handler);
+        }
+
+        public void UnsubscribeFromAll(Action<GameEvent> handler)
+        {
+            _allHandlers.Remove(handler);
         }
 
         public void Raise(GameEvent evt)
         {
-            if (!handlers.TryGetValue(evt.Type.Index, out var list)) return;
-            foreach (var h in list.ToArray()) h(evt);
+            if (_handlers.TryGetValue(evt.Type.Index, out var list))
+            {
+                foreach (var h in list.ToArray())
+                {
+                    h(evt);
+                }
+            }
+            foreach (var h in _allHandlers.ToArray())
+            {
+                h(evt);
+            }
         }
     }
 }
