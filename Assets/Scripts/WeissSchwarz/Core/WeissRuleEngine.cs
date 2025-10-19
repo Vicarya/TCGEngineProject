@@ -33,16 +33,64 @@ namespace TCG.Weiss
         /// 山札の一番上のカードを公開し、トリガーアイコンに応じた処理（ここではストックに送る）を行います。
         /// </summary>
         /// <param name="attacker">攻撃プレイヤー</param>
-        public void TriggerCheck(Player attacker) {
+        public int TriggerCheck(Player attacker) {
             var deck = attacker.GetZone<IDeckZone<WeissCard>>();
-            var top = (deck as DeckZone)?.PeekTop();
-            if (top == null) return;
-            // reveal
-            State.EventBus.Raise(new GameEvent(new GameEventType("TriggerReveal"), new { Player = attacker, Card = top }));
-            // In many cases: the revealed card then goes to stock (or resolution actions vary)
-            // For simplicity: move to Stock
-            var drawn = deck.DrawTop();
-            if (drawn != null) attacker.GetZone<IStockZone<WeissCard>>().AddCard(drawn);
+            var stock = attacker.GetZone<IStockZone<WeissCard>>();
+            var weissAttacker = attacker as WeissPlayer;
+            if (weissAttacker == null) return 0;
+
+            var triggeredCard = deck.DrawTop();
+            if (triggeredCard == null) {
+                // TODO: Refresh
+                return 0;
+            }
+
+            var cardData = (triggeredCard as WeissCard)?.Data as WeissCardData;
+            if (cardData == null) {
+                stock.AddCard(triggeredCard);
+                return 0;
+            }
+
+            State.EventBus.Raise(new GameEvent(new GameEventType("TriggerReveal"), new { Player = attacker, Card = triggeredCard }));
+
+            int soulBoost = 0;
+            var icons = cardData.TriggerIcon?.Split(new[] {' ', ','}, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
+
+            foreach (var icon in icons) {
+                switch (icon) {
+                    case "Soul":
+                        soulBoost++;
+                        break;
+                    case "Comeback":
+                        var waitingRoom = weissAttacker.GetZone<WaitingRoomZone>();
+                        var hand = weissAttacker.GetZone<IHandZone<WeissCard>>();
+                        var charactersInWaitingRoom = waitingRoom.Cards
+                            .Where(c => (((c as WeissCard)?.Data) as WeissCardData)?.CardType == "キャラクター")
+                            .ToList();
+
+                        var characterToReturn = weissAttacker.Controller.ChooseCardFromWaitingRoom(weissAttacker, charactersInWaitingRoom, true);
+                        if (characterToReturn != null) {
+                            waitingRoom.RemoveCard(characterToReturn);
+                            hand.AddCard(characterToReturn);
+                            State.EventBus.Raise(new GameEvent(new GameEventType("TriggerComeback"), new { Player = attacker, ReturnedCard = characterToReturn }));
+                        }
+                        break;
+                    case "Draw":
+                        var handZone = attacker.GetZone<IHandZone<WeissCard>>();
+                        var drawnCard = deck.DrawTop();
+                        if (drawnCard != null) {
+                            handZone.AddCard(drawnCard);
+                            State.EventBus.Raise(new GameEvent(BaseGameEvents.CardDrawn, new { Player = attacker, Card = drawnCard }));
+                        }
+                        break;
+                }
+            }
+
+            stock.AddCard(triggeredCard);
+            
+            if(soulBoost > 0) Debug.Log($"Triggered {soulBoost} SOUL!");
+
+            return soulBoost;
         }
 
         /// <summary>
@@ -54,13 +102,18 @@ namespace TCG.Weiss
         public void ApplyDamage(Player victim, int amount) {
             var deck = victim.GetZone<IDeckZone<WeissCard>>();
             var clock = victim.GetZone<IClockZone<WeissCard>>();
+            var waitingRoom = victim.GetZone<WaitingRoomZone>();
+            if (waitingRoom == null) {
+                Debug.LogError("WaitingRoomZoneが見つかりません。");
+                return;
+            }
+
             for (int i=0;i<amount;i++) {
                 var card = deck.DrawTop();
                 if (card == null) {
                     // deck empty => refresh from waiting room (shuffling) per rule (simplified)
-                    var waitingRoom = victim.GetZone<WaitingRoomZone>();
                     var clockZone = victim.GetZone<ClockZone>();
-                    if (waitingRoom != null && waitingRoom.Cards.Any()) {
+                    if (waitingRoom.Cards.Any()) {
                         (deck as DeckZone)?.RefreshFrom(waitingRoom, clockZone);
                         State.EventBus.Raise(new GameEvent(WeissGameEvents.DeckRefresh, victim));
                     } 
@@ -72,6 +125,16 @@ namespace TCG.Weiss
                     card = deck.DrawTop(); // リフレッシュ後に再度ドロー
                     if (card == null) { State.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), victim)); return; } // それでも引けなければ敗北
                 }
+
+                // ダメージキャンセルチェック
+                var weissCardData = (card as WeissCard)?.Data as WeissCardData;
+                if (weissCardData != null && weissCardData.CardType == WeissCardType.Climax.ToString()) {
+                    Debug.Log($"ダメージがキャンセルされました！ トリガーしたカード: {weissCardData.Name}");
+                    waitingRoom.AddCard(card);
+                    State.EventBus.Raise(new GameEvent(new GameEventType("DamageCancelled"), new { Player = victim, Card = card }));
+                    break; // ダメージ処理を中断
+                }
+
                 clock.AddCard(card);
                 State.EventBus.Raise(new GameEvent(new GameEventType("DamageTaken"), new { Player = victim, Card = card }));
                 
@@ -179,6 +242,51 @@ namespace TCG.Weiss
                 }
 
                 State.EventBus.Raise(new GameEvent(new GameEventType("AbilityResolved"), new { Player = card.Owner, Card = card, Effect = effectText }));
+            }
+        }
+
+        public void ResolveCounterAbility(WeissCard counterCard, WeissCard defendingCharacter)
+        {
+            if (counterCard == null || defendingCharacter == null) return;
+
+            // 1. Find the Assist ability text
+            string assistText = null;
+            if (counterCard.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
+            {
+                if (abilitiesObj is List<string> abilities)
+                {
+                    assistText = abilities.FirstOrDefault(text => text.StartsWith("【助太刀"));
+                }
+            }
+
+            if (assistText == null)
+            {
+                Debug.LogError($"Could not find assist ability on counter card: {counterCard.Data.Name}");
+                return;
+            }
+
+            Debug.Log($"Resolving counter ability: {assistText}");
+
+            // 2. Parse the ability for power
+            // Example: 【助太刀2000 レベル1】
+            var match = System.Text.RegularExpressions.Regex.Match(assistText, @"【助太刀(?<power>\d+)");
+            if (match.Success && int.TryParse(match.Groups["power"].Value, out int powerBoost))
+            {
+                // TODO: Check level requirement
+                // TODO: Pay ability cost
+
+                // 3. Apply the effect
+                defendingCharacter.TemporaryPower += powerBoost;
+                State.EventBus.Raise(new GameEvent(new GameEventType("PowerBoosted"), new { 
+                    Target = defendingCharacter, 
+                    Amount = powerBoost, 
+                    Source = counterCard 
+                }));
+                Debug.Log($"[{defendingCharacter.Data.Name}] power boosted by {powerBoost}. New temporary power: {defendingCharacter.TemporaryPower}");
+            }
+            else
+            {
+                Debug.LogError($"Could not parse power from assist ability: {assistText}");
             }
         }
     }
