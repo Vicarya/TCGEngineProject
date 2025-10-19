@@ -9,7 +9,22 @@ namespace TCG.Weiss
     /// </summary>
     public class GameManager : MonoBehaviour
     {
+        public static GameManager Instance { get; private set; }
+
+        public WeissGame Game { get { return _game; } }
         private WeissGame _game;
+
+        void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(this.gameObject);
+            }
+            else
+            {
+                Instance = this;
+            }
+        }
 
         void Start()
         {
