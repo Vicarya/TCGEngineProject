@@ -5,10 +5,12 @@ namespace TCG.Weiss {
     public class WeissCard : CardBase<WeissCardData>
     {
         public bool IsReversed { get; private set; }
+        public int TemporaryPower { get; set; }
 
         public WeissCard(WeissCardData data, Player owner) : base(data, owner) 
         {
             IsReversed = false;
+            TemporaryPower = 0;
         }
 
         public void Rest()

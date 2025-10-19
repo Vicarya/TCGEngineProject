@@ -299,14 +299,14 @@ namespace TCG.Weiss {
                 state.EventBus.Raise(new GameEvent(WeissGameEvents.AttackDeclared, new { Attacker = attacker, Defender = defender, Type = attackType }));
 
                 // Execute sub-phases
-                ExecuteTriggerStep(state, ruleEngine);
+                int soulBoost = ExecuteTriggerStep(state, ruleEngine);
 
                 if (attackType == AttackType.Front)
                 {
-                    ExecuteCounterStep(state);
+                    ExecuteCounterStep(state, opponent);
                 }
 
-                ExecuteDamageStep(state, ruleEngine, attacker, opponent, attackType);
+                ExecuteDamageStep(state, ruleEngine, attacker, opponent, attackType, soulBoost);
 
                 if (attackType == AttackType.Front && defender != null)
                 {
@@ -321,28 +321,54 @@ namespace TCG.Weiss {
                 }
             }
 
-            // TODO: Implement EncoreStep
-            state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfEncoreStep"));
+            ExecuteEncoreStep(state);
         }
 
-        private void ExecuteTriggerStep(GameState state, WeissRuleEngine ruleEngine)
+        private int ExecuteTriggerStep(GameState state, WeissRuleEngine ruleEngine)
         {
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfTriggerStep"));
-            ruleEngine.TriggerCheck(state.ActivePlayer);
+            int soulBoost = ruleEngine.TriggerCheck(state.ActivePlayer);
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfTriggerStep"));
+            return soulBoost;
         }
 
-        private void ExecuteCounterStep(GameState state)
+        private void ExecuteCounterStep(GameState state, WeissPlayer opponent)
         {
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfCounterStep"));
-            // TODO: Allow non-active player to play counter cards
+
+            // 1. Find counter cards in opponent's hand
+            var hand = opponent.GetZone<IHandZone<WeissCard>>();
+            var counterCards = hand.Cards.Where(card => {
+                if (card.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj)) {
+                    if (abilitiesObj is List<string> abilities) {
+                        return abilities.Any(text => text.Contains("【助太刀】"));
+                    }
+                }
+                return false;
+            }).ToList();
+
+            // 2. Ask controller to choose one
+            var chosenCounter = opponent.Controller.ChooseCounterCardFromHand(opponent, counterCards);
+
+            // 3. If a card is chosen, process it (simplified for now)
+            if (chosenCounter != null)
+            {
+                Debug.Log($"{opponent.Name} plays counter card: [{chosenCounter.Data.CardCode}] {chosenCounter.Data.Name}");
+                // TODO: Implement cost payment and effect resolution via RuleEngine
+                
+                // For now, just move card from hand to resolution zone as a placeholder action
+                hand.RemoveCard(chosenCounter);
+                opponent.GetZone<ResolutionZone>().AddCard(chosenCounter);
+                state.EventBus.Raise(new GameEvent(new GameEventType("CounterCardPlayed"), new { Player = opponent, Card = chosenCounter }));
+            }
+
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfCounterStep"));
         }
 
-        private void ExecuteDamageStep(GameState state, WeissRuleEngine ruleEngine, WeissCard attacker, WeissPlayer opponent, AttackType attackType)
+        private void ExecuteDamageStep(GameState state, WeissRuleEngine ruleEngine, WeissCard attacker, WeissPlayer opponent, AttackType attackType, int soulBoost)
         {
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfDamageStep"));
-            var soul = (attacker.Data as WeissCardData).Soul;
+            var soul = (attacker.Data as WeissCardData).Soul + soulBoost;
             if (attackType == AttackType.Direct)
             {
                 soul += 1;
@@ -375,6 +401,103 @@ namespace TCG.Weiss {
                 state.EventBus.Raise(new GameEvent(WeissGameEvents.CharacterReversed, defender));
             }
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfBattleStep"));
+        }
+
+        private void ExecuteEncoreStep(GameState state)
+        {
+            state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfEncoreStep"));
+            Debug.Log("Start of Encore Step");
+
+            // The turn player gets to decide the order of encores first.
+            // For simplicity, we will process the turn player's reversed cards, then the other player's.
+            var players = new List<WeissPlayer> { state.ActivePlayer as WeissPlayer, state.Players.FirstOrDefault(p => p != state.ActivePlayer) as WeissPlayer };
+
+            foreach (var player in players)
+            {
+                if (player == null) continue;
+
+                var stage = player.GetZone<StageZone>();
+                var waitingRoom = player.GetZone<WaitingRoomZone>();
+                
+                // Find reversed characters for the current player
+                var reversedCharacters = stage.Slots
+                    .Where(s => s.Current != null && s.Current.IsReversed)
+                    .Select(s => s.Current)
+                    .ToList();
+
+                foreach (var character in reversedCharacters)
+                {
+                    var originalSlot = stage.FindSlot(character);
+
+                    // 1. Move the character to the waiting room
+                    originalSlot.RemoveCharacter();
+                    waitingRoom.AddCard(character);
+                    character.SetReversed(false); // No longer reversed in the waiting room
+                    state.EventBus.Raise(new GameEvent(new GameEventType("CharacterToWaitingRoom"), new { Character = character, From = "Stage" }));
+                    Debug.Log($"[{character.Data.Name}] was sent from Stage to Waiting Room.");
+
+                    // 2. Ask player if they want to encore
+                    var choice = player.Controller.ChooseToEncore(player, character);
+
+                    bool encored = false;
+                    if (choice == EncoreChoice.Standard)
+                    {
+                        // 3a. Standard Encore
+                        var stock = player.GetZone<IStockZone<WeissCard>>();
+                        if (stock.Cards.Count >= 3)
+                        {
+                            // Pay cost
+                            for(int i = 0; i < 3; i++)
+                            {
+                                var card = stock.RemoveTopCard();
+                                if(card != null) waitingRoom.AddCard(card);
+                            }
+                            
+                            // Encore the character
+                            waitingRoom.RemoveCard(character);
+                            originalSlot.PlaceCharacter(character);
+                            character.Rest();
+                            encored = true;
+                            Debug.Log($"[{character.Data.Name}] was encored by paying 3 stock.");
+                            state.EventBus.Raise(new GameEvent(new GameEventType("CharacterEncored"), new { Character = character, Type = "Standard" }));
+                        }
+                    }
+                    else if (choice == EncoreChoice.Special)
+                    {
+                        // 3b. Special Encore
+                        // For now, we only handle "discard a character from hand"
+                        // A more robust implementation would parse the cost from the ability text.
+                        var hand = player.GetZone<IHandZone<WeissCard>>();
+                        var characterInHand = hand.Cards.FirstOrDefault(c => ((c as WeissCard)?.Data as WeissCardData)?.CardType == "キャラクター");
+
+                        if (characterInHand != null)
+                        {
+                            // Pay cost
+                            hand.RemoveCard(characterInHand);
+                            waitingRoom.AddCard(characterInHand);
+                            
+                            // Encore the character
+                            waitingRoom.RemoveCard(character);
+                            originalSlot.PlaceCharacter(character);
+                            character.Rest();
+                            encored = true;
+                            Debug.Log($"[{character.Data.Name}] was encored by discarding [{characterInHand.Data.Name}].");
+                            state.EventBus.Raise(new GameEvent(new GameEventType("CharacterEncored"), new { Character = character, Type = "Special", CostCard = characterInHand }));
+                        }
+                        else {
+                            Debug.Log($"Could not pay special encore cost for [{character.Data.Name}] (no character in hand to discard).");
+                        }
+                    }
+
+                    if (!encored)
+                    {
+                        Debug.Log($"[{character.Data.Name}] was not encored.");
+                    }
+                }
+            }
+
+            state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfEncoreStep"));
+            Debug.Log("End of Encore Step");
         }
     }
 

@@ -17,4 +17,11 @@ namespace TCG.Weiss
     {
         Front, Side, Direct
     }
+
+    public enum EncoreChoice
+    {
+        None,
+        Standard, // Pay 3 stock
+        Special   // Use card's own encore ability
+    }
 }
