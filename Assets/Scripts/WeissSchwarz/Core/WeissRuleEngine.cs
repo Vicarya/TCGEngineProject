@@ -39,9 +39,9 @@ namespace TCG.Weiss
             var weissAttacker = attacker as WeissPlayer;
             if (weissAttacker == null) return 0;
 
-            var triggeredCard = deck.DrawTop();
+            var triggeredCard = this.DrawCard(attacker);
             if (triggeredCard == null) {
-                // TODO: Refresh
+                // DrawCard handles the empty deck case, but if it still returns null, something is wrong (e.g., lose condition)
                 return 0;
             }
 
@@ -109,21 +109,10 @@ namespace TCG.Weiss
             }
 
             for (int i=0;i<amount;i++) {
-                var card = deck.DrawTop();
+                var card = this.DrawCard(victim);
                 if (card == null) {
-                    // deck empty => refresh from waiting room (shuffling) per rule (simplified)
-                    var clockZone = victim.GetZone<ClockZone>();
-                    if (waitingRoom.Cards.Any()) {
-                        (deck as DeckZone)?.RefreshFrom(waitingRoom, clockZone);
-                        State.EventBus.Raise(new GameEvent(WeissGameEvents.DeckRefresh, victim));
-                    } 
-                    else {
-                        // lose condition if no cards anywhere
-                        State.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), victim));
-                        return;
-                    }
-                    card = deck.DrawTop(); // リフレッシュ後に再度ドロー
-                    if (card == null) { State.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), victim)); return; } // それでも引けなければ敗北
+                    // Lose condition is handled by DrawCard, just stop the damage process.
+                    return;
                 }
 
                 // ダメージキャンセルチェック
@@ -172,6 +161,70 @@ namespace TCG.Weiss
                     waitingRoom.AddCard(c);
                 }
             }
+        }
+
+        private void ApplyRefreshPointDamage(Player player)
+        {
+            var deck = player.GetZone<IDeckZone<WeissCard>>();
+            var clock = player.GetZone<IClockZone<WeissCard>>();
+
+            var damageCard = deck.DrawTop();
+            if (damageCard == null)
+            {
+                Debug.LogError($"Deck became empty while applying refresh point damage. This is a critical error.");
+                State.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), player));
+                return;
+            }
+
+            // Refresh point damage cannot be cancelled
+            clock.AddCard(damageCard);
+            State.EventBus.Raise(new GameEvent(new GameEventType("DamageTaken"), new { Player = player, Card = damageCard, IsRefreshPoint = true }));
+            Debug.Log($"[{damageCard.Data.Name}] was placed in clock for refresh point damage.");
+
+            // Check for level up
+            CheckAndHandleLevelUp(player);
+        }
+
+        public WeissCard DrawCard(Player player)
+        {
+            var deck = player.GetZone<IDeckZone<WeissCard>>();
+            var card = deck.DrawTop();
+
+            if (card == null)
+            {
+                Debug.Log($"{player.Name}'s deck is empty. Performing refresh.");
+
+                var waitingRoom = player.GetZone<IDiscardPile<WeissCard>>();
+                if (waitingRoom.Cards.Count == 0)
+                {
+                    State.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), player));
+                    Debug.LogWarning($"{player.Name} has no cards in deck or waiting room to refresh. Player loses.");
+                    return null;
+                }
+
+                var cardsToReturn = new List<WeissCard>(waitingRoom.Cards);
+                foreach(var c in cardsToReturn)
+                {
+                    waitingRoom.RemoveCard(c);
+                    (deck as DeckZone)?.AddCard(c);
+                }
+
+                deck.Shuffle();
+                State.EventBus.Raise(new GameEvent(new GameEventType("DeckRefresh"), player));
+                Debug.Log($"{player.Name} refreshed their deck with {cardsToReturn.Count} cards.");
+
+                ApplyRefreshPointDamage(player);
+
+                card = deck.DrawTop();
+                if (card == null)
+                {
+                    State.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), player));
+                    Debug.LogError($"{player.Name}'s deck is still empty after refresh. This should not happen.");
+                    return null;
+                }
+            }
+
+            return card;
         }
 
         /// <summary>
@@ -226,9 +279,8 @@ namespace TCG.Weiss
                 if (effectText == "あなたは1枚引く")
                 {
                     var player = card.Owner as WeissPlayer;
-                    var deck = player.GetZone<IDeckZone<WeissCard>>();
                     var hand = player.GetZone<IHandZone<WeissCard>>();
-                    var drawnCard = deck.DrawTop();
+                    var drawnCard = this.DrawCard(player);
                     if (drawnCard != null)
                     {
                         hand.AddCard(drawnCard);
