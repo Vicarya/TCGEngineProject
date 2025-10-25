@@ -25,3 +25,25 @@
 1. このプロジェクトをUnity Editor (`2022.3.12f1`以降)で開きます。
 2. `Assets/Scenes/SampleScene.unity` を開きます。
 3. Unity Editorの上部にある再生ボタンをクリックして、ゲームを実行します。
+
+## プロジェクト構造の簡易ガイド
+
+このリポジトリは、ドメインごとに責務を分離した2層構造になっています。詳細は `docs/ProjectArchitecture.md` を参照してくださいが、簡単にポイントをまとめます。
+
+- コア（汎用）: `Assets/Scripts/GameCore` —
+    - ネームスペース: `TCG.Core`
+    - 役割: カード、プレイヤー、ゾーン、ゲームフロー、イベントなど、特定のTCGに依存しない抽象概念を提供
+- ゲーム固有実装: `Assets/Scripts/WeissSchwarz`, `Assets/Scripts/TCGPokemon` —
+    - ネームスペース例: `TCG.Weiss`（ヴァイスシュヴァルツ実装）
+    - 役割: `GameCore` の抽象クラス・インターフェースを継承/実装し、ルール・ゾーンの具体的な振る舞いを定義
+
+主要な継承/実装関係（抜粋）:
+
+- Card (TCG.Core)
+    - CardBase<TData> : Card (汎用カードのジェネリック基底)
+- IZone (TCG.Core)
+    - ZoneBase : IZone（ゾーンの基本実装）
+- GameBase (TCG.Core)
+    - WeissGame : GameBase（ヴァイス固有のゲーム進行管理）
+
+ドキュメントの補足やクラス図が必要であれば追って追加できます。READMEではまずは参照先と概要を分かりやすく記載しています。

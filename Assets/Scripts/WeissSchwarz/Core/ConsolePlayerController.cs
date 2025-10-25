@@ -25,8 +25,6 @@ namespace TCG.Weiss
             Debug.Log("2: Use an activate ability");
             Debug.Log("3: End Main Phase");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate a choice: try to use an ability once, then end the phase.
             if (!_hasAutoUsedAbilityThisTurn)
             {
                 _hasAutoUsedAbilityThisTurn = true;
@@ -56,8 +54,6 @@ namespace TCG.Weiss
 
             Debug.Log("Enter the number of the ability to activate:");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate choosing the first ability if available.
             var choice = activatableAbilities.FirstOrDefault();
             Debug.Log($"Simulating player input: 1 ({choice.Value})");
 
@@ -88,8 +84,6 @@ namespace TCG.Weiss
             }
             Debug.Log(prompt + ":");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate a choice.
             if (optional)
             {
                 Debug.Log("Simulating player input: Choosing None.");
@@ -123,8 +117,6 @@ namespace TCG.Weiss
 
             Debug.Log("Enter the number of the climax to play (or press Enter to choose none):");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate choosing not to play a climax.
             Debug.Log("Simulating player input: Choosing None.");
             return null;
         }
@@ -135,17 +127,15 @@ namespace TCG.Weiss
             Debug.Log("1: Perform an attack");
             Debug.Log("2: End Attack Phase");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate attacking once, then stopping.
             if (_attacksChosenThisTurn < 1)
             {
                 Debug.Log("Simulating player input: 1 (Perform an attack)");
                 _attacksChosenThisTurn++;
-                return false; // false = do not end attack phase
+                return false; 
             }
             
             Debug.Log("Simulating player input: 2 (End Attack Phase)");
-            return true; // true = end attack phase
+            return true; 
         }
 
         public WeissCard ChooseAttacker(WeissPlayer player, List<WeissCard> attackableCharacters)
@@ -165,8 +155,6 @@ namespace TCG.Weiss
 
             Debug.Log("Enter the number of the character to attack with:");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate choosing the first character.
             var choice = attackableCharacters.First();
             Debug.Log($"Simulating player input: Choosing [{choice.Data.Name}]");
 
@@ -181,8 +169,6 @@ namespace TCG.Weiss
             Debug.Log("1: Front Attack");
             Debug.Log("2: Side Attack");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate always choosing Front Attack.
             Debug.Log("Simulating player input: 1 (Front Attack)");
             return AttackType.Front;
         }
@@ -203,10 +189,6 @@ namespace TCG.Weiss
             }
 
             Debug.Log("Enter the numbers of cards to mulligan (e.g., '1 3 5'), or press Enter to keep your hand:");
-
-            // In a real interactive console, you would read user input here.
-            // string input = Console.ReadLine(); 
-            // For now, we simulate a simple choice.
 
             var cardsToMulligan = new List<WeissCard>();
             var climaxInHand = hand.FirstOrDefault(c => ((c.Data as WeissCardData)?.CardType == WeissCardType.Climax.ToString()));
@@ -246,8 +228,6 @@ namespace TCG.Weiss
             }
             Debug.Log(prompt + ":");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate a choice.
             if (optional)
             {
                 Debug.Log("Simulating player input: Choosing None.");
@@ -279,8 +259,6 @@ namespace TCG.Weiss
 
             Debug.Log("Enter the number of the card to play (or press Enter to play none):");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate choosing not to play a counter.
             Debug.Log("Simulating player input: Choosing None.");
             return null;
         }
@@ -291,7 +269,6 @@ namespace TCG.Weiss
 
             var options = new List<KeyValuePair<EncoreChoice, string>>();
 
-            // Check for special encore ability
             string specialEncoreText = null;
             if (character.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
             {
@@ -300,13 +277,11 @@ namespace TCG.Weiss
                     specialEncoreText = abilities.FirstOrDefault(text => text.StartsWith("【自】 アンコール"));
                     if (specialEncoreText != null)
                     {
-                        // TODO: Check if cost can be paid
                         options.Add(new KeyValuePair<EncoreChoice, string>(EncoreChoice.Special, $"Special Encore: {specialEncoreText}"));
                     }
                 }
             }
 
-            // Check for standard encore
             int stockCount = player.GetZone<IStockZone<WeissCard>>().Cards.Count;
             if (stockCount >= 3)
             {
@@ -326,8 +301,6 @@ namespace TCG.Weiss
             }
             Debug.Log($"{options.Count + 1}: Do not encore");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate the choice: prefer special, then standard.
             if (options.Any(o => o.Key == EncoreChoice.Special))
             {
                 Debug.Log("Simulating player input: 1 (Special Encore)");
@@ -354,10 +327,6 @@ namespace TCG.Weiss
 
             Debug.Log("Enter the number of the card to place in your level zone:");
 
-            // In a real interactive console, you would read user input here.
-            // string input = Console.ReadLine(); 
-            // For now, we simulate a choice: pick the first non-climax card, or the first card if all are climax.
-
             var choice = cards.FirstOrDefault(c => ((c.Data as WeissCardData)?.CardType != WeissCardType.Climax.ToString())) ?? cards.First();
             Debug.Log($"Simulating player input: Choosing [{choice.Data.Name}]");
 
@@ -371,8 +340,6 @@ namespace TCG.Weiss
             Debug.Log("1: Yes");
             Debug.Log("2: No");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate always choosing Yes.
             Debug.Log("Simulating player input: 1 (Yes)");
             return true;
         }
@@ -400,8 +367,6 @@ namespace TCG.Weiss
             }
             Debug.Log(inputPrompt + ":");
 
-            // In a real interactive console, you would read user input here.
-            // For now, we simulate a choice.
             if (optional)
             {
                 Debug.Log("Simulating player input: Choosing None.");
@@ -413,6 +378,22 @@ namespace TCG.Weiss
                 Debug.Log($"Simulating player input: Choosing first target [{choice.Data.Name}]");
                 return choice;
             }
+        }
+
+        public PendingAbility ChooseAbilityToResolve(WeissPlayer player, List<PendingAbility> abilities)
+        {
+            Debug.Log($"--- {player.Name}: Choose ability order ---");
+            Debug.Log("Multiple abilities have triggered. Choose the one to resolve first:");
+
+            for (int i = 0; i < abilities.Count; i++)
+            {
+                Debug.Log($"{i + 1}: {abilities[i]}");
+            }
+
+            var choice = abilities.First();
+            Debug.Log($"Simulating player input: 1 (Resolving '{choice.AbilityText}' first)");
+
+            return choice;
         }
     }
 }

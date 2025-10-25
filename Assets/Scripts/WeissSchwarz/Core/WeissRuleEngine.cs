@@ -8,31 +8,147 @@ using UnityEngine;
 
 namespace TCG.Weiss 
 {
-    /// <summary>
-    /// ヴァイスシュヴァルツのゲームルールを管理し、実行するエンジンクラス。
-    /// ダメージ処理、レベルアップ、トリガーチェック、リフレッシュなど、ゲームの根幹となるロジックを担当します。
-    /// </summary>
     public class WeissRuleEngine {
-        public GameState State { get; }
+        public WeissGameState GameState { get; }
         public PhaseBase TurnPhaseTree { get; }
+
+        private WeissGameState _weissState => GameState;
+
         public WeissRuleEngine(GameState state) {
-            State = state;
+            GameState = state as WeissGameState;
+            if (GameState == null)
+            {
+                Debug.LogError("WeissRuleEngine requires a WeissGameState!");
+                return;
+            }
             TurnPhaseTree = WeissPhaseFactory.CreateTurnPhaseTree();
+            GameState.EventBus.SubscribeToAll(HandleGameEvent);
         }
 
-        /// <summary>
-        /// 指定されたプレイヤーのターンを同期的に実行します。
-        /// </summary>
+        private void HandleGameEvent(GameEvent evt)
+        {
+            CheckForTriggeredAbilities(evt);
+            ResolveAbilityQueue();
+        }
+
+        public void CheckForTriggeredAbilities(GameEvent evt)
+        {
+            if (_weissState == null) return;
+
+            if (evt.Type == BaseGameEvents.CardPlayed)
+            {
+                if (evt.Data is CardPlayedEventArgs onPlayData)
+                {
+                    WeissCard playedCard = onPlayData.Card;
+                    WeissPlayer player = onPlayData.Player;
+
+                    if (playedCard.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
+                    {
+                        if (abilitiesObj is List<string> abilities)
+                        {
+                            foreach (var abilityText in abilities)
+                            {
+                                if (abilityText.StartsWith("【自】 このカードが手札から舞台に置かれた時"))
+                                {
+                                    Debug.Log($"Triggered on-play ability for {playedCard.Data.Name}: {abilityText}");
+                                    var pendingAbility = new PendingAbility(playedCard, abilityText, player);
+                                    _weissState.AbilityQueue.Add(pendingAbility);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (evt.Type == WeissGameEvents.AttackDeclared)
+            {
+                if (evt.Data is AttackDeclaredEventArgs onAttackData)
+                {
+                    WeissCard attacker = onAttackData.Attacker;
+                    WeissPlayer player = attacker.Owner as WeissPlayer;
+
+                    if (attacker.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
+                    {
+                        if (abilitiesObj is List<string> abilities)
+                        {
+                            foreach (var abilityText in abilities)
+                            {
+                                if (abilityText.StartsWith("【自】 このカードがアタックした時"))
+                                {
+                                    Debug.Log($"Triggered on-attack ability for {attacker.Data.Name}: {abilityText}");
+                                    var pendingAbility = new PendingAbility(attacker, abilityText, player);
+                                    _weissState.AbilityQueue.Add(pendingAbility);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public void ResolveAbilityQueue()
+        {
+            if (_weissState == null) return;
+
+            while (true)
+            {
+                var activePlayer = _weissState.ActivePlayer as WeissPlayer;
+                var pendingAbilities = _weissState.AbilityQueue.GetPendingAbilitiesForPlayer(activePlayer);
+
+                if (!pendingAbilities.Any())
+                {
+                    break; 
+                }
+
+                PendingAbility abilityToResolve;
+                if (pendingAbilities.Count > 1)
+                {
+                    abilityToResolve = activePlayer.Controller.ChooseAbilityToResolve(activePlayer, pendingAbilities);
+                }
+                else
+                {
+                    abilityToResolve = pendingAbilities.First();
+                }
+
+                ResolveAbilityEffect(abilityToResolve);
+
+                _weissState.AbilityQueue.Remove(abilityToResolve);
+            }
+        }
+
+        private void ResolveAbilityEffect(PendingAbility ability)
+        {
+            Debug.Log($"Resolving effect for: {ability.AbilityText}");
+
+            const string onPlayStockAbility = "【自】 このカードが手札から舞台に置かれた時、あなたは自分の山札の上から1枚を、ストック置場に置いてよい。";
+
+            if (ability.AbilityText == onPlayStockAbility)
+            {
+                var player = ability.ResolvingPlayer;
+
+                bool useAbility = player.Controller.AskYesNo(player, $"Use ability? \"{ability.AbilityText}\" ");
+                if (useAbility)
+                {
+                    var stock = player.GetZone<IStockZone<WeissCard>>();
+                    var cardToStock = this.DrawCard(player);
+                    if (cardToStock != null)
+                    {
+                        stock.AddCard(cardToStock);
+                        GameState.EventBus.Raise(new GameEvent(new GameEventType("CardToStock"), new { Card = cardToStock, Source = ability.SourceCard }));
+                        Debug.Log($"[{cardToStock.Data.Name}] was moved from Deck to Stock by ability.");
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"Resolution for ability is not yet implemented: {ability.AbilityText}");
+            }
+        }
+
         public void ExecuteTurn(Player turnPlayer) {
-            State.CurrentPlayerIndex = State.Players.IndexOf(turnPlayer);
-            TurnPhaseTree.Execute(State);
+            GameState.CurrentPlayerIndex = GameState.Players.IndexOf(turnPlayer);
+            TurnPhaseTree.Execute(GameState);
         }
 
-        /// <summary>
-        /// アタック宣言時のトリガーチェックを実行します。
-        /// 山札の一番上のカードを公開し、トリガーアイコンに応じた処理（ここではストックに送る）を行います。
-        /// </summary>
-        /// <param name="attacker">攻撃プレイヤー</param>
         public int TriggerCheck(Player attacker) {
             var deck = attacker.GetZone<IDeckZone<WeissCard>>();
             var stock = attacker.GetZone<IStockZone<WeissCard>>();
@@ -41,7 +157,6 @@ namespace TCG.Weiss
 
             var triggeredCard = this.DrawCard(attacker);
             if (triggeredCard == null) {
-                // DrawCard handles the empty deck case, but if it still returns null, something is wrong (e.g., lose condition)
                 return 0;
             }
 
@@ -51,13 +166,15 @@ namespace TCG.Weiss
                 return 0;
             }
 
-            State.EventBus.Raise(new GameEvent(new GameEventType("TriggerReveal"), new { Player = attacker, Card = triggeredCard }));
+            GameState.EventBus.Raise(new GameEvent(new GameEventType("TriggerReveal"), new { Player = attacker, Card = triggeredCard }));
 
             int soulBoost = 0;
             var icons = cardData.TriggerIcon?.Split(new[] {' ', ','}, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
 
-            foreach (var icon in icons) {
-                switch (icon) {
+            foreach (var icon in icons)
+            {
+                switch (icon)
+                {
                     case "Soul":
                         soulBoost++;
                         break;
@@ -72,7 +189,7 @@ namespace TCG.Weiss
                         if (characterToReturn != null) {
                             waitingRoom.RemoveCard(characterToReturn);
                             hand.AddCard(characterToReturn);
-                            State.EventBus.Raise(new GameEvent(new GameEventType("TriggerComeback"), new { Player = attacker, ReturnedCard = characterToReturn }));
+                            GameState.EventBus.Raise(new GameEvent(new GameEventType("TriggerComeback"), new { Player = attacker, ReturnedCard = characterToReturn }));
                         }
                         break;
                     case "Draw":
@@ -80,7 +197,7 @@ namespace TCG.Weiss
                         var drawnCard = deck.DrawTop();
                         if (drawnCard != null) {
                             handZone.AddCard(drawnCard);
-                            State.EventBus.Raise(new GameEvent(BaseGameEvents.CardDrawn, new { Player = attacker, Card = drawnCard }));
+                            GameState.EventBus.Raise(new GameEvent(BaseGameEvents.CardDrawn, new { Player = attacker, Card = drawnCard }));
                         }
                         break;
                 }
@@ -93,14 +210,7 @@ namespace TCG.Weiss
             return soulBoost;
         }
 
-        /// <summary>
-        /// プレイヤーに指定された点数のダメージを与えます。
-        /// 山札の上からカードをクロックゾーンに置き、必要であればリフレッシュ処理やレベルアップ処理を呼び出します。
-        /// </summary>
-        /// <param name="victim">ダメージを受けるプレイヤー</param>
-        /// <param name="amount">ダメージ量</param>
         public void ApplyDamage(Player victim, int amount) {
-            var deck = victim.GetZone<IDeckZone<WeissCard>>();
             var clock = victim.GetZone<IClockZone<WeissCard>>();
             var waitingRoom = victim.GetZone<WaitingRoomZone>();
             if (waitingRoom == null) {
@@ -111,49 +221,38 @@ namespace TCG.Weiss
             for (int i=0;i<amount;i++) {
                 var card = this.DrawCard(victim);
                 if (card == null) {
-                    // Lose condition is handled by DrawCard, just stop the damage process.
                     return;
                 }
 
-                // ダメージキャンセルチェック
                 var weissCardData = (card as WeissCard)?.Data as WeissCardData;
                 if (weissCardData != null && weissCardData.CardType == WeissCardType.Climax.ToString()) {
                     Debug.Log($"ダメージがキャンセルされました！ トリガーしたカード: {weissCardData.Name}");
                     waitingRoom.AddCard(card);
-                    State.EventBus.Raise(new GameEvent(new GameEventType("DamageCancelled"), new { Player = victim, Card = card }));
-                    break; // ダメージ処理を中断
+                    GameState.EventBus.Raise(new GameEvent(new GameEventType("DamageCancelled"), new { Player = victim, Card = card }));
+                    break; 
                 }
 
                 clock.AddCard(card);
-                State.EventBus.Raise(new GameEvent(new GameEventType("DamageTaken"), new { Player = victim, Card = card }));
+                GameState.EventBus.Raise(new GameEvent(new GameEventType("DamageTaken"), new { Player = victim, Card = card }));
                 
-                // ダメージ処理後にレベルアップチェック
                 CheckAndHandleLevelUp(victim);
             }
         }
 
-        /// <summary>
-        /// クロックが7枚以上の場合、レベルアップ処理を実行します。
-        /// </summary>
-        /// <param name="player">チェック対象のプレイヤー</param>
         private void CheckAndHandleLevelUp(Player player) {
             var clock = player.GetZone<ClockZone>();
             var level = player.GetZone<LevelZone>();
             var waitingRoom = player.GetZone<WaitingRoomZone>();
 
-            // クロックが7枚以上ある限り処理を繰り返す
             while (clock.Cards.Count >= 7)
             {
-                // ヴァイスシュヴァルツのルールでは、クロックは置かれた順（古いものが下）
-                // よってリストの先頭から7枚が対象
                 var cardsForLevelUp = clock.Cards.Take(7).ToList();
 
                 var chosen = (player as WeissPlayer).Controller.ChooseLevelUpCard(player as WeissPlayer, cardsForLevelUp);
 
                 level.AddCard(chosen);
-                State.EventBus.Raise(new GameEvent(new GameEventType("LevelUp"), new { Player = player, Card = chosen }));
+                GameState.EventBus.Raise(new GameEvent(new GameEventType("LevelUp"), new { Player = player, Card = chosen }));
 
-                // 残りのカードをクロックから削除し、控え室へ送る
                 clock.RemoveCards(cardsForLevelUp);
                 foreach (var c in cardsForLevelUp.Where(card => card != chosen)) {
                     waitingRoom.AddCard(c);
@@ -170,16 +269,14 @@ namespace TCG.Weiss
             if (damageCard == null)
             {
                 Debug.LogError($"Deck became empty while applying refresh point damage. This is a critical error.");
-                State.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), player));
+                GameState.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), player));
                 return;
             }
 
-            // Refresh point damage cannot be cancelled
             clock.AddCard(damageCard);
-            State.EventBus.Raise(new GameEvent(new GameEventType("DamageTaken"), new { Player = player, Card = damageCard, IsRefreshPoint = true }));
+            GameState.EventBus.Raise(new GameEvent(new GameEventType("DamageTaken"), new { Player = player, Card = damageCard, IsRefreshPoint = true }));
             Debug.Log($"[{damageCard.Data.Name}] was placed in clock for refresh point damage.");
 
-            // Check for level up
             CheckAndHandleLevelUp(player);
         }
 
@@ -195,7 +292,7 @@ namespace TCG.Weiss
                 var waitingRoom = player.GetZone<IDiscardPile<WeissCard>>();
                 if (waitingRoom.Cards.Count == 0)
                 {
-                    State.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), player));
+                    GameState.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), player));
                     Debug.LogWarning($"{player.Name} has no cards in deck or waiting room to refresh. Player loses.");
                     return null;
                 }
@@ -208,7 +305,7 @@ namespace TCG.Weiss
                 }
 
                 deck.Shuffle();
-                State.EventBus.Raise(new GameEvent(new GameEventType("DeckRefresh"), player));
+                GameState.EventBus.Raise(new GameEvent(new GameEventType("DeckRefresh"), player));
                 Debug.Log($"{player.Name} refreshed their deck with {cardsToReturn.Count} cards.");
 
                 ApplyRefreshPointDamage(player);
@@ -216,7 +313,7 @@ namespace TCG.Weiss
                 card = deck.DrawTop();
                 if (card == null)
                 {
-                    State.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), player));
+                    GameState.EventBus.Raise(new GameEvent(new GameEventType("DeckEmptyLose"), player));
                     Debug.LogError($"{player.Name}'s deck is still empty after refresh. This should not happen.");
                     return null;
                 }
@@ -229,9 +326,6 @@ namespace TCG.Weiss
         {
             Debug.Log($"Activating ability for [{card.Data.CardCode} {card.Data.Name}]: {abilityText}");
 
-            // This is a proof-of-concept implementation for a single, hardcoded ability.
-            // A full implementation would require a robust parsing and resolution system (M4).
-
             const string targetAbilityText = "【起】 あなたは自分のキャラを1枚選び、【レスト】する。そうしたら、あなたは1枚引く。";
 
             if (abilityText == targetAbilityText)
@@ -239,14 +333,9 @@ namespace TCG.Weiss
                 var player = card.Owner as WeissPlayer;
                 if (player == null) return;
 
-                // --- Cost: None for this ability, but the activation itself is the cost ---
-                // In a real system, we would parse a cost like [1] or [Rest a character] here.
-                bool costPaid = true; // Assuming the cost of activating is met.
-
-                // --- Effect Resolution ---
+                bool costPaid = true; 
                 if (costPaid)
                 {
-                    // 1. Choose target
                     var stage = player.GetZone<IStageZone<WeissCard>>();
                     var validTargets = stage.Cards.Where(c => c != null && !c.IsRested).ToList();
                     string prompt = "Choose 1 of your characters to rest.";
@@ -255,21 +344,19 @@ namespace TCG.Weiss
 
                     if (targetToRest != null)
                     {
-                        // 2. Resolve first part of the effect: Rest the target
                         targetToRest.Rest();
                         Debug.Log($"[{targetToRest.Data.Name}] was rested by ability effect.");
 
-                        // 3. Resolve second part of the effect: Draw 1 card
                         var hand = player.GetZone<IHandZone<WeissCard>>();
                         var drawnCard = this.DrawCard(player);
                         if (drawnCard != null)
                         {
                             hand.AddCard(drawnCard);
-                            State.EventBus.Raise(new GameEvent(BaseGameEvents.CardDrawn, new { Player = player, Card = drawnCard }));
+                            GameState.EventBus.Raise(new GameEvent(BaseGameEvents.CardDrawn, new { Player = player, Card = drawnCard }));
                             Debug.Log($"{player.Name} drew a card due to ability effect.");
                         }
                         
-                        State.EventBus.Raise(new GameEvent(new GameEventType("AbilityResolved"), new { Player = card.Owner, Card = card, Effect = abilityText }));
+                        GameState.EventBus.Raise(new GameEvent(new GameEventType("AbilityResolved"), new { Player = card.Owner, Card = card, Effect = abilityText }));
                     }
                     else
                     {
@@ -287,7 +374,6 @@ namespace TCG.Weiss
         {
             if (counterCard == null || defendingCharacter == null) return;
 
-            // 1. Find the Assist ability text
             string assistText = null;
             if (counterCard.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
             {
@@ -305,27 +391,57 @@ namespace TCG.Weiss
 
             Debug.Log($"Resolving counter ability: {assistText}");
 
-            // 2. Parse the ability for power
-            // Example: 【助太刀2000 レベル1】
-            var match = System.Text.RegularExpressions.Regex.Match(assistText, @"【助太刀(?<power>\d+)");
-            if (match.Success && int.TryParse(match.Groups["power"].Value, out int powerBoost))
+            var match = System.Text.RegularExpressions.Regex.Match(assistText, @"【助太刀(?<power>\d+)\s+レベル(?<level>\d+)】");
+            if (match.Success && int.TryParse(match.Groups["power"].Value, out int powerBoost) && int.TryParse(match.Groups["level"].Value, out int levelReq))
             {
-                // TODO: Check level requirement
-                // TODO: Pay ability cost
+                var player = defendingCharacter.Owner as WeissPlayer;
+                if (player.GetZone<LevelZone>().Count < levelReq)
+                {
+                    Debug.Log($"Counter card level requirement not met. Player level: {player.GetZone<LevelZone>().Count}, required: {levelReq}");
+                    return; 
+                }
 
-                // 3. Apply the effect
+                if (!PayCounterCost(counterCard))
+                {
+                    Debug.Log("Could not pay counter cost.");
+                    return;
+                }
+
                 defendingCharacter.TemporaryPower += powerBoost;
-                State.EventBus.Raise(new GameEvent(new GameEventType("PowerBoosted"), new { 
-                    Target = defendingCharacter, 
-                    Amount = powerBoost, 
-                    Source = counterCard 
+                GameState.EventBus.Raise(new GameEvent(new GameEventType("PowerBoosted"), new {
+                    Target = defendingCharacter,
+                    Amount = powerBoost,
+                    Source = counterCard
                 }));
                 Debug.Log($"[{defendingCharacter.Data.Name}] power boosted by {powerBoost}. New temporary power: {defendingCharacter.TemporaryPower}");
             }
             else
             {
-                Debug.LogError($"Could not parse power from assist ability: {assistText}");
+                Debug.LogError($"Could not parse power and level from assist ability: {assistText}");
             }
+        }
+
+        private bool PayCounterCost(WeissCard counterCard)
+        {
+            var player = counterCard.Owner as WeissPlayer;
+            var stock = player.GetZone<IStockZone<WeissCard>>();
+            var hand = player.GetZone<IHandZone<WeissCard>>();
+            var waitingRoom = player.GetZone<IDiscardPile<WeissCard>>();
+
+            if (stock.Cards.Count < 1)
+            {
+                Debug.Log("Not enough stock to pay for counter.");
+                return false;
+            }
+            var stockCard = stock.RemoveTopCard();
+            if (stockCard != null) waitingRoom.AddCard(stockCard);
+
+            hand.RemoveCard(counterCard);
+            waitingRoom.AddCard(counterCard);
+
+            Debug.Log($"Paid cost for counter: 1 stock and discarded [{counterCard.Data.Name}]");
+            GameState.EventBus.Raise(new GameEvent(new GameEventType("CounterCardPlayed"), new { Player = player, Card = counterCard }));
+            return true;
         }
     }
 }

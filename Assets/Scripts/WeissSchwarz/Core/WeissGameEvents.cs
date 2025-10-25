@@ -1,6 +1,7 @@
 using TCG.Core;
 
-namespace TCG.Weiss {
+namespace TCG.Weiss
+{
     public static class WeissGameEvents
     {
         // 🌀 デッキ・クロック・リフレッシュ
@@ -26,5 +27,29 @@ namespace TCG.Weiss {
         // 🎯 その他
         public static readonly GameEventType EncoreDeclared     = new("Weiss.EncoreDeclared");
         public static readonly GameEventType ClimaxPlayed       = new("Weiss.ClimaxPlayed");
+    }
+
+    public class CardPlayedEventArgs : System.EventArgs
+    {
+        public WeissPlayer Player { get; }
+        public WeissCard Card { get; }
+        public CardPlayedEventArgs(WeissPlayer player, WeissCard card)
+        {
+            Player = player;
+            Card = card;
+        }
+    }
+
+    public class AttackDeclaredEventArgs : System.EventArgs
+    {
+        public WeissCard Attacker { get; }
+        public WeissCard Defender { get; }
+        public AttackType Type { get; }
+        public AttackDeclaredEventArgs(WeissCard attacker, WeissCard defender, AttackType type)
+        {
+            Attacker = attacker;
+            Defender = defender;
+            Type = type;
+        }
     }
 }

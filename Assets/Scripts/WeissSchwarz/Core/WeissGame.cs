@@ -11,12 +11,18 @@ namespace TCG.Weiss
     /// </summary>
     public class WeissGame : GameBase
     {
+        public new WeissGameState GameState => base.GameState as WeissGameState;
         public WeissRuleEngine RuleEngine { get; protected set; }
 
         public WeissGame()
         {
-            // GameStateはGameBaseのコンストラクタで初期化される
+            // GameState is initialized in the base constructor via our override
             RuleEngine = new WeissRuleEngine(this.GameState);
+        }
+
+        protected override GameState CreateGameState()
+        {
+            return new WeissGameState(this);
         }
 
         protected override void SetupGame(GameState state)

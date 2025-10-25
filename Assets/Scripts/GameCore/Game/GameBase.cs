@@ -10,7 +10,12 @@ namespace TCG.Core
 
         protected GameBase()
         {
-            GameState = new GameState(this);
+            GameState = CreateGameState();
+        }
+
+        protected virtual GameState CreateGameState()
+        {
+            return new GameState(this);
         }
 
         public virtual void StartGame()
