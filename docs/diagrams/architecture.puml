@@ -1,0 +1,60 @@
+@startuml
+title TCGEngineProject - 主要クラス図（抜粋）
+
+package "TCG.Core" {
+  interface IZone
+  interface "IZone<TCard>" as IZoneGeneric
+  class ZoneBase
+
+  class Card
+  class "CardBase<TData>" as CardBase
+  class CardData
+
+  class Player
+  class GameBase
+  class GameState
+  class PhaseBase
+
+  class AbilityBase
+  interface IEffect
+  interface ITriggerCondition
+
+  class EventBus
+  class GameEventType
+}
+
+package "TCG.Weiss" {
+  class WeissCard
+  class WeissGame
+  class WeissCardData
+}
+
+' 継承 / 実装
+Card <|-- CardBase
+CardBase ..> CardData : uses
+
+IZone <|.. IZoneGeneric
+IZone <|-- ZoneBase
+
+GameBase <|-- WeissGame
+
+WeissCard --|> CardBase : extends
+WeissCard ..> WeissCardData : has
+
+' 関連
+Player --> "0..*" IZone : manages
+Card --> IZone : CurrentZone
+AbilityBase ..> Card : SourceCard
+EventBus ..> GameEventType
+
+note right of CardBase
+  CardBase<TData> はジェネリック基底として
+  ゲーム固有のカードクラスが継承します。
+end note
+
+note left of ZoneBase
+  ZoneBase はカードの追加/削除、シャッフル等の
+  基本操作を提供します。
+end note
+
+@enduml

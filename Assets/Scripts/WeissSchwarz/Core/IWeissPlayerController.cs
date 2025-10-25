@@ -19,5 +19,6 @@ namespace TCG.Weiss
         WeissCard ChooseLevelUpCard(WeissPlayer player, List<WeissCard> cards);
         bool AskYesNo(WeissPlayer player, string question);
         WeissCard ChooseTargetCard(WeissPlayer player, List<WeissCard> validTargets, string prompt, bool optional);
+        PendingAbility ChooseAbilityToResolve(WeissPlayer player, List<PendingAbility> abilities);
     }
 }

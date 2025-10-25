@@ -152,8 +152,7 @@ namespace TCG.Weiss {
                         // 全てのチェックをクリアしたので、コストを支払い、カードをプレイする
                         PayCost(player, data.Cost);
                         player.GetZone<IHandZone<WeissCard>>().RemoveCard(cardToPlay);
-                        emptySlot.PlaceCharacter(cardToPlay);
-                        state.EventBus.Raise(new GameEvent(BaseGameEvents.CardPlayed, new { Player = player, Card = cardToPlay }));
+                        state.EventBus.Raise(new GameEvent(BaseGameEvents.CardPlayed, new CardPlayedEventArgs(player, cardToPlay)));
                     }
                     else if (data.CardType == WeissCardType.Event.ToString())
                     {
@@ -161,7 +160,7 @@ namespace TCG.Weiss {
                         PayCost(player, data.Cost);
                         player.GetZone<IHandZone<WeissCard>>().RemoveCard(cardToPlay);
                         player.GetZone<ResolutionZone>().AddCard(cardToPlay);
-                        state.EventBus.Raise(new GameEvent(BaseGameEvents.CardPlayed, new { Player = player, Card = cardToPlay }));
+                        state.EventBus.Raise(new GameEvent(BaseGameEvents.CardPlayed, new CardPlayedEventArgs(player, cardToPlay)));
                         // TODO: イベントカードの効果を解決する
                     }
                     else
@@ -278,7 +277,7 @@ namespace TCG.Weiss {
                 }
 
                 var attacker = player.Controller.ChooseAttacker(player, attackableCharacters);
-                if (attacker == null) continue; // Should not happen with dummy controller
+                if (attacker == null) continue; 
 
                 var opponent = state.Players.First(p => p != player) as WeissPlayer;
                 var attackerSlot = stage.FindSlot(attacker);
@@ -297,17 +296,14 @@ namespace TCG.Weiss {
                 }
 
                 attacker.Rest();
-                state.EventBus.Raise(new GameEvent(WeissGameEvents.AttackDeclared, new { Attacker = attacker, Defender = defender, Type = attackType }));
-
-                // アタック時自動能力の解決
-                ResolveOnAttackAbilities(state, attacker);
+                state.EventBus.Raise(new GameEvent(WeissGameEvents.AttackDeclared, new AttackDeclaredEventArgs(attacker, defender, attackType)));
 
                 // Execute sub-phases
                 int soulBoost = ExecuteTriggerStep(state, ruleEngine);
 
-                if (attackType == AttackType.Front)
+                if (attackType == AttackType.Front && defender != null)
                 {
-                    ExecuteCounterStep(state, opponent);
+                    ExecuteCounterStep(state, opponent, defender);
                 }
 
                 ExecuteDamageStep(state, ruleEngine, attacker, opponent, attackType, soulBoost);
@@ -336,7 +332,7 @@ namespace TCG.Weiss {
             return soulBoost;
         }
 
-        private void ExecuteCounterStep(GameState state, WeissPlayer opponent)
+        private void ExecuteCounterStep(GameState state, WeissPlayer opponent, WeissCard defendingCharacter)
         {
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfCounterStep"));
 
@@ -351,19 +347,19 @@ namespace TCG.Weiss {
                 return false;
             }).ToList();
 
+            if (!counterCards.Any()) {
+                state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfCounterStep"));
+                return;
+            }
+
             // 2. Ask controller to choose one
             var chosenCounter = opponent.Controller.ChooseCounterCardFromHand(opponent, counterCards);
 
-            // 3. If a card is chosen, process it (simplified for now)
+            // 3. If a card is chosen, resolve it via the rule engine
             if (chosenCounter != null)
             {
-                Debug.Log($"{opponent.Name} plays counter card: [{chosenCounter.Data.CardCode}] {chosenCounter.Data.Name}");
-                // TODO: Implement cost payment and effect resolution via RuleEngine
-                
-                // For now, just move card from hand to resolution zone as a placeholder action
-                hand.RemoveCard(chosenCounter);
-                opponent.GetZone<ResolutionZone>().AddCard(chosenCounter);
-                state.EventBus.Raise(new GameEvent(new GameEventType("CounterCardPlayed"), new { Player = opponent, Card = chosenCounter }));
+                var ruleEngine = (state.Game as WeissGame).RuleEngine;
+                ruleEngine.ResolveCounterAbility(chosenCounter, defendingCharacter);
             }
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfCounterStep"));
@@ -384,8 +380,10 @@ namespace TCG.Weiss {
         private void ExecuteBattleStep(GameState state, WeissCard attacker, WeissCard defender)
         {
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfBattleStep"));
-            var attackerPower = (attacker.Data as WeissCardData).Power;
-            var defenderPower = (defender.Data as WeissCardData).Power;
+            var attackerPower = (attacker.Data as WeissCardData).Power + attacker.TemporaryPower;
+            var defenderPower = (defender.Data as WeissCardData).Power + defender.TemporaryPower;
+
+            Debug.Log($"Battle: [{attacker.Data.Name}] ({attackerPower} Power) vs [{defender.Data.Name}] ({defenderPower} Power)");
 
             if (attackerPower < defenderPower)
             {
@@ -404,6 +402,11 @@ namespace TCG.Weiss {
                 state.EventBus.Raise(new GameEvent(WeissGameEvents.CharacterReversed, attacker));
                 state.EventBus.Raise(new GameEvent(WeissGameEvents.CharacterReversed, defender));
             }
+
+            // Reset temporary power after battle
+            attacker.TemporaryPower = 0;
+            defender.TemporaryPower = 0;
+
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfBattleStep"));
         }
 
@@ -502,41 +505,6 @@ namespace TCG.Weiss {
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "EndOfEncoreStep"));
             Debug.Log("End of Encore Step");
-        }
-
-        private void ResolveOnAttackAbilities(GameState state, WeissCard attacker)
-        {
-            var player = attacker.Owner as WeissPlayer;
-            if (player == null) return;
-
-            // Proof-of-concept: Check for a specific hardcoded auto ability
-            const string onAttackAbilityText = "【自】 このカードがアタックした時、あなたは自分の山札の上から1枚を、ストック置場に置いてよい。";
-
-            if (attacker.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
-            {
-                if (abilitiesObj is List<string> abilities && abilities.Contains(onAttackAbilityText))
-                {
-                    // Found the ability, ask the player if they want to use it.
-                    bool useAbility = player.Controller.AskYesNo(player, $"Use ability? \"{onAttackAbilityText}\"");
-
-                    if (useAbility)
-                    {
-                        Debug.Log($"Player chose to use on-attack ability for [{attacker.Data.Name}].");
-                        // Resolve the effect: top card of deck to stock.
-                        var deck = player.GetZone<IDeckZone<WeissCard>>();
-                        var stock = player.GetZone<IStockZone<WeissCard>>();
-                        var ruleEngine = (state.Game as WeissGame).RuleEngine;
-
-                        var cardToStock = ruleEngine.DrawCard(player);
-                        if (cardToStock != null)
-                        {
-                            stock.AddCard(cardToStock);
-                            state.EventBus.Raise(new GameEvent(new GameEventType("CardToStock"), new { Card = cardToStock, Source = attacker }));
-                            Debug.Log($"[{cardToStock.Data.Name}] was moved from Deck to Stock.");
-                        }
-                    }
-                }
-            }
         }
     }
 
