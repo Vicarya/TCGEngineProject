@@ -11,6 +11,12 @@ namespace TCG.Weiss {
         {
             IsReversed = false;
             TemporaryPower = 0;
+
+            var createdAbilities = AbilityFactory.CreateAbilitiesForCard(this);
+            foreach (var ability in createdAbilities)
+            {
+                this.AddAbility(ability);
+            }
         }
 
         public void Rest()
