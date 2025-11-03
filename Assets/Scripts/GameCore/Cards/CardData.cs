@@ -8,10 +8,8 @@ namespace TCG.Core {
         public string CardGuid;
         public string CardCode;
         public string Name;
-        public string Set;
+        public string WorkId; // Renamed from Set
         public string Rarity;
-        public string Atrribute;
-        public string[] Description;
         public string Illustration;
         public string ImagePath;
         public Dictionary<string, object> Metadata = new();

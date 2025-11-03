@@ -28,7 +28,7 @@ namespace TCG.Weiss
         protected override void SetupGame(GameState state)
         {
             // 1. カードデータベースからカードを読み込む
-            CardLoader.LoadCards(Application.streamingAssetsPath + "/WeissSchwarz/cards.json");
+            CardLoader.LoadAllCardAssets();
 
             // 2. プレイヤーインスタンスを2つ作成する
             var player1 = new WeissPlayer("Player1", new ConsolePlayerController());

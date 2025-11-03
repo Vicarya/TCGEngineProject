@@ -5,6 +5,9 @@ using System.IO;
 using Mono.Data.Sqlite;
 using UnityEditor;
 using UnityEngine;
+using Newtonsoft.Json; // Assuming Newtonsoft.Json is available or will be added.
+using TCG.Weiss; // For WeissCardDataAsset and WeissCardData
+using TCG.Core; // For CardData
 
 // Simple SQLite importer for Unity
 // - Uses Mono.Data.Sqlite which is commonly available in Unity's runtime on Windows.
@@ -139,18 +142,65 @@ public static class SQLiteCardImporter
         return null;
     }
 
-    // Example adapter: customize this to map CardRecord into your project's card class or ScriptableObject.
-    // Replace `YourCardClass` and the mapping below with your actual class and properties.
-    public static void ApplyToYourCardClass(CardRecord rec)
+    // Adapts CardRecord into WeissCardDataAsset
+    public static WeissCardDataAsset CreateWeissCardDataAsset(CardRecord rec)
     {
-        // Example (pseudo):
-        // var card = new YourCardClass();
-        // card.CardNo = rec.card_no;
-        // card.Name = rec.name;
-        // card.ImageUrl = rec.image_url;
-        // card.Side = rec.side;
-        // ... then add to a manager or create an asset.
-        Debug.Log($"Map card {rec.card_no} -> YourCardClass (implement mapping)");
+        var asset = ScriptableObject.CreateInstance<WeissCardDataAsset>();
+        var data = asset.Data;
+
+        // Map CardData fields
+        data.CardCode = rec.card_no;
+        data.Name = rec.name;
+        data.WorkId = rec.work_id; // Corrected from data.Set
+        data.Rarity = rec.rarity;
+        data.ImagePath = rec.image_url; // Assuming image_url is the path to be used in Unity
+
+        // Map WeissCardData specific fields
+        data.Level = rec.level ?? 0;
+        data.Cost = rec.cost ?? 0;
+        data.Power = rec.power ?? 0;
+        data.Soul = 0; // Default to 0, as no direct DB column. Could parse from metadata_json if needed.
+        data.Side = rec.side;
+        data.Color = rec.color;
+        data.CardType = rec.type;
+        data.TriggerIcon = rec.trigger;
+        data.FlavorText = rec.flavor_text;
+
+        // Deserialize JSON fields
+        if (!string.IsNullOrEmpty(rec.abilities_json))
+        {
+            data.Abilities = JsonConvert.DeserializeObject<List<string>>(rec.abilities_json);
+        }
+        else
+        {
+            data.Abilities = new List<string>();
+        }
+
+        if (!string.IsNullOrEmpty(rec.traits_json))
+        {
+            data.Traits = JsonConvert.DeserializeObject<List<string>>(rec.traits_json);
+        }
+        else
+        {
+            data.Traits = new List<string>();
+        }
+
+        if (!string.IsNullOrEmpty(rec.metadata_json))
+        {
+            // Deserialize into a Dictionary<string, object> for flexibility
+            data.Metadata = JsonConvert.DeserializeObject<Dictionary<string, object>>(rec.metadata_json);
+        }
+        else
+        {
+            data.Metadata = new Dictionary<string, object>();
+        }
+
+        // Save the ScriptableObject asset
+        // This part needs to be called from an Editor context.
+        // Example: AssetDatabase.CreateAsset(asset, $"Assets/CardData/Weiss/{rec.card_no}.asset");
+        // Debug.Log($"Created asset for {rec.card_no}");
+
+        return asset;
     }
 
     // Editor convenience: menu item to load and log first N cards
@@ -159,13 +209,15 @@ public static class SQLiteCardImporter
     {
         try
         {
-            var db = "python/tools/ws_cards_test.db"; // change if needed
+            var db = "python/tools/ws_cards.db"; // Use the actual DB path
             var cards = LoadAll(db);
             Debug.Log($"Loaded {cards.Count} cards from DB");
             for (int i = 0; i < Math.Min(cards.Count, 10); i++)
             {
                 var c = cards[i];
-                Debug.Log($"{i+1}: {c.card_no} - {c.name} - side={c.side} image={c.image_url}");
+                // Use the new mapping function
+                var asset = CreateWeissCardDataAsset(c);
+                Debug.Log($"{i+1}: {asset.Data.CardCode} - {asset.Data.Name} - Side={asset.Data.Side} Color={asset.Data.Color} Type={asset.Data.CardType}");
             }
         }
         catch (Exception ex)
