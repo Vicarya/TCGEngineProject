@@ -1,73 +1,114 @@
+using TCG.Core;
 using TCG.Weiss;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace TCG.Weiss.UI
 {
     /// <summary>
-    /// Represents the UI for a single card on the game board.
-    /// It holds references to the UI elements that display card information.
+    /// Manages the visual representation of a single Weiss Schwarz card.
+    /// This version uses a sibling structure for its GameObjects to be animation-friendly.
     /// </summary>
     public class CardUI : MonoBehaviour
     {
-        [Header("Card Info")]
-        [SerializeField] private TextMeshProUGUI cardNameText;
-        [SerializeField] private TextMeshProUGUI powerText;
-        [SerializeField] private TextMeshProUGUI soulText;
-        [SerializeField] private Image cardImage; // For card art
+        [Header("Card Data")]
+        private WeissCard _card;
+        private Sprite _weissCardBackSprite;
+        private Sprite _schwarzCardBackSprite;
+        private Sprite _defaultCardSprite;
 
-        [Header("State Visuals")]
-        [SerializeField] private GameObject restedOverlay; // e.g., a semi-transparent panel or rotation
+        [Header("UI Child GameObjects")]
+        [SerializeField] private GameObject cardFrontObject; // GameObject containing the front Image
+        [SerializeField] private GameObject cardBackObject;  // GameObject containing the back Image
 
-        private WeissCard _weissCard;
+        // Image components are fetched from the GameObjects
+        private Image _cardFrontImage;
+        private Image _cardBackImage;
 
-        /// <summary>
-        /// Updates the UI elements with the data from the provided card.
-        /// </summary>
-        /// <param name="card">The card data to display.</param>
-        public void Initialize(WeissCard card)
+        [Header("Resource Paths")]
+        [SerializeField] private string weissCardBackPath = "Images/WeissCardBack";
+        [SerializeField] private string schwarzCardBackPath = "Images/SchwarzCardBack";
+        [SerializeField] private string defaultCardImagePath = "Images/DefaultCard";
+
+        private void Awake()
         {
-            _weissCard = card;
-            var cardData = card.Data as WeissCardData;
+            // Load sprites
+            _weissCardBackSprite = Resources.Load<Sprite>(weissCardBackPath);
+            _schwarzCardBackSprite = Resources.Load<Sprite>(schwarzCardBackPath);
+            _defaultCardSprite = Resources.Load<Sprite>(defaultCardImagePath);
 
-            if (cardData == null)
+            // Get Image components from child objects
+            if (cardFrontObject != null) _cardFrontImage = cardFrontObject.GetComponent<Image>();
+            if (cardBackObject != null) _cardBackImage = cardBackObject.GetComponent<Image>();
+
+            // Warnings
+            if (_cardFrontImage == null) Debug.LogError("Card Front Object is missing an Image component.", this);
+            if (_cardBackImage == null) Debug.LogError("Card Back Object is missing an Image component.", this);
+            if (_weissCardBackSprite == null) Debug.LogWarning($"Weiss card back sprite not found at 'Resources/{weissCardBackPath}'.");
+            if (_schwarzCardBackSprite == null) Debug.LogWarning($"Schwarz card back sprite not found at 'Resources/{schwarzCardBackPath}'.");
+            if (_defaultCardSprite == null) Debug.LogWarning($"Default card sprite not found at 'Resources/{defaultCardImagePath}'.");
+        }
+
+        public void SetCard(WeissCard card)
+        {
+            _card = card;
+            UpdateCardVisuals();
+        }
+
+        private void UpdateCardVisuals()
+        {
+            if (_card == null)
             {
-                // Clear display if card data is invalid
-                cardNameText.text = "Unknown";
-                powerText.text = "";
-                soulText.text = "";
-                // if (cardImage != null) cardImage.sprite = null; // TODO: Set to a default card back
+                gameObject.SetActive(false);
                 return;
             }
 
-            // Update UI elements
-            if (cardNameText != null) cardNameText.text = cardData.Name;
-            if (powerText != null) powerText.text = cardData.Power.ToString();
-            if (soulText != null) soulText.text = cardData.Soul.ToString();
-            // if (cardImage != null) cardImage.sprite = ... // TODO: Load sprite from resources based on card ID
+            gameObject.SetActive(true);
+            bool isFaceUp = _card.IsFaceUp;
 
-            // Update visual state
-            UpdateVisualState();
-        }
+            // Enable/disable the correct child GameObject
+            if (cardFrontObject != null) cardFrontObject.SetActive(isFaceUp);
+            if (cardBackObject != null) cardBackObject.SetActive(!isFaceUp);
 
-        /// <summary>
-        /// Updates the visual state of the card (e.g., rested/stand).
-        /// </summary>
-        public void UpdateVisualState()
-        {
-            if (_weissCard == null) return;
-
-            bool isRested = _weissCard.IsTapped;
-            if (restedOverlay != null)
+            if (isFaceUp)
             {
-                restedOverlay.SetActive(isRested);
+                // Set the front image sprite
+                var cardData = _card.Data;
+                Sprite spriteToDisplay = null;
+
+                if (!string.IsNullOrEmpty(cardData.ImagePath))
+                {
+                    spriteToDisplay = Resources.Load<Sprite>(cardData.ImagePath);
+                }
+
+                if (spriteToDisplay == null)
+                {
+                    spriteToDisplay = _defaultCardSprite;
+                }
+
+                if(_cardFrontImage != null) _cardFrontImage.sprite = spriteToDisplay;
             }
             else
             {
-                // Alternatively, rotate the card to show it's rested
-                transform.localRotation = isRested ? Quaternion.Euler(0, 0, 90) : Quaternion.identity;
+                // Set the back image sprite
+                if(_cardBackImage != null) _cardBackImage.sprite = GetCardBackSprite();
             }
+            
+            // Update rested state by rotating the root object
+            transform.localRotation = _card.IsRested ? Quaternion.Euler(0, 0, 90) : Quaternion.identity;
+        }
+
+        private Sprite GetCardBackSprite()
+        {
+            if (_card != null && _card.Data.Metadata.TryGetValue("サイド", out object sideObject))
+            { 
+                if (sideObject is string sideString)
+                {
+                    if (sideString == "ヴァイス") return _weissCardBackSprite;
+                    if (sideString == "シュヴァルツ") return _schwarzCardBackSprite;
+                }
+            }
+            return _weissCardBackSprite; // Default
         }
     }
 }
