@@ -1,34 +1,57 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using TCG.Core;
 
 namespace TCG.Weiss
 {
-    public class DiscardCost<TCard> : ICost where TCard : Card
+    /// <summary>
+    /// Represents a cost that requires discarding a certain number of cards from hand that meet specific criteria.
+    /// </summary>
+    public class DiscardCost : ICost
     {
-        private readonly int amount;
-        public DiscardCost(int amount) => this.amount = amount;
+        private readonly int _amount;
+        private readonly Predicate<WeissCard> _filter;
+
+        public DiscardCost(int amount, Predicate<WeissCard> filter)
+        {
+            _amount = amount;
+            _filter = filter ?? (card => true); // If no filter, any card is valid
+        }
 
         public bool CanPay(GameState state, Player player)
         {
-            var hand = player.GetZone<IHandZone<TCard>>();
-            return hand != null && hand.Cards.Count >= amount;
+            var hand = player.GetZone<IHandZone<WeissCard>>();
+            if (hand == null) return false;
+
+            return hand.Cards.Count(card => _filter(card)) >= _amount;
         }
 
         public void Pay(GameState state, Player player)
         {
-            var hand = player.GetZone<IHandZone<TCard>>();
-            var discardPile = player.GetZone<IDiscardPile<TCard>>();
+            if (!CanPay(state, player)) return; // Should not happen if checked before, but as a safeguard
 
-            if (hand == null || discardPile == null) return; // Or throw an exception
+            var hand = player.GetZone<IHandZone<WeissCard>>();
+            var waitingRoom = player.GetZone<IDiscardPile<WeissCard>>();
+            var controller = (player as WeissPlayer)?.Controller;
 
-            for (int i = 0; i < amount; i++)
+            if (hand == null || waitingRoom == null || controller == null) return;
+
+            var validCardsToDiscard = hand.Cards.Where(card => _filter(card)).ToList();
+
+            string reason = $"Choose {_amount} card(s) to discard from your hand.";
+            var cardsToDiscard = controller.SelectCardsToPayCost(player as WeissPlayer, validCardsToDiscard, _amount, reason);
+
+            if (cardsToDiscard != null && cardsToDiscard.Count == _amount)
             {
-                // TODO: 実際にはユーザー選択が必要（ここでは先頭を仮選択）
-                if (hand.Cards.Count == 0) break;
-                var card = hand.Cards.First();
-                hand.RemoveCard(card);
-                discardPile.AddCard(card);
+                foreach (var card in cardsToDiscard)
+                {
+                    hand.RemoveCard(card);
+                    waitingRoom.AddCard(card);
+                }
             }
+            // else: The player failed to select the correct number of cards. In a real interactive scenario,
+            // we might loop, but for the simulation we assume the controller returns a valid selection if CanPay was true.
         }
     }
 }

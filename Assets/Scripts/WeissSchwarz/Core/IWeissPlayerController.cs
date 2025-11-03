@@ -20,5 +20,6 @@ namespace TCG.Weiss
         bool AskYesNo(WeissPlayer player, string question);
         WeissCard ChooseTargetCard(WeissPlayer player, List<WeissCard> validTargets, string prompt, bool optional);
         PendingAbility ChooseAbilityToResolve(WeissPlayer player, List<PendingAbility> abilities);
+        List<WeissCard> SelectCardsToPayCost(WeissPlayer player, List<WeissCard> options, int amount, string reason);
     }
 }

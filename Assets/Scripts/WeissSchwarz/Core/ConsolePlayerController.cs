@@ -395,5 +395,72 @@ namespace TCG.Weiss
 
             return choice;
         }
+
+        public List<WeissCard> SelectCardsToPayCost(WeissPlayer player, List<WeissCard> options, int amount, string reason)
+        {
+            Debug.Log($"--- {player.Name}: Select cards for cost ---");
+            Debug.Log(reason);
+
+            if (options == null || options.Count < amount)
+            {
+                Debug.Log("Not enough cards to pay cost.");
+                return new List<WeissCard>();
+            }
+
+            if (amount == 0)
+            {
+                return new List<WeissCard>();
+            }
+
+            Debug.Log("Selectable cards:");
+            for (int i = 0; i < options.Count; i++)
+            {
+                Debug.Log($"{i + 1}: [{options[i].Data.CardCode}] {options[i].Data.Name}");
+            }
+
+            Debug.Log($"Enter the numbers of the {amount} card(s) to use (e.g., '1 3'):");
+
+            // TODO: Replace with actual user input
+            string simulatedInput = string.Join(" ", Enumerable.Range(1, amount).Select(i => i.ToString()));
+            Debug.Log($"Simulating player input: {simulatedInput}");
+
+            var indices = new List<int>();
+            var parts = simulatedInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var part in parts)
+            {
+                if (int.TryParse(part, out int index) && index > 0 && index <= options.Count)
+                {
+                    indices.Add(index - 1);
+                }
+                else
+                {
+                    Debug.Log($"Invalid input: '{part}'. Please enter valid numbers.");
+                    return new List<WeissCard>(); // Or handle error more gracefully
+                }
+            }
+
+            if (indices.Count != amount)
+            {
+                Debug.Log($"Invalid number of cards selected. Expected {amount}, but got {indices.Count}.");
+                return new List<WeissCard>();
+            }
+            
+            if (indices.Distinct().Count() != indices.Count)
+            {
+                Debug.Log("Invalid selection: You cannot choose the same card multiple times.");
+                return new List<WeissCard>();
+            }
+
+            var selection = indices.Select(i => options[i]).ToList();
+
+            Debug.Log("You selected:");
+            foreach (var card in selection)
+            {
+                Debug.Log($"- [{card.Data.CardCode}] {card.Data.Name}");
+            }
+
+            return selection;
+        }
     }
 }
