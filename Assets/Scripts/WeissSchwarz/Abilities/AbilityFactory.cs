@@ -1,64 +1,56 @@
-using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using TCG.Core;
-using TCG.Weiss.Triggers;
-using TCG.Weiss.Effects;
+using System.Collections; // For IEnumerable
 
-namespace TCG.Weiss 
+namespace TCG.Weiss
 {
-    public static class AbilityFactory 
+    public static class AbilityFactory
     {
-        public static AbilityBase CreateFromDefinition(WeissCard self, AbilityDefinition def) 
-        {
-            var ability = new AbilityBase(self);
+        // Regex to find costs enclosed in full-width brackets, e.g., ［(1)］ or ［手札のキャラを１枚控え室に置く］
+        private static readonly Regex CostRegex = new Regex(@"［(.+?)］");
 
-            // 1. コストを解決
-            if (def.Cost != null)
+        public static List<AbilityBase> CreateAbilitiesForCard(WeissCard sourceCard)
+        {
+            var abilities = new List<AbilityBase>();
+
+            if (!sourceCard.Data.Metadata.TryGetValue("abilities", out object abilitiesObject))
             {
-                if (def.Cost.Stock > 0)
-                {
-                    ability.Costs.Add(new StockCost<WeissCard>(def.Cost.Stock));
-                }
-                if (def.Cost.Discard > 0)
-                {
-                    ability.Costs.Add(new DiscardCost<WeissCard>(def.Cost.Discard));
-                }
-                if (def.Cost.RestSelf)
-                {
-                    ability.Costs.Add(new RestSelfCost<WeissCard>(self));
-                }
+                return abilities; // No abilities found
             }
 
-            // 2. 効果を解決
-            if (def.Effects != null)
+            // The object from metadata is likely a List<object> or similar collection.
+            if (abilitiesObject is IEnumerable abilityCollection)
             {
-                foreach (var effectDef in def.Effects)
+                foreach (var abilityObj in abilityCollection)
                 {
-                    switch (effectDef.Kind)
+                    if (abilityObj != null)
                     {
-                        case EffectKind.Custom:
-                            if (effectDef.CustomId == "Concentrate")
-                            {
-                                ability.Effects.Add(new ConcentrateEffect());
-                            }
-                            // TODO: 他のカスタムエフェクトもここに追加
-                            break;
-                        
-                        // TODO: 他のEffectKind（Draw, Damageなど）の変換もここに追加
+                        ProcessAbilityString(abilityObj.ToString(), sourceCard, abilities);
                     }
                 }
             }
 
-            // 3. トリガー条件を解決
-            if (def.Condition != null)
-            {                if (def.Condition.Event == "OnPhaseStart")
-                {
-                    ability.TriggerConditions.Add(new OnPhaseStartTrigger(def.Condition.Phase));
-                }
-                // TODO: 他のイベント（OnPlay, OnAttackなど）のトリガーもここに追加
-            }
+            return abilities;
+        }
 
-            return ability;
+        private static void ProcessAbilityString(string abilityText, WeissCard sourceCard, List<AbilityBase> abilities)
+        {
+            var match = CostRegex.Match(abilityText);
+            if (match.Success)
+            {
+                string costString = match.Groups[1].Value;
+                ICost cost = CostFactory.Parse(costString);
+
+                if (cost != null)
+                {
+                    // For now, create a generic ability for any text that has a parsable cost.
+                    // We can add more logic later to parse triggers and effects.
+                    var ability = new AbilityBase(sourceCard);
+                    ability.Costs.Add(cost);
+                    abilities.Add(ability);
+                }
+            }
         }
     }
 }
