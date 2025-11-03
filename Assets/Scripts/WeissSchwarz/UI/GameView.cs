@@ -13,10 +13,13 @@ namespace TCG.Weiss.UI
         [Header("Player UI Zone Managers")]
         [SerializeField] private HandZoneUI handZoneUI;
         [SerializeField] private StageZoneUI stageZoneUI;
-        // TODO: Add references for other zones like Clock, Level, Stock, etc.
-        // [SerializeField] private ClockZoneUI clockZoneUI;
-        // [SerializeField] private LevelZoneUI levelZoneUI;
-        // [SerializeField] private StockZoneUI stockZoneUI;
+        [SerializeField] private ClimaxZoneUI climaxZoneUI;
+        [SerializeField] private LevelZoneUI levelZoneUI;
+        [SerializeField] private StockZoneUI stockZoneUI;
+        [SerializeField] private ClockZoneUI clockZoneUI;
+        [SerializeField] private WaitingRoomUI waitingRoomUI;
+        [SerializeField] private DeckZoneUI deckZoneUI;
+        [SerializeField] private MemoryZoneUI memoryZoneUI;
 
         /// <summary>
         /// Updates all managed UI zones to reflect the state of the provided player.
@@ -44,7 +47,38 @@ namespace TCG.Weiss.UI
                 stageZoneUI.UpdateZone(stageZone);
             }
 
-            // TODO: Update other zones
+            // Update Climax Zone
+            if (climaxZoneUI != null)
+            {
+                var climaxZone = player.GetZone<IClimaxZone<WeissCard>>() as ClimaxZone;
+                climaxZoneUI.UpdateZone(climaxZone);
+            }
+
+            if (stockZoneUI != null)
+            {
+                var stockZone = player.GetZone<IStockZone<WeissCard>>() as StockZone;
+                stockZoneUI.UpdateZone(stockZone);
+            }
+
+            // Update Clock Zone
+            if (clockZoneUI != null)
+            {
+                var clockZone = player.GetZone<IClockZone<WeissCard>>() as ClockZone;
+                clockZoneUI.UpdateZone(clockZone);
+            }
+
+            if (waitingRoomUI != null)
+            {
+                var waitingRoom = player.GetZone<IDiscardPile<WeissCard>>() as WaitingRoomZone;
+                waitingRoomUI.UpdateZone(waitingRoom);
+            }
+
+            // Update Deck Zone
+            if (deckZoneUI != null)
+            {
+                var deckZone = player.GetZone<IDeckZone<WeissCard>>() as DeckZone;
+                deckZoneUI.UpdateZone(deckZone);
+            }
             // if (clockZoneUI != null) { ... }
         }
     }
