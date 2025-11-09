@@ -23,6 +23,9 @@ namespace TCG.Weiss.UI
         [SerializeField] private DeckZoneUI deckZoneUI;
         [SerializeField] private MemoryZoneUI memoryZoneUI;
 
+        [Header("Card Detail View")]
+        [SerializeField] private CardDetailView cardDetailView;
+
         [Header("Interaction Buttons")]
         [SerializeField] private GameObject mulliganConfirmButton;
 
@@ -40,6 +43,24 @@ namespace TCG.Weiss.UI
             }
 
             mulliganConfirmButton?.SetActive(false);
+            cardDetailView?.Hide(); // Ensure card detail view starts hidden
+        }
+
+        /// <summary>
+        /// Displays the detailed information for a given card.
+        /// </summary>
+        /// <param name="card">The WeissCard to display details for.</param>
+        public void ShowCardDetail(WeissCard card)
+        {
+            cardDetailView?.Show(card);
+        }
+
+        /// <summary>
+        /// Hides the card detail view.
+        /// </summary>
+        public void HideCardDetail()
+        {
+            cardDetailView?.Hide();
         }
 
         public void BeginMulliganSelection(UIGamePlayerController controller)

@@ -91,8 +91,13 @@ namespace TCG.Weiss
                 remainingText = remainingText.Remove(costMatch.Index, costMatch.Length).Trim();
             }
 
-            // 3. The rest is the description
+            // 3. The rest is the description, parse it for effects
             ability.Description = remainingText;
+            List<IEffect> effects = Effects.EffectFactory.ParseEffects(ability.Description);
+            if (effects != null && effects.Count > 0)
+            {
+                ability.Effects.AddRange(effects);
+            }
 
             abilities.Add(ability);
         }
