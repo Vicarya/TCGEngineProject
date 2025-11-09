@@ -18,6 +18,21 @@ namespace TCG.Weiss.UI
 
         private List<CardUI> _cardUIs = new List<CardUI>();
 
+        // --- Mulligan Selection ---
+        public void EnterMulliganSelectionMode()
+        {
+            Debug.Log("HandZoneUI: Entering mulligan selection mode.");
+            // Implementation to follow: add click listeners to each CardUI
+        }
+
+        public List<WeissCard> GetSelectedCardsForMulligan()
+        {
+            Debug.Log("HandZoneUI: Getting selected cards for mulligan.");
+            // Implementation to follow: get selected cards from _cardUIs
+            return new List<WeissCard>();
+        }
+        // --------------------------
+
         /// <summary>
         /// Updates the hand display to match the provided HandZone state.
         /// </summary>

@@ -26,10 +26,15 @@ namespace TCG.Weiss
             }
         }
 
-        void Start()
+        async void Start()
         {
-            // ゲームインスタンスを作成し、セットアップとゲーム開始をトリガーする
+            // ゲームインスタンスを作成し、セットアップを実行
             _game = new WeissGame();
+
+            // 非同期でマリガン処理を実行し、完了を待つ
+            await _game.PerformMulliganPhase();
+
+            // ゲームを開始する
             _game.StartGame();
 
             Debug.Log("Game Manager Started and Game Initialized.");

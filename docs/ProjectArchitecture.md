@@ -39,11 +39,14 @@
 	- GameBase / GameState / PhaseBase
 	- AbilityBase / IEffect / ITriggerCondition
 	- EventBus / GameEventType
+	- ICost / Costs
 
 - `TCG.Weiss` (ヴァイスシュヴァルツ実装、`Assets/Scripts/WeissSchwarz`)
 	- WeissCard : CardBase<WeissCardData>
 	- WeissGame : GameBase
 	- 独自ゾーンインターフェース（例: `IDeckZone`, `IStageZone`）およびその実装
+	- 具象コストクラス（例: `StockCost`, `DiscardHandCost`）
+	- CostFactory
 
 （将来的な拡張）`TCG.TCGPokemon` 等の別ゲーム実装も同様の命名規則で配置されます。
 
@@ -75,6 +78,16 @@
 		 - WeissGame : GameBase
 
 	 説明: 全体のターン進行やフェーズ管理の骨組みは `GameBase` が担います。ゲーム固有ルール（勝利条件、フェーズ間の特殊処理等）は `WeissGame` のように継承先で実装します。
+
+4) コスト系
+
+	 - ICost (インターフェース)
+		 - StockCost : ICost
+		 - DiscardHandCost : ICost
+
+	 説明: `ICost` はコスト支払いのための汎用インターフェースです。`GameCore` に配置され、具体的なコストの種類には依存しません。
+	 `StockCost` や `DiscardHandCost` のようなゲーム固有の具体的なコストは、`WeissSchwarz` モジュール側で `ICost` を実装します。
+	 `CostFactory` は、カードのテキストからこれらの具象コストオブジェクトを生成する責務を持ちます。
 
 ## ドキュメントのギャップと追加提案
 

@@ -10,6 +10,8 @@ namespace TCG.Weiss.UI
     /// </summary>
     public class GameView : MonoBehaviour
     {
+        public static GameView Instance { get; private set; }
+
         [Header("Player UI Zone Managers")]
         [SerializeField] private HandZoneUI handZoneUI;
         [SerializeField] private StageZoneUI stageZoneUI;
@@ -20,6 +22,46 @@ namespace TCG.Weiss.UI
         [SerializeField] private WaitingRoomUI waitingRoomUI;
         [SerializeField] private DeckZoneUI deckZoneUI;
         [SerializeField] private MemoryZoneUI memoryZoneUI;
+
+        [Header("Interaction Buttons")]
+        [SerializeField] private GameObject mulliganConfirmButton;
+
+        private UIGamePlayerController _activeController;
+
+        private void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                Instance = this;
+            }
+
+            mulliganConfirmButton?.SetActive(false);
+        }
+
+        public void BeginMulliganSelection(UIGamePlayerController controller)
+        {
+            _activeController = controller;
+            handZoneUI.EnterMulliganSelectionMode();
+            mulliganConfirmButton?.SetActive(true);
+            Debug.Log("GameView: Mulligan selection started. Confirm button is now visible.");
+        }
+
+        public void ConfirmMulliganClicked()
+        {
+            if (_activeController == null) return;
+
+            var selectedCards = handZoneUI.GetSelectedCardsForMulligan();
+            _activeController.ConfirmMulligan(selectedCards);
+
+            // Clean up UI
+            mulliganConfirmButton?.SetActive(false);
+            _activeController = null;
+            Debug.Log("GameView: Mulligan confirmed. UI has been reset.");
+        }
 
         /// <summary>
         /// Updates all managed UI zones to reflect the state of the provided player.

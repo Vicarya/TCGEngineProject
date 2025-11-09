@@ -1,6 +1,7 @@
-using TCG.Core;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using TCG.Core;
 using UnityEngine;
 
 namespace TCG.Weiss
@@ -23,6 +24,34 @@ namespace TCG.Weiss
         protected override GameState CreateGameState()
         {
             return new WeissGameState(this);
+        }
+
+        public async Task PerformMulliganPhase()
+        {
+            foreach (WeissPlayer player in GameState.Players)
+            {
+                var handZone = player.GetZone<IHandZone<WeissCard>>();
+                var waitingRoom = player.GetZone<IDiscardPile<WeissCard>>();
+                var deckZone = player.GetZone<IDeckZone<WeissCard>>();
+
+                var cardsToMulligan = await player.Controller.ChooseMulliganCards(player, new List<WeissCard>(handZone.Cards));
+
+                if (cardsToMulligan != null && cardsToMulligan.Count > 0)
+                {
+                    // 選択されたカードを控え室に送り、同数をドローする
+                    foreach (var card in cardsToMulligan)
+                    {
+                        handZone.RemoveCard(card);
+                        waitingRoom.AddCard(card);
+                    }
+
+                    for (int i = 0; i < cardsToMulligan.Count; i++)
+                    {
+                        var newCard = deckZone.DrawTop();
+                        if (newCard != null) handZone.AddCard(newCard);
+                    }
+                }
+            }
         }
 
         protected override void SetupGame(GameState state)
@@ -106,36 +135,11 @@ namespace TCG.Weiss
                     var card = deckZone.DrawTop();
                     if (card != null) handZone.AddCard(card);
                 }
-            }
 
-            // 6.5. 初期手札の引き直し（マリガン）処理
-            foreach (WeissPlayer player in state.Players)
-            {
-                var handZone = player.GetZone<IHandZone<WeissCard>>();
-                var waitingRoom = player.GetZone<IDiscardPile<WeissCard>>();
-                var deckZone = player.GetZone<IDeckZone<WeissCard>>();
-
-                var cardsToMulligan = player.Controller.ChooseMulliganCards(player, new List<WeissCard>(handZone.Cards));
+                // 7. ゲーム開始をイベントバスで通知する (最初のプレイヤーのターン開始)
+                state.EventBus.Raise(new GameEvent(BaseGameEvents.TurnStarted, state.Players[0]));
                 
-                if (cardsToMulligan != null && cardsToMulligan.Count > 0)
-                {
-                    // 選択されたカードを控え室に送り、同数をドローする
-                    foreach (var card in cardsToMulligan)
-                    {
-                        handZone.RemoveCard(card);
-                        waitingRoom.AddCard(card);
-                    }
-
-                    for (int i = 0; i < cardsToMulligan.Count; i++)
-                    {
-                        var newCard = deckZone.DrawTop();
-                        if (newCard != null) handZone.AddCard(newCard);
-                    }
-                }
             }
-
-            // 7. ゲーム開始をイベントバスで通知する (最初のプレイヤーのターン開始)
-            state.EventBus.Raise(new GameEvent(BaseGameEvents.TurnStarted, state.Players[0]));
         }
     }
 }
