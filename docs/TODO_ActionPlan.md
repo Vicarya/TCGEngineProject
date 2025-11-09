@@ -93,7 +93,7 @@
 | **T-M4.4** | **`ConsolePlayerController`の実装**: `IWeissPlayerController`を実装するコンソールクラスを新規作成する。 | Gemini | `完了` |
 | **T-M4.5** | **`DiscardCost`の実装**: 手札破棄コストクラスを実装し、`CostFactory`に統合する。 | Gemini | `完了` |
 | **T-M4.6** | **アビリティのトリガーと効果の解析**: アビリティテキストからトリガー（【自】【起】【永】）と効果を解析するロジックを`AbilityFactory`に追加する。 | Gemini | `進行中` |
-| **T-M4.7** | **効果テキストの解析とIEffectオブジェクトへの変換**: `WeissAbility`の`Description`プロパティから効果テキストを解析し、対応する`IEffect`オブジェクトを生成して`Effects`リストに追加する。 | Gemini | `進行中` |
+| **T-M4.7** | **効果テキストの解析とIEffectオブジェクトへの変換**: `WeissAbility`の`Description`プロパティから効果テキストを解析し、対応する`IEffect`オブジェクトを生成して`Effects`リストに追加する。(Power Boost, Soul Boost, LookTopAndPlace, ReturnFromWaitingRoomの効果解析を実装済み) | Gemini | `進行中` |
 
 ### M2: UIとゲームロジックの接続
 *Note: UI表示の基盤となるC#スクリプトは全て実装完了。Unity Editor上でのプレハブ作成と設定はユーザーにより完了済み。*
