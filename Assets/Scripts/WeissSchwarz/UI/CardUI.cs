@@ -20,6 +20,7 @@ namespace TCG.Weiss.UI
         [Header("UI Child GameObjects")]
         [SerializeField] private GameObject cardFrontObject; // GameObject containing the front Image
         [SerializeField] private GameObject cardBackObject;  // GameObject containing the back Image
+        [SerializeField] private Button cardButton; // Button component for click detection
 
         // Image components are fetched from the GameObjects
         private Image _cardFrontImage;
@@ -41,6 +42,9 @@ namespace TCG.Weiss.UI
             if (cardFrontObject != null) _cardFrontImage = cardFrontObject.GetComponent<Image>();
             if (cardBackObject != null) _cardBackImage = cardBackObject.GetComponent<Image>();
 
+            // Add click listener
+            cardButton?.onClick.AddListener(OnCardClicked);
+
             // Warnings
             if (_cardFrontImage == null) Debug.LogError("Card Front Object is missing an Image component.", this);
             if (_cardBackImage == null) Debug.LogError("Card Back Object is missing an Image component.", this);
@@ -53,6 +57,14 @@ namespace TCG.Weiss.UI
         {
             _card = card;
             UpdateCardVisuals();
+        }
+
+        private void OnCardClicked()
+        {
+            if (_card != null)
+            {
+                GameView.Instance.ShowCardDetail(_card);
+            }
         }
 
         private void UpdateCardVisuals()

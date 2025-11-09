@@ -103,3 +103,16 @@
 | **T-M2.1** | **`CardUI.cs` の作成**: 単一カードの表示と状態管理（表裏、レスト等）を行う。 | Gemini | `完了` |
 | **T-M2.2** | **`GameView.cs` の作成**: 全てのゾーンUIを統括し、更新を指示する。 | Gemini | `完了` |
 | **T-M2.3** | **各ゾーンUIスクリプトの作成**: `HandZoneUI`, `StageZoneUI`, `ClimaxZoneUI`, `LevelZoneUI`, `StockZoneUI`, `ClockZoneUI`, `WaitingRoomUI`, `DeckZoneUI`, `MemoryZoneUI`を実装。 | Gemini | `完了` |
+
+---
+
+## 4. 新規マイルストーン
+
+### M6: UI機能の拡充
+
+| タスク ID | タスク内容 | 担当者 | ステータス |
+| :--- | :--- | :--- | :--- |
+| **T-M6.1** | **カード詳細表示UIのC#スクリプト作成 (`CardDetailView.cs`)** | Gemini | `完了` |
+| **T-M6.2** | **`GameView.cs` へのカード詳細表示機能統合** | Gemini | `完了` |
+| **T-M6.3** | **`CardUI.cs` へのクリックイベント追加** | Gemini | `完了` |
+| **T-M6.4** | **Unity Editorでのカード詳細UIプレハブ作成と設定** | UIチーム | `未着手` |
