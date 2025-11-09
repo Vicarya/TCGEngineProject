@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace TCG.Weiss
 {
@@ -8,7 +9,7 @@ namespace TCG.Weiss
         MainPhaseAction ChooseMainPhaseAction(WeissPlayer player);
         WeissCard ChooseCardFromHand(WeissPlayer player, bool optional);
         WeissCard ChooseClimaxFromHand(WeissPlayer player, bool optional);
-        List<WeissCard> ChooseMulliganCards(WeissPlayer player, List<WeissCard> hand);
+        Task<List<WeissCard>> ChooseMulliganCards(WeissPlayer player, List<WeissCard> hand);
         WeissCard ChooseAttacker(WeissPlayer player, List<WeissCard> attackableCharacters);
         AttackType ChooseAttackType(WeissPlayer player, WeissCard attacker, WeissCard defender);
         bool ChooseToEndAttack(WeissPlayer player);

@@ -7,6 +7,11 @@ namespace TCG.Weiss
 {
     public static class AbilityFactory
     {
+        // Regex for Triggers: 【自】 (Auto), 【起】 (Activated), 【永】 (Continuous)
+        private static readonly Regex AutoAbilityRegex = new Regex(@"^【自】");
+        private static readonly Regex ActivatedAbilityRegex = new Regex(@"^【起】");
+        private static readonly Regex ContinuousAbilityRegex = new Regex(@"^【永】");
+
         // Regex to find costs enclosed in full-width brackets, e.g., ［(1)］ or ［手札のキャラを１枚控え室に置く］
         private static readonly Regex CostRegex = new Regex(@"［(.+?)］");
 
@@ -19,7 +24,6 @@ namespace TCG.Weiss
                 return abilities; // No abilities found
             }
 
-            // The object from metadata is likely a List<object> or similar collection.
             if (abilitiesObject is IEnumerable abilityCollection)
             {
                 foreach (var abilityObj in abilityCollection)
@@ -36,21 +40,61 @@ namespace TCG.Weiss
 
         private static void ProcessAbilityString(string abilityText, WeissCard sourceCard, List<AbilityBase> abilities)
         {
-            var match = CostRegex.Match(abilityText);
-            if (match.Success)
-            {
-                string costString = match.Groups[1].Value;
-                ICost cost = CostFactory.Parse(costString);
+            if (string.IsNullOrWhiteSpace(abilityText)) return;
 
-                if (cost != null)
+            var ability = new WeissAbility(sourceCard);
+            string remainingText = abilityText;
+
+            // 1. Parse Ability Type (Trigger)
+            var autoMatch = AutoAbilityRegex.Match(remainingText);
+            if (autoMatch.Success)
+            {
+                ability.AbilityType = AbilityType.Auto;
+                remainingText = remainingText.Substring(autoMatch.Length).Trim();
+            }
+            else
+            {
+                var actMatch = ActivatedAbilityRegex.Match(remainingText);
+                if (actMatch.Success)
                 {
-                    // For now, create a generic ability for any text that has a parsable cost.
-                    // We can add more logic later to parse triggers and effects.
-                    var ability = new AbilityBase(sourceCard);
-                    ability.Costs.Add(cost);
-                    abilities.Add(ability);
+                    ability.AbilityType = AbilityType.Activated;
+                    remainingText = remainingText.Substring(actMatch.Length).Trim();
+                }
+                else
+                {
+                    var contMatch = ContinuousAbilityRegex.Match(remainingText);
+                    if (contMatch.Success)
+                    {
+                        ability.AbilityType = AbilityType.Continuous;
+                        remainingText = remainingText.Substring(contMatch.Length).Trim();
+                    }
+                    else
+                    {
+                        // If no trigger is found, it might be a non-standard ability.
+                        // For now, we can skip or log it.
+                        return;
+                    }
                 }
             }
+
+            // 2. Parse Cost
+            var costMatch = CostRegex.Match(remainingText);
+            if (costMatch.Success)
+            {
+                string costString = costMatch.Groups[1].Value;
+                List<ICost> costs = CostFactory.ParseCosts(costString);
+                if (costs != null && costs.Count > 0)
+                {
+                    ability.Costs.AddRange(costs);
+                }
+                // Remove cost part from the text
+                remainingText = remainingText.Remove(costMatch.Index, costMatch.Length).Trim();
+            }
+
+            // 3. The rest is the description
+            ability.Description = remainingText;
+
+            abilities.Add(ability);
         }
     }
 }

@@ -1,12 +1,24 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TCG.Core;
+using TCG.Weiss.UI;
 using UnityEngine;
 
 namespace TCG.Weiss
 {
     public class UIGamePlayerController : IWeissPlayerController
     {
+        private TaskCompletionSource<List<WeissCard>> _mulliganCompletionSource;
+
+        public void ConfirmMulligan(List<WeissCard> selectedCards)
+        {
+            if (_mulliganCompletionSource != null && !_mulliganCompletionSource.Task.IsCompleted)
+            {
+                _mulliganCompletionSource.SetResult(selectedCards);
+            }
+        }
+
         public void ResetTurnState()
         {
             Debug.Log("UIGamePlayerController: ResetTurnState called.");
@@ -57,10 +69,19 @@ namespace TCG.Weiss
             return AttackType.Front; // Simulate Front Attack
         }
 
-        public List<WeissCard> ChooseMulliganCards(WeissPlayer player, List<WeissCard> hand)
+        public async Task<List<WeissCard>> ChooseMulliganCards(WeissPlayer player, List<WeissCard> hand)
         {
             Debug.Log($"UIGamePlayerController: {player.Name}'s Mulligan Phase. Waiting for UI input.");
-            return new List<WeissCard>();
+            _mulliganCompletionSource = new TaskCompletionSource<List<WeissCard>>();
+
+            // Signal the UI to enter mulligan selection mode.
+            GameView.Instance.BeginMulliganSelection(this);
+
+            var selectedCards = await _mulliganCompletionSource.Task;
+            _mulliganCompletionSource = null; // Clean up
+
+            Debug.Log($"UIGamePlayerController: Mulligan confirmed with {selectedCards.Count} cards.");
+            return selectedCards;
         }
 
         public WeissCard ChooseCardFromWaitingRoom(WeissPlayer player, List<WeissCard> cards, bool optional)

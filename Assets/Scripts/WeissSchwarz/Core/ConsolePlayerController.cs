@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TCG.Core;
 using UnityEngine;
 
@@ -173,13 +174,13 @@ namespace TCG.Weiss
             return AttackType.Front;
         }
 
-        public List<WeissCard> ChooseMulliganCards(WeissPlayer player, List<WeissCard> hand)
+        public Task<List<WeissCard>> ChooseMulliganCards(WeissPlayer player, List<WeissCard> hand)
         {
             Debug.Log($"--- {player.Name}'s Mulligan Phase ---");
             if (hand == null || !hand.Any())
             {
                 Debug.Log("No cards in hand to mulligan.");
-                return new List<WeissCard>();
+                return Task.FromResult(new List<WeissCard>());
             }
 
             Debug.Log("Your hand:");
@@ -203,7 +204,7 @@ namespace TCG.Weiss
                 Debug.Log("Simulating player input: Keeping hand.");
             }
 
-            return cardsToMulligan;
+            return Task.FromResult(cardsToMulligan);
         }
 
         public WeissCard ChooseCardFromWaitingRoom(WeissPlayer player, List<WeissCard> cards, bool optional)
