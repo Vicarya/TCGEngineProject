@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using TCG.Core;
@@ -130,7 +131,15 @@ namespace TCG.Weiss.UI
                     }
                     else
                     {
-                        sb.AppendLine($"  [Generic Ability] {abilityBase.SourceCard.Data.name}");
+                        // SourceCard may be a CardBase<WeissCardData> or other concrete type. Cast safely.
+                        if (abilityBase.SourceCard is TCG.Core.CardBase<TCG.Weiss.WeissCardData> srcWithData)
+                        {
+                            sb.AppendLine($"  [Generic Ability] {srcWithData.Data.name}");
+                        }
+                        else
+                        {
+                            sb.AppendLine($"  [Generic Ability] (unknown source)");
+                        }
                     }
                 }
             }

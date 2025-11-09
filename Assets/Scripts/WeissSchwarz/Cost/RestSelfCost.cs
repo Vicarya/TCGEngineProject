@@ -8,22 +8,31 @@ namespace TCG.Weiss
     /// </summary>
     public class RestSelfCost<TCard> : ICost where TCard : Card
     {
-        private readonly TCard source;
+        private readonly TCard card;
 
-        public RestSelfCost(TCard source)
+        public RestSelfCost(TCard card)
         {
-            this.source = source;
+            this.card = card;
         }
 
-        public bool CanPay(GameState state, Player player)
+        // ICost requires a source Card parameter. We accept the passed-in source if provided,
+        // otherwise fall back to the card stored on construction.
+        public bool CanPay(GameState state, Player player, Card source)
         {
+            var target = source as TCard ?? card;
             // すでにレストしているなら支払不可
-            return source != null && !source.IsRested;
+            return target != null && !target.IsRested;
         }
 
-        public void Pay(GameState state, Player player)
+        public void Pay(GameState state, Player player, Card source)
         {
-            if (source != null) source.SetRested(true);
+            var target = source as TCard ?? card;
+            if (target != null) target.SetRested(true);
+        }
+
+        public string GetDescription()
+        {
+            return "Rest this card.";
         }
     }
 }

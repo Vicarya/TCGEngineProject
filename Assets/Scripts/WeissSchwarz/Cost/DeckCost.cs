@@ -12,13 +12,13 @@ namespace TCG.Weiss
             this.amount = amount;
         }
 
-        public bool CanPay(GameState state, Player player)
+        public bool CanPay(GameState state, Player player, Card source)
         {
             var deckZone = player.GetZone<IDeckZone<TCard>>();
             return deckZone != null && deckZone.Cards.Count >= amount;
         }
 
-        public void Pay(GameState state, Player player)
+        public void Pay(GameState state, Player player, Card source)
         {
             var deckZone = player.GetZone<IDeckZone<TCard>>();
             var handZone = player.GetZone<IHandZone<TCard>>();
@@ -32,6 +32,11 @@ namespace TCG.Weiss
                 deckZone.RemoveCard(card);
                 handZone.AddCard(card);
             }
+        }
+
+        public string GetDescription()
+        {
+            return $"Draw {amount} card(s) from deck.";
         }
     }
 }

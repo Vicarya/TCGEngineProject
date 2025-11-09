@@ -2,23 +2,33 @@
 import sqlite3
 import json
 import sys
+import re
 
-db='python/tools/ws_cards_test.db'
-conn=sqlite3.connect(db)
-cur=conn.cursor()
+db_path = 'python/tools/ws_cards.db'
+conn = sqlite3.connect(db_path)
+cur = conn.cursor()
+
 try:
-    cur.execute("SELECT count(*) FROM cards")
-    total=cur.fetchone()[0]
-    print('TOTAL_ROWS:', total)
-    cur.execute("PRAGMA index_list('cards')")
-    idxs=cur.fetchall()
-    print('\nINDEX_LIST:')
-    for i in idxs:
-        print(' ', i)
-    print('\nSAMPLE_ROWS:')
-    cur.execute("SELECT card_no,name,work_id,side,color,image_url FROM cards ORDER BY id LIMIT 5")
-    rows=cur.fetchall()
-    for r in rows:
-        print(json.dumps({'card_no':r[0],'name':r[1],'work_id':r[2],'side':r[3],'color':r[4],'image_url':r[5]}, ensure_ascii=False))
+    cur.execute("SELECT abilities_json FROM cards")
+    rows = cur.fetchall()
+    
+    unique_costs = set()
+    
+    for row in rows:
+        abilities = json.loads(row[0])
+        for ability_text in abilities:
+            if ability_text.startswith('【起】'):
+                # Extract the cost part, which is between '】' and the description starting with '「' or the end of the string
+                match = re.search(r'】(.*?)(「|$)', ability_text)
+                if match:
+                    cost_string = match.group(1).strip()
+                    if cost_string:
+                        unique_costs.add(cost_string)
+
+    print("--- Unique Activate Ability Costs ---")
+    for cost in sorted(list(unique_costs)):
+        print(cost)
+    print("------------------------------------")
+
 finally:
     conn.close()

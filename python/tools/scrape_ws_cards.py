@@ -123,16 +123,28 @@ def parse_card_row(row_soup):
     if flavor_span:
         card_data['flavor_text'] = flavor_span.text.strip().replace('フレーバー：', '', 1)
 
-    for br in td_tag.find_all('br'):
-        br.replace_with('\n')
-    
-    full_text = td_tag.text.strip()
-    
-    # FINAL BUG FIX: Corrected the regex for ability text extraction.
-    ability_pattern = r'(【自】|【起】|【永】|【他】.+?)(?=\n【|\Z)'
-    ability_texts = re.findall(ability_pattern, full_text, re.DOTALL)
-    card_data['abilities'] = [ability.strip() for ability in ability_texts]
+    # --- Ability Text Extraction ---
+    # The ability texts are all within the last 'highlight_target' span.
+    # Each ability inside is separated by a <br> tag.
+    ability_texts = []
+    highlight_spans = td_tag.find_all('span', class_='highlight_target')
+    if highlight_spans:
+        # The last highlight_target span contains the abilities
+        ability_span = highlight_spans[-1]
+        
+        # Replace <br> tags with a unique separator to handle splitting
+        for br in ability_span.find_all('br'):
+            br.replace_with('|||') # Use a unique separator
+            
+        # Get the text and split by the separator
+        full_ability_text = ability_span.get_text(strip=True)
+        abilities = full_ability_text.split('|||')
+        
+        # Clean up and filter out empty strings
+        ability_texts = [ability.strip() for ability in abilities if ability.strip()]
 
+    card_data['abilities'] = ability_texts
+    
     return card_data
 
 def main():
@@ -174,6 +186,8 @@ def main():
                 cur = to_visit.pop(0)
                 if cur in visited:
                     continue
+                
+                print(f"\n--- Processing page: {cur} ---")
                 driver.get(cur)
                 try:
                     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, CARD_TABLE_BODY_SELECTOR)))
@@ -192,7 +206,7 @@ def main():
                     continue
 
                 rows = table_body.find_all('tr')
-                print(f"{cur} -> {len(rows)} 件のカードを検出。抽出中...")
+                print(f"{len(rows)} 件のカードを検出。抽出中...")
                 for row in rows:
                     card_data = parse_card_row(row)
                     if card_data:
@@ -216,7 +230,7 @@ def main():
                 # be polite
                 time.sleep(1)
 
-            print(f"合計 {len(all_cards_data)} 件のカードデータを抽出しました。")
+            print(f"\n合計 {len(all_cards_data)} 件のカードデータを抽出しました。")
 
         except TimeoutException:
             print(f"タイムアウトエラー: カード情報テーブル({CARD_TABLE_BODY_SELECTOR})が見つかりませんでした。")

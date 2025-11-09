@@ -17,7 +17,15 @@ namespace TCG.Weiss.Effects
             // A full implementation would need targeting and duration tracking.
             if (source != null)
             {
-                UnityEngine.Debug.Log($"Applying +{Amount} soul to {source.Data.Name}. (Note: This is a temporary effect and not fully implemented).");
+                // Source may be a CardBase<WeissCardData> or a concrete WeissCard. Cast safely.
+                if (source is TCG.Core.CardBase<TCG.Weiss.WeissCardData> cardWithData)
+                {
+                    UnityEngine.Debug.Log($"Applying +{Amount} soul to {cardWithData.Data.Name}. (Note: This is a temporary effect and not fully implemented).");
+                }
+                else
+                {
+                    UnityEngine.Debug.Log($"Applying +{Amount} soul to an unknown card (no Data). (Note: This is a temporary effect and not fully implemented).");
+                }
             }
         }
     }

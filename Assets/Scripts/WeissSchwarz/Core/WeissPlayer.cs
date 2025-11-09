@@ -1,7 +1,7 @@
+using TCG.Core;
+
 namespace TCG.Weiss
 {
-    using Core;
-
     public class WeissPlayer : Player
     {
         public IWeissPlayerController Controller { get; }
