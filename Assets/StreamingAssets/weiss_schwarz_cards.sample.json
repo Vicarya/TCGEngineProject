@@ -1,0 +1,1915 @@
+[
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-001&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_001.png",
+    "name": "学園長のさくら",
+    "card_no": "DC/W01-001",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "RR",
+    "トリガー": "-",
+    "特徴": [
+      "魔法"
+    ],
+    "フレーバー": "まあ、ボクも長いこと学園にいるからさ。思い出がいっぱいになっちゃうんだよ",
+    "flavor_text": "まあ、ボクも長いこと学園にいるからさ。思い出がいっぱいになっちゃうんだよ",
+    "abilities": [
+      "【自】 絆／「桜内 義之」 ［(1)］ （このカードがプレイされて舞台に置かれた時、あなたはコストを払ってよい。そうしたら、あなたは自分の控え室の「桜内 義之」を1枚選び、手札に戻す）",
+      "【起】［(1) このカードを【レスト】する］ あなたは《魔法》の自分のキャラを1枚選び、そのターン中、ソウルを＋1。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-002&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_002.png",
+    "name": "朝倉 音姫",
+    "card_no": "DC/W01-002",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "6000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "RR",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法・生徒会"
+    ],
+    "フレーバー": "お昼まだでしょ？　私、お弁当作ってきたんだ。一緒に食べよ？",
+    "flavor_text": "お昼まだでしょ？　私、お弁当作ってきたんだ。一緒に食べよ？",
+    "abilities": [
+      "【自】 このカードがプレイされて舞台に置かれた時、あなたは【スタンド】している自分のキャラを1枚選び、【レスト】する。",
+      "【自】 アンコール ［手札のキャラを1枚控え室に置く］ （このカードが舞台から控え室に置かれた時、あなたはコストを払ってよい。そうしたら、このカードがいた枠に【レスト】して置く）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-003&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_003.png",
+    "name": "音夢＆さくら",
+    "card_no": "DC/W01-003",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "R",
+    "トリガー": "-",
+    "特徴": [
+      "魔法"
+    ],
+    "フレーバー": "純一「しかし、お前らの兄さんとかお兄ちゃん、ってどうにかならないか？」",
+    "flavor_text": "純一「しかし、お前らの兄さんとかお兄ちゃん、ってどうにかならないか？」",
+    "abilities": [
+      "【永】 あなたのターン中、他のあなたのキャラすべてに、パワーを＋500。",
+      "【自】 このカードがアタックした時、あなたのキャラすべてに、そのターン中、パワーを＋500。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-004&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_004.png",
+    "name": "霧羽 明日美",
+    "card_no": "DC/W01-004",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "5000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "2",
+    "レアリティ": "R",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "特徴なし"
+    ],
+    "フレーバー": "……また風見学園にきてもいいでしょうか",
+    "flavor_text": "……また風見学園にきてもいいでしょうか",
+    "abilities": [
+      "【永】 アラーム このカードがクロックの１番上にあり、あなたのレベルが2以上なら、黄のあなたのキャラすべてに、ソウルを＋1。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-005&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_005.png",
+    "name": "鷺澤 頼子",
+    "card_no": "DC/W01-005",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "3000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "R",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "動物・メイド"
+    ],
+    "フレーバー": "いっぱい……食べて下さいね",
+    "flavor_text": "いっぱい……食べて下さいね",
+    "abilities": [
+      "【永】 応援 このカードの前のあなたのキャラすべてに、ソウルを＋1。",
+      "【自】 他のあなたのキャラとバトルしているキャラが【リバース】した時、あなたは自分のキャラを1枚選び、そのターン中、パワーを＋1000。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-006&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_006.png",
+    "name": "由夢＆音姫",
+    "card_no": "DC/W01-006",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "5500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "R",
+    "トリガー": "-",
+    "特徴": [
+      "魔法・生徒会"
+    ],
+    "フレーバー": "あー、お姉ちゃん！よけいなこと言わないで！",
+    "flavor_text": "あー、お姉ちゃん！よけいなこと言わないで！",
+    "abilities": [
+      "-"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-006R&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_006r.png",
+    "name": "由夢＆音姫",
+    "card_no": "DC/W01-006R",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "5500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "RRR",
+    "トリガー": "-",
+    "特徴": [
+      "魔法・生徒会"
+    ],
+    "フレーバー": "SECRET",
+    "flavor_text": "SECRET",
+    "abilities": [
+      "-"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-007&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_007.png",
+    "name": "鷺澤 美咲",
+    "card_no": "DC/W01-007",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "2500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "U",
+    "トリガー": "-",
+    "特徴": [
+      "特徴なし"
+    ],
+    "フレーバー": "205時間も待ったから、今ここで、告白しちゃいます",
+    "flavor_text": "205時間も待ったから、今ここで、告白しちゃいます",
+    "abilities": [
+      "【永】 あなたのターン中、このカードのパワーを＋1000。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-008&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_008.png",
+    "name": "簡易スーツの和泉子",
+    "card_no": "DC/W01-008",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "1500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "U",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "宇宙人・シャケ"
+    ],
+    "フレーバー": "最後だから、どうしても私の本当の姿を見てほしくて",
+    "flavor_text": "最後だから、どうしても私の本当の姿を見てほしくて",
+    "abilities": [
+      "【永】 このカードは相手の効果に選ばれない。",
+      "【自】 このカードがフロントアタックされた時、相手は自分の手札を1枚選び、控え室に置く。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-009&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_009.png",
+    "name": "桜内 義之",
+    "card_no": "DC/W01-009",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "3500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "U",
+    "トリガー": "-",
+    "特徴": [
+      "魔法・お菓子"
+    ],
+    "フレーバー": "こんな能力、別に何かの役に立つわけでもないけどな",
+    "flavor_text": "こんな能力、別に何かの役に立つわけでもないけどな",
+    "abilities": [
+      "【永】 このカードは、《魔法》のあなたのキャラがいないなら、手札からプレイできない。",
+      "【永】 他の《魔法》のあなたのキャラすべてに、パワーを＋500。",
+      "【起】［(4)］ あなたはレベル2以下の相手の前列のキャラを1枚選び、手札に戻す。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-010&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_010.png",
+    "name": "巫女装束の音姫",
+    "card_no": "DC/W01-010",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "8000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "2",
+    "レアリティ": "U",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法・巫女"
+    ],
+    "フレーバー": "あ、あはは。いつもと違う格好だから、ちょっと転んじゃった",
+    "flavor_text": "あ、あはは。いつもと違う格好だから、ちょっと転んじゃった",
+    "abilities": [
+      "【自】 このカードがアタックした時、クライマックス置場に「存在のなくなる日」があるなら、あなたは相手のキャラを1枚選び、手札に戻してよい。",
+      "【起】［(1)］ そのターン中、このカードのソウルを＋1。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-011&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_011.png",
+    "name": "水着のさくら",
+    "card_no": "DC/W01-011",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "3",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "9000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "2",
+    "レアリティ": "U",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法・水着"
+    ],
+    "フレーバー": "もう子供じゃないですよ～だ！",
+    "flavor_text": "もう子供じゃないですよ～だ！",
+    "abilities": [
+      "【永】 大活躍",
+      "【自】 このカードがアタックした時、クライマックス置場に「魔法使いの見る夢」があるなら、あなたは相手のキャラを1枚選び、手札に戻してよい。",
+      "【起】［(6)］ あなたは相手の前列のキャラすべてを、手札に戻す。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-012&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_012.png",
+    "name": "うたまる",
+    "card_no": "DC/W01-012",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "動物"
+    ],
+    "フレーバー": "にゃっ、にゃにゃっ、にゃ～にゃ～",
+    "flavor_text": "にゃっ、にゃにゃっ、にゃ～にゃ～",
+    "abilities": [
+      "【永】 他のあなたの「水着のさくら」すべてに、パワーを＋1000。",
+      "【永】 応援 このカードの前のあなたのキャラすべてに、パワーを＋500。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-013&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_013.png",
+    "name": "はりまお",
+    "card_no": "DC/W01-013",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "3000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "動物"
+    ],
+    "フレーバー": "あんあん！！",
+    "flavor_text": "あんあん！！",
+    "abilities": [
+      "-"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-014&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_014.png",
+    "name": "紫 和泉子",
+    "card_no": "DC/W01-014",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "2500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "宇宙人・動物"
+    ],
+    "フレーバー": "シャケおにぎり、おいし……",
+    "flavor_text": "シャケおにぎり、おいし……",
+    "abilities": [
+      "【起】［(3)］ あなたはレベル1以下の相手の前列のキャラを1枚選び、手札に戻す。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-015&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_015.png",
+    "name": "芳乃 さくら",
+    "card_no": "DC/W01-015",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "2000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "C",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "先生・魔法"
+    ],
+    "フレーバー": "ボディーランゲージは愛情表現の基本だよっ",
+    "flavor_text": "ボディーランゲージは愛情表現の基本だよっ",
+    "abilities": [
+      "【起】【カウンター】 助太刀2000 レベル1 ［(1) 手札のこのカードを控え室に置く］ （あなたはフロントアタックされている自分のキャラを1枚選び、そのターン中、パワーを＋2000）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-016&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_016.png",
+    "name": "霧羽 香澄",
+    "card_no": "DC/W01-016",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "4000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "C",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "霊"
+    ],
+    "フレーバー": "これだけはっきりと足が見えてるのに失礼ね",
+    "flavor_text": "これだけはっきりと足が見えてるのに失礼ね",
+    "abilities": [
+      "【自】 このカードが【リバース】した時、このカードとバトルしているキャラのレベルが1以下なら、あなたはそのキャラを手札に戻してよい。",
+      "【自】［(1)］ このカードがアタックした時、クライマックス置場に「あたし……そろそろ行かなきゃ……」があるなら、あなたはコストを払ってよい。そうしたら、あなたは相手のキャラを１枚選び、手札に戻す。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-017&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_017.png",
+    "name": "才色兼備の生徒会長 音姫",
+    "card_no": "DC/W01-017",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "8500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "C",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法・生徒会"
+    ],
+    "フレーバー": "生徒会長をなめたらダメだよ。弟くんの情報は全部筒抜けなんだから♪",
+    "flavor_text": "生徒会長をなめたらダメだよ。弟くんの情報は全部筒抜けなんだから♪",
+    "abilities": [
+      "-"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-018&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_018.png",
+    "name": "記憶消去",
+    "card_no": "DC/W01-018",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "1",
+    "レアリティ": "R",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "え？あ、あやや……その、ちょっとごめんなさい！",
+    "flavor_text": "え？あ、あやや……その、ちょっとごめんなさい！",
+    "abilities": [
+      "相手は自分の手札を1枚選び、控え室に置く。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-019&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_019.png",
+    "name": "決意",
+    "card_no": "DC/W01-019",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "0",
+    "レアリティ": "U",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "うん、バッサリやっちゃって。女の子が失恋した時くらい",
+    "flavor_text": "うん、バッサリやっちゃって。女の子が失恋した時くらい",
+    "abilities": [
+      "あなたは《魔法》の自分のキャラを1枚選び、そのターン中、パワーを＋2000し、ソウルを＋2。ターンの終わりに、そのキャラを思い出にする。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-020&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_020.png",
+    "name": "ネコ耳メイドさん",
+    "card_no": "DC/W01-020",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "1",
+    "レアリティ": "U",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "私……私を……メイドとしてここに置いて下さい……！",
+    "flavor_text": "私……私を……メイドとしてここに置いて下さい……！",
+    "abilities": [
+      "【カウンター】 あなたは自分のキャラを1枚選び、そのターン中、パワーを＋1500し、ソウルを＋1。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-021&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_021.png",
+    "name": "着ぐるみの中の人",
+    "card_no": "DC/W01-021",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "1",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "え、これ、その、誰、誰だっけ？",
+    "flavor_text": "え、これ、その、誰、誰だっけ？",
+    "abilities": [
+      "あなたは相手のキャラを1枚選び、そのターン中、レベルを－2。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-022&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_022.png",
+    "name": "朝倉姉妹のお料理",
+    "card_no": "DC/W01-022",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "0",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "あっ、包丁、そんな風に持っちゃ危ないよ。ちゃんと手を添えて、こう……",
+    "flavor_text": "あっ、包丁、そんな風に持っちゃ危ないよ。ちゃんと手を添えて、こう……",
+    "abilities": [
+      "あなたは自分のキャラを1枚選び、そのターン中、パワーを＋6000。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-023&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_023.png",
+    "name": "存在のなくなる日",
+    "card_no": "DC/W01-023",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "クライマックス",
+    "レベル": "-",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "-",
+    "レアリティ": "CR",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "大好きなのに……誰よりも大切な人なのに……絶対絶対、離れたくないのにっ……！",
+    "flavor_text": "大好きなのに……誰よりも大切な人なのに……絶対絶対、離れたくないのにっ……！",
+    "abilities": [
+      "【永】 あなたのキャラすべてに、パワーを＋1000し、ソウルを＋1。",
+      "（：このカードがトリガーした時、あなたは相手のキャラを1枚選び、手札に戻してよい）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-023S&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_023s.png",
+    "name": "存在のなくなる日",
+    "card_no": "DC/W01-023S",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "クライマックス",
+    "レベル": "-",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "-",
+    "レアリティ": "SP",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "SECRET",
+    "flavor_text": "SECRET",
+    "abilities": [
+      "【永】 あなたのキャラすべてに、パワーを＋1000し、ソウルを＋1。",
+      "（：このカードがトリガーした時、あなたは相手のキャラを1枚選び、手札に戻してよい）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-024&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_024.png",
+    "name": "魔法使いの見る夢",
+    "card_no": "DC/W01-024",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "クライマックス",
+    "レベル": "-",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "-",
+    "レアリティ": "CC",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "ここはみんなの夢の通り道……",
+    "flavor_text": "ここはみんなの夢の通り道……",
+    "abilities": [
+      "【永】 あなたのキャラすべてに、パワーを＋1000し、ソウルを＋1。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-025&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_025.png",
+    "name": "あたし……そろそろ行かなきゃ……",
+    "card_no": "DC/W01-025",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "クライマックス",
+    "レベル": "-",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/yellow.gif",
+    "色": "黄",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "-",
+    "レアリティ": "CC",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "『アスミノコト　ヨロシクネ　カスミ』",
+    "flavor_text": "『アスミノコト　ヨロシクネ　カスミ』",
+    "abilities": [
+      "【永】 あなたのキャラすべてに、ソウルを＋2。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-026&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_026.png",
+    "name": "晴れ着のななか",
+    "card_no": "DC/W01-026",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "RR",
+    "トリガー": "-",
+    "特徴": [
+      "音楽・和服"
+    ],
+    "フレーバー": "あけましておめでとーございまーーーっす！",
+    "flavor_text": "あけましておめでとーございまーーーっす！",
+    "abilities": [
+      "【永】 他のあなたの「月島 小恋」すべてに、パワーを＋1000。",
+      "【自】 絆／「月島 小恋」 ［(1)］ （このカードがプレイされて舞台に置かれた時、あなたはコストを払ってよい。そうしたら、あなたは自分の控え室の「月島 小恋」を1枚選び、手札に戻す）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-027&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_027.png",
+    "name": "晴れ着の小恋",
+    "card_no": "DC/W01-027",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "3000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "RR",
+    "トリガー": "-",
+    "特徴": [
+      "音楽・和服"
+    ],
+    "フレーバー": "あけましておめでとう～",
+    "flavor_text": "あけましておめでとう～",
+    "abilities": [
+      "【自】 このカードがアタックした時、クライマックス置場に「伝わる温もり」があるなら、あなたは自分の山札の上から1枚を、ストック置場に置き、そのターン中、このカードのパワーを＋3000。",
+      "【起】［このカードを【レスト】する］ あなたは自分の山札の上から1枚を、ストック置場に置く。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-028&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_028.png",
+    "name": "胡ノ宮 環",
+    "card_no": "DC/W01-028",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "2000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "R",
+    "トリガー": "-",
+    "特徴": [
+      "魔法・巫女"
+    ],
+    "フレーバー": "わたくしの大切な人のために……",
+    "flavor_text": "わたくしの大切な人のために……",
+    "abilities": [
+      "【起】［このカードを【レスト】する］ あなたは自分のキャラを1枚選び、そのターン中、パワーを＋1000。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-029&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_029.png",
+    "name": "パジャマの茜",
+    "card_no": "DC/W01-029",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "R",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "特徴なし"
+    ],
+    "フレーバー": "そりゃもちろん、『愛してるよ……』に決まってるじゃない！",
+    "flavor_text": "そりゃもちろん、『愛してるよ……』に決まってるじゃない！",
+    "abilities": [
+      "【自】 あなたがこのカードの『助太刀』を使った時、あなたのカード名に「小恋」か「杏」を含むキャラがいるなら、あなたは自分の山札の上から1枚を、ストック置場に置いてよい。",
+      "【起】【カウンター】 助太刀2000 レベル1 ［(1) 手札のこのカードを控え室に置く］ （あなたはフロントアタックされている自分のキャラを1枚選び、そのターン中、パワーを＋2000）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-030&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_030.png",
+    "name": "月島 小恋",
+    "card_no": "DC/W01-030",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "5500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "R",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "音楽"
+    ],
+    "フレーバー": "水泳の授業のときにね……、着替えてて、バレたの……",
+    "flavor_text": "水泳の授業のときにね……、着替えてて、バレたの……",
+    "abilities": [
+      "【自】 アンコール ［手札のキャラを1枚控え室に置く］ （このカードが舞台から控え室に置かれた時、あなたはコストを払ってよい。そうしたら、このカードがいた枠に【レスト】して置く）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-030R&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_030r.png",
+    "name": "月島 小恋",
+    "card_no": "DC/W01-030R",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "5500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "RRR",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "音楽"
+    ],
+    "フレーバー": "SECRET",
+    "flavor_text": "SECRET",
+    "abilities": [
+      "【自】 アンコール ［手札のキャラを1枚控え室に置く］ （このカードが舞台から控え室に置かれた時、あなたはコストを払ってよい。そうしたら、このカードがいた枠に【レスト】して置く）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-031&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_031.png",
+    "name": "学園のアイドル ことり",
+    "card_no": "DC/W01-031",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "2000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "R",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法・音楽"
+    ],
+    "フレーバー": "大好きな人に、膝枕をして上げたいんです",
+    "flavor_text": "大好きな人に、膝枕をして上げたいんです",
+    "abilities": [
+      "【永】 アラーム このカードがクロックの１番上にあり、あなたのレベルが2以上なら、緑のあなたのキャラすべてに、パワーを＋1500。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-032&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_032.png",
+    "name": "工藤 叶",
+    "card_no": "DC/W01-032",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "4500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "U",
+    "トリガー": "-",
+    "特徴": [
+      "和服"
+    ],
+    "フレーバー": "私をずっと守ってくれる――それがあなたの今でも変わらない想いですか？",
+    "flavor_text": "私をずっと守ってくれる――それがあなたの今でも変わらない想いですか？",
+    "abilities": [
+      "【永】 このカードは、あなたの「学生服の工藤」がいないなら、手札からプレイできない。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-033&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_033.png",
+    "name": "みっくん＆ともちゃん",
+    "card_no": "DC/W01-033",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "3000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "U",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "音楽"
+    ],
+    "フレーバー": "よろしくお願いします",
+    "flavor_text": "よろしくお願いします",
+    "abilities": [
+      "【永】 応援 このカードの前のレベル2以上のあなたのキャラすべてに、パワーを＋1000。",
+      "【起】［このカードを【レスト】する］ 他の《音楽》のあなたのキャラすべてに、そのターン中、パワーを＋500。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-034&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_034.png",
+    "name": "スキーウェアのななか",
+    "card_no": "DC/W01-034",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "3000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "U",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "音楽・スポーツ"
+    ],
+    "フレーバー": "最初は皆、初心者コースで滑ろうだって",
+    "flavor_text": "最初は皆、初心者コースで滑ろうだって",
+    "abilities": [
+      "【自】［(1)］ このカードとバトルしているキャラが【リバース】した時、あなたはコストを払ってよい。そうしたら、あなたは自分の山札を見て《音楽》のキャラを1枚まで選んで相手に見せ、手札に加える。その山札をシャッフルする。",
+      "【起】［(2)］ そのターン中、このカードのパワーを＋5000。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-035&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_035.png",
+    "name": "朝倉 純一",
+    "card_no": "DC/W01-035",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "9000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "2",
+    "レアリティ": "U",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法・お菓子"
+    ],
+    "フレーバー": "人を笑顔にするには自分も笑顔でなきゃね",
+    "flavor_text": "人を笑顔にするには自分も笑顔でなきゃね",
+    "abilities": [
+      "-"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-036&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_036.png",
+    "name": "私服のことり",
+    "card_no": "DC/W01-036",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "3",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "9500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "2",
+    "レアリティ": "U",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法・音楽"
+    ],
+    "フレーバー": "……私に分かるのは、心だけだから……",
+    "flavor_text": "……私に分かるのは、心だけだから……",
+    "abilities": [
+      "【永】 大活躍",
+      "【自】 このカードがプレイされて舞台に置かれた時、あなたは相手の手札を見る。",
+      "【自】 このカードがアタックした時、クライマックス置場に「結婚式の歌姫」があるなら、あなたは自分の山札の上から1枚を、ストック置場に置き、そのターン中、このカードのパワーを＋3000。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-037&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_037.png",
+    "name": "板橋 渉",
+    "card_no": "DC/W01-037",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "2500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "音楽"
+    ],
+    "フレーバー": "いいんだよ。マジメに音楽をやらない奴は、俺は嫌いなんだ",
+    "flavor_text": "いいんだよ。マジメに音楽をやらない奴は、俺は嫌いなんだ",
+    "abilities": [
+      "【起】［このカードを【レスト】する］ あなたは自分の山札の上から1枚を、クロック置場に置く。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-038&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_038.png",
+    "name": "花咲 茜",
+    "card_no": "DC/W01-038",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "2500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "特徴なし"
+    ],
+    "フレーバー": "大丈夫大丈夫～♪　女の子には、涙って武器があるんだから",
+    "flavor_text": "大丈夫大丈夫～♪　女の子には、涙って武器があるんだから",
+    "abilities": [
+      "【起】［(1)］ そのターン中、このカードのパワーを＋2000。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-039&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_039.png",
+    "name": "学生服の工藤",
+    "card_no": "DC/W01-039",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "4500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "特徴なし"
+    ],
+    "フレーバー": "俺、女の子と付き合う気はないからさ",
+    "flavor_text": "俺、女の子と付き合う気はないからさ",
+    "abilities": [
+      "-"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-040&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_040.png",
+    "name": "雪月花三人娘",
+    "card_no": "DC/W01-040",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "6000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "C",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "音楽・魔法"
+    ],
+    "フレーバー": "そうそう、女の子３人に囲まれてのハーレム状態だよ",
+    "flavor_text": "そうそう、女の子３人に囲まれてのハーレム状態だよ",
+    "abilities": [
+      "-"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-041&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_041.png",
+    "name": "小恋＆ななか",
+    "card_no": "DC/W01-041",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "8000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "2",
+    "レアリティ": "C",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "音楽・魔法"
+    ],
+    "フレーバー": "ぬくぬく～。ななかの手、暖かい～。ほわ～",
+    "flavor_text": "ぬくぬく～。ななかの手、暖かい～。ほわ～",
+    "abilities": [
+      "【起】［(1)］ あなたは相手の前列のキャラを1枚選び、そのターン中、パワーを－1000。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-042&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_042.png",
+    "name": "大和撫子 環",
+    "card_no": "DC/W01-042",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "6500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "2",
+    "レアリティ": "C",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法・巫女"
+    ],
+    "フレーバー": "……人の未来なんて知りたくないのに……",
+    "flavor_text": "……人の未来なんて知りたくないのに……",
+    "abilities": [
+      "【自】 このカードがプレイされて舞台に置かれた時、あなたは相手の山札を上から3枚まで見て、山札の上に好きな順番で置く。",
+      "【自】 このカードがアタックした時、クライマックス置場に「わたくしの大切な人のために……」があるなら、あなたは自分の山札の上から1枚を、ストック置場に置き、そのターン中、このカードのパワーを＋3000。",
+      "【自】 アンコール ［手札のキャラを1枚控え室に置く］ （このカードが舞台から控え室に置かれた時、あなたはコストを払ってよい。そうしたら、このカードがいた枠に【レスト】して置く）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-043&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_043.png",
+    "name": "耳かき",
+    "card_no": "DC/W01-043",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "0",
+    "レアリティ": "R",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "弟くんにはやっぱり私がついていてあげないと",
+    "flavor_text": "弟くんにはやっぱり私がついていてあげないと",
+    "abilities": [
+      "あなたは自分のキャラを1枚選び、【スタンド】する。あなたは自分のキャラを1枚選び、そのターン中、パワーを＋3000。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-044&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_044.png",
+    "name": "ミス風見学園コンテスト",
+    "card_no": "DC/W01-044",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "0",
+    "レアリティ": "U",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "これより、手芸部主催の“ミス風見学園コンテスト”を実施します！",
+    "flavor_text": "これより、手芸部主催の“ミス風見学園コンテスト”を実施します！",
+    "abilities": [
+      "あなたは自分の山札の上から1枚を、ストック置場に置く。あなたは自分のキャラを1枚選び、そのターン中、パワーを＋500。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-045&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_045.png",
+    "name": "仲間と大切な人に",
+    "card_no": "DC/W01-045",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "1",
+    "レアリティ": "U",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "ななかには、もー、兄ちゃんがいるからな～",
+    "flavor_text": "ななかには、もー、兄ちゃんがいるからな～",
+    "abilities": [
+      "【カウンター】 あなたは自分のキャラを1枚選び、そのターン中、パワーを＋3500。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-046&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_046.png",
+    "name": "音夢のお弁当",
+    "card_no": "DC/W01-046",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "1",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "ね、兄さん。騙されたと思って♪",
+    "flavor_text": "ね、兄さん。騙されたと思って♪",
+    "abilities": [
+      "あなたは相手の前列のキャラを1枚選び、そのターン中、パワーを－4500。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-047&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_047.png",
+    "name": "転入生",
+    "card_no": "DC/W01-047",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "0",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "はじめまして…………になるんでしょうか",
+    "flavor_text": "はじめまして…………になるんでしょうか",
+    "abilities": [
+      "あなたは自分のストックを上から1枚見る。そのカードがレベル1以下のキャラなら、舞台のいずれかの枠に置いてよい。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-048&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_048.png",
+    "name": "伝わる温もり",
+    "card_no": "DC/W01-048",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "クライマックス",
+    "レベル": "-",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "-",
+    "レアリティ": "CR",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/stock.gif",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "こうやって義之におんぶされるの……幼い頃以来だね",
+    "flavor_text": "こうやって義之におんぶされるの……幼い頃以来だね",
+    "abilities": [
+      "【永】 あなたのキャラすべてに、パワーを＋1000し、ソウルを＋1。",
+      "（：このカードがトリガーした時、あなたは自分の山札の上から1枚を、ストック置場に置いてよい）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-048S&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_048s.png",
+    "name": "伝わる温もり",
+    "card_no": "DC/W01-048S",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "クライマックス",
+    "レベル": "-",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "-",
+    "レアリティ": "SP",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/stock.gif",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "SECRET",
+    "flavor_text": "SECRET",
+    "abilities": [
+      "【永】 あなたのキャラすべてに、パワーを＋1000し、ソウルを＋1。",
+      "（：このカードがトリガーした時、あなたは自分の山札の上から1枚を、ストック置場に置いてよい）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-049&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_049.png",
+    "name": "結婚式の歌姫",
+    "card_no": "DC/W01-049",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "クライマックス",
+    "レベル": "-",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "-",
+    "レアリティ": "CC",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "ことりの歌声が、ふたりをそっと、優しく包み込んでいた……。",
+    "flavor_text": "ことりの歌声が、ふたりをそっと、優しく包み込んでいた……。",
+    "abilities": [
+      "【永】 あなたのキャラすべてに、パワーを＋1000し、ソウルを＋1。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-050&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_050.png",
+    "name": "わたくしの大切な人のために……",
+    "card_no": "DC/W01-050",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "クライマックス",
+    "レベル": "-",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/green.gif",
+    "色": "緑",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "-",
+    "レアリティ": "CC",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "この舞は……私にとって、とてもとても大切な意味を持つ舞ですから……",
+    "flavor_text": "この舞は……私にとって、とてもとても大切な意味を持つ舞ですから……",
+    "abilities": [
+      "【永】 あなたのキャラすべてに、ソウルを＋2。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-051&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_051.png",
+    "name": "ゴキゲンな由夢",
+    "card_no": "DC/W01-051",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "5000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "RR",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法"
+    ],
+    "フレーバー": "そんなことないよ。この世の中に絶対なんてことはないんだよ――っと",
+    "flavor_text": "そんなことないよ。この世の中に絶対なんてことはないんだよ――っと",
+    "abilities": [
+      "【自】［(1)］ このカードがアタックした時、クライマックス置場に「おかえりなさい」があるなら、あなたはコストを払ってよい。そうしたら、あなたは自分の控え室のキャラを1枚選び、手札に戻す。",
+      "【自】 アンコール ［手札のキャラを1枚控え室に置く］ （このカードが舞台から控え室に置かれた時、あなたはコストを払ってよい。そうしたら、このカードがいた枠に【レスト】して置く）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-052&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_052.png",
+    "name": "お手製弁当を持つ音夢と由夢",
+    "card_no": "DC/W01-052",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "5000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "RR",
+    "トリガー": "-",
+    "特徴": [
+      "魔法・お弁当"
+    ],
+    "フレーバー": "兄さん…これ、お弁当",
+    "flavor_text": "兄さん…これ、お弁当",
+    "abilities": [
+      "【起】［(3) このカードを控え室に置く］ あなたはレベル2以下の相手の前列のキャラを1枚選び、控え室に置く。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-053&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_053.png",
+    "name": "天枷 美春",
+    "card_no": "DC/W01-053",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "R",
+    "トリガー": "-",
+    "特徴": [
+      "バナナ"
+    ],
+    "フレーバー": "焼きバナナでも冷やしバナナでもドンと来いですぅ！",
+    "flavor_text": "焼きバナナでも冷やしバナナでもドンと来いですぅ！",
+    "abilities": [
+      "【永】 他のあなたのカード名に「音夢」を含むキャラすべてに、パワーを＋500。",
+      "【永】 応援 このカードの前のあなたのキャラすべてに、パワーを＋500。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-054&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_054.png",
+    "name": "Ｙシャツの美夏",
+    "card_no": "DC/W01-054",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "3500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "R",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "メカ・バナナ"
+    ],
+    "フレーバー": "えへへ。ニオイを満喫していたのだ……",
+    "flavor_text": "えへへ。ニオイを満喫していたのだ……",
+    "abilities": [
+      "【永】 他のあなたの「雪村 杏」すべてに、パワーを＋1000。",
+      "【永】 応援 このカードの前のあなたのキャラすべてに、次の能力を与える。『【自】［(1)］ このカードが【リバース】した時、このカードとバトルしているキャラのレベルがこのカードのレベル以下なら、あなたはコストを払ってよい。そうしたら、あなたはそのキャラを【リバース】する。』"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-055&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_055.png",
+    "name": "漫画家のななこ",
+    "card_no": "DC/W01-055",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "7000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "2",
+    "レアリティ": "R",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "メガネ・漫画"
+    ],
+    "フレーバー": "……あ、あたしはァ、おっ、面白い話を聞くのが趣味でして！",
+    "flavor_text": "……あ、あたしはァ、おっ、面白い話を聞くのが趣味でして！",
+    "abilities": [
+      "【自】 他のバトルしているあなたのキャラが【リバース】した時、あなたは自分のキャラを1枚選び、そのターン中、パワーを＋1000。",
+      "【起】［(3)］ あなたは自分の控え室のキャラを1枚選び、手札に戻す。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-056&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_056.png",
+    "name": "朝倉 音夢",
+    "card_no": "DC/W01-056",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "3",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "8500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "2",
+    "レアリティ": "R",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法"
+    ],
+    "フレーバー": "兄さんとふたりきりでいられれば、私はどこでも、どこまでも幸せだから！",
+    "flavor_text": "兄さんとふたりきりでいられれば、私はどこでも、どこまでも幸せだから！",
+    "abilities": [
+      "【永】 大活躍",
+      "【自】 このカードがアタックした時、クライマックス置場に「迷子の夢」があるなら、あなたは自分の控え室のキャラを1枚選び、手札に戻す。",
+      "【自】 アンコール ［手札のキャラを1枚控え室に置く］ （このカードが舞台から控え室に置かれた時、あなたはコストを払ってよい。そうしたら、このカードがいた枠に【レスト】して置く）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-056R&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_056r.png",
+    "name": "朝倉 音夢",
+    "card_no": "DC/W01-056R",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "3",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "8500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "2",
+    "レアリティ": "RRR",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法"
+    ],
+    "フレーバー": "SECRET",
+    "flavor_text": "SECRET",
+    "abilities": [
+      "【永】 大活躍",
+      "【自】 このカードがアタックした時、クライマックス置場に「迷子の夢」があるなら、あなたは自分の控え室のキャラを1枚選び、手札に戻す。",
+      "【自】 アンコール ［手札のキャラを1枚控え室に置く］ （このカードが舞台から控え室に置かれた時、あなたはコストを払ってよい。そうしたら、このカードがいた枠に【レスト】して置く）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-057&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_057.png",
+    "name": "彩珠 ななこ",
+    "card_no": "DC/W01-057",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "U",
+    "トリガー": "-",
+    "特徴": [
+      "メガネ・漫画"
+    ],
+    "フレーバー": "かっ、かっ、かわっ、かわいいって、その、あっ、あたっ、あたしが……ですか？",
+    "flavor_text": "かっ、かっ、かわっ、かわいいって、その、あっ、あたっ、あたしが……ですか？",
+    "abilities": [
+      "【永】 アラーム このカードがクロックの1番上にあり、あなたのレベルが2以上なら、赤のあなたのキャラすべてに、次の能力を与える。『【自】 このカードが【リバース】した時、このカードとバトルしているキャラのレベルがこのカードのレベル以下なら、あなたはそのキャラを【リバース】してよい。』"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-058&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_058.png",
+    "name": "白河 暦",
+    "card_no": "DC/W01-058",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "U",
+    "トリガー": "-",
+    "特徴": [
+      "先生・メガネ"
+    ],
+    "フレーバー": "頼れよな。これでもお前たちより２歳くらい年は取ってるんだ",
+    "flavor_text": "頼れよな。これでもお前たちより２歳くらい年は取ってるんだ",
+    "abilities": [
+      "【永】 他のあなたのカード名に「美春」を含むキャラすべてに、パワーを＋500。",
+      "【自】 絆／「ロボ美春」 ［(1)］ （このカードがプレイされて舞台に置かれた時、あなたはコストを払ってよい。そうしたら、あなたは自分の控え室の「ロボ美春」を1枚選び、手札に戻す）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-059&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_059.png",
+    "name": "ロボ美春",
+    "card_no": "DC/W01-059",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "4500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "U",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "メカ・バナナ"
+    ],
+    "フレーバー": "もともと、美春は人間を幸せにするために作られたロボットなんですよ",
+    "flavor_text": "もともと、美春は人間を幸せにするために作られたロボットなんですよ",
+    "abilities": [
+      "【自】 このカードとバトルしているキャラが【リバース】した時、あなたはそのキャラを山札の上に置いてよい。",
+      "【自】［(1)］ このカードがアタックした時、クライマックス置場に「美春のオルゴール」があるなら、あなたはコストを払ってよい。そうしたら、あなたは自分の控え室のキャラを1枚選び、手札に戻す。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-060&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_060.png",
+    "name": "美春＆音夢",
+    "card_no": "DC/W01-060",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "9000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "2",
+    "レアリティ": "U",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法・バナナ"
+    ],
+    "フレーバー": "ちっちっちっ……女の子はなにかを買う目的なんかなくても買い物するんですよ",
+    "flavor_text": "ちっちっちっ……女の子はなにかを買う目的なんかなくても買い物するんですよ",
+    "abilities": [
+      "-"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-061&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_061.png",
+    "name": "水越 舞佳",
+    "card_no": "DC/W01-061",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "3500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "U",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "先生・メガネ"
+    ],
+    "フレーバー": "良かったわね～。物分りのいい先生が保健室にいて♪",
+    "flavor_text": "良かったわね～。物分りのいい先生が保健室にいて♪",
+    "abilities": [
+      "【自】［(1)］ このカードがプレイされて舞台に置かれた時、あなたはコストを払ってよい。そうしたら、あなたは自分の山札を見て《メカ》のキャラを1枚まで選んで相手に見せ、手札に加える。その山札をシャッフルする。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-062&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_062.png",
+    "name": "μ(ミュー）",
+    "card_no": "DC/W01-062",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "1000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "メカ・メイド"
+    ],
+    "フレーバー": "今、ご購入なさるともれなく付属品としてネコミミセットがついてきます",
+    "flavor_text": "今、ご購入なさるともれなく付属品としてネコミミセットがついてきます",
+    "abilities": [
+      "【自】 このカードが【リバース】した時、このカードとバトルしているキャラのレベルが0以下なら、あなたはそのキャラを【リバース】してよい。",
+      "【自】 バトルしているこのカードが【リバース】した時、あなたは自分のキャラを1枚選び、そのターン中、パワーを＋1000。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-063&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_063.png",
+    "name": "HM-A06型 ミナツ",
+    "card_no": "DC/W01-063",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "1000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "メカ・バナナ"
+    ],
+    "フレーバー": "美夏はな、義之……人間とロボットをつなぐ懸け橋になりたいのだ",
+    "flavor_text": "美夏はな、義之……人間とロボットをつなぐ懸け橋になりたいのだ",
+    "abilities": [
+      "【永】 他の《バナナ》のあなたのキャラがいるなら、このカードのパワーを＋1500。",
+      "【起】［(2) このカードを【レスト】する］ あなたは自分の控え室のキャラを1枚選び、手札に戻す。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-064&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_064.png",
+    "name": "浴衣の音夢",
+    "card_no": "DC/W01-064",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "0",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "3000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "魔法・和服"
+    ],
+    "フレーバー": "もう、情緒がないなぁ",
+    "flavor_text": "もう、情緒がないなぁ",
+    "abilities": [
+      "-"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-065&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_065.png",
+    "name": "体操着の由夢",
+    "card_no": "DC/W01-065",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "6000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "C",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法"
+    ],
+    "フレーバー": "兄さんの、ばーか",
+    "flavor_text": "兄さんの、ばーか",
+    "abilities": [
+      "-"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-066&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_066.png",
+    "name": "ゆず＆慎",
+    "card_no": "DC/W01-066",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "1",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "3000",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "0",
+    "レアリティ": "C",
+    "トリガー": "-",
+    "特徴": [
+      "特徴なし"
+    ],
+    "フレーバー": "父ちゃん寂しがり屋なんだー。ゆずがいないと何もできない",
+    "flavor_text": "父ちゃん寂しがり屋なんだー。ゆずがいないと何もできない",
+    "abilities": [
+      "【永】 他の《音楽》のあなたのキャラが2枚以上いるなら、このカードのパワーを＋1000。",
+      "【自】 このカードが【リバース】した時、このカードとバトルしているキャラのレベルが1以下なら、あなたはそのキャラを【リバース】してよい。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-067&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_067.png",
+    "name": "パジャマの由夢",
+    "card_no": "DC/W01-067",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "キャラ",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "2500",
+    "ソウル_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "コスト": "1",
+    "レアリティ": "C",
+    "トリガー_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/soul.gif",
+    "特徴": [
+      "魔法・パジャマ"
+    ],
+    "フレーバー": "や、こんな格好どうせ兄さんくらいにしか見せませんから",
+    "flavor_text": "や、こんな格好どうせ兄さんくらいにしか見せませんから",
+    "abilities": [
+      "【起】【カウンター】 助太刀3000 レベル2 ［(1) 手札のこのカードを控え室に置く］ （あなたはフロントアタックされている自分のキャラを1枚選び、そのターン中、パワーを＋3000）"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-068&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_068.png",
+    "name": "美夏、覚醒！",
+    "card_no": "DC/W01-068",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "2",
+    "レアリティ": "R",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "なぜ美夏を起動した？　なにが目的だ？",
+    "flavor_text": "なぜ美夏を起動した？　なにが目的だ？",
+    "abilities": [
+      "あなたはレベル2以下の相手の前列のキャラを1枚選び、山札の上に置く。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-069&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_069.png",
+    "name": "かけがえのない仲間",
+    "card_no": "DC/W01-069",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "2",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "2",
+    "レアリティ": "U",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "『ななかの声が……みんなの演奏が、ずっと聞こえてたよ……』",
+    "flavor_text": "『ななかの声が……みんなの演奏が、ずっと聞こえてたよ……』",
+    "abilities": [
+      "あなたは自分の控え室のキャラを2枚まで選び、手札に戻す。"
+    ]
+  },
+  {
+    "detail_page_url": "https://ws-tcg.com/cardlist/?cardno=DC/W01-070&l",
+    "image_url": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_070.png",
+    "name": "見事なカウンター",
+    "card_no": "DC/W01-070",
+    "サイド_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/w.gif",
+    "サイド": "ヴァイス",
+    "種類": "イベント",
+    "レベル": "3",
+    "色_img": "https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/red.gif",
+    "色": "赤",
+    "パワー": "-",
+    "ソウル": "-",
+    "コスト": "3",
+    "レアリティ": "U",
+    "トリガー": "-",
+    "特徴": [
+      "-"
+    ],
+    "フレーバー": "……痛い",
+    "flavor_text": "……痛い",
+    "abilities": [
+      "あなたは相手に5ダメージを与える。"
+    ]
+  }
+]

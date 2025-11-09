@@ -19,8 +19,15 @@ namespace TCG.Weiss.Effects
             {
                 // This is a temporary power boost. A proper implementation would need
                 // a way to track temporary effects and have them expire at the end of the turn.
-                // For now, we'll just log it.
-                UnityEngine.Debug.Log($"Applying +{Amount} power to {source.Data.Name}. (Note: This is a temporary effect and not fully implemented).");
+                // For now, we'll attempt to log target card's name if Data is available.
+                if (source is TCG.Core.CardBase<TCG.Weiss.WeissCardData> cardWithData)
+                {
+                    UnityEngine.Debug.Log($"Applying +{Amount} power to {cardWithData.Data.Name}. (Note: This is a temporary effect and not fully implemented).");
+                }
+                else
+                {
+                    UnityEngine.Debug.Log($"Applying +{Amount} power to an unknown card (no Data). (Note: This is a temporary effect and not fully implemented).");
+                }
             }
         }
     }

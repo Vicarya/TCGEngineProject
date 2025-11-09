@@ -19,7 +19,7 @@ namespace TCG.Weiss
             _filter = filter ?? (card => true); // If no filter, any card is valid
         }
 
-        public bool CanPay(GameState state, Player player)
+        public bool CanPay(GameState state, Player player, Card source)
         {
             var hand = player.GetZone<IHandZone<WeissCard>>();
             if (hand == null) return false;
@@ -27,9 +27,9 @@ namespace TCG.Weiss
             return hand.Cards.Count(card => _filter(card)) >= _amount;
         }
 
-        public void Pay(GameState state, Player player)
+        public void Pay(GameState state, Player player, Card source)
         {
-            if (!CanPay(state, player)) return; // Should not happen if checked before, but as a safeguard
+            if (!CanPay(state, player, source)) return; // Should not happen if checked before, but as a safeguard
 
             var hand = player.GetZone<IHandZone<WeissCard>>();
             var waitingRoom = player.GetZone<IDiscardPile<WeissCard>>();
@@ -52,6 +52,11 @@ namespace TCG.Weiss
             }
             // else: The player failed to select the correct number of cards. In a real interactive scenario,
             // we might loop, but for the simulation we assume the controller returns a valid selection if CanPay was true.
+        }
+
+        public string GetDescription()
+        {
+            return $"手札を{_amount}枚控え室に置く";
         }
     }
 }

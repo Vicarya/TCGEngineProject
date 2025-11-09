@@ -34,7 +34,7 @@ namespace TCG.Core
         public bool CanActivate(GameEvent e, GameState state, Player controller)
         {
             if (!CanTrigger(e, state)) return false;
-            return Costs.CanPay(state, controller); // 常にコストチェック必須
+            return Costs.CanPay(state, controller, SourceCard); // Pass SourceCard
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace TCG.Core
 
             // コストを支払う
             if (!Costs.IsEmpty)
-                Costs.Pay(state, controller);
+                Costs.Pay(state, controller, SourceCard); // Pass SourceCard
 
             // 効果を解決する
             Resolve(e, state);

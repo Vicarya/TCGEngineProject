@@ -5,8 +5,9 @@ namespace TCG.Core
     /// </summary>
     public interface ICost
     {
-        bool CanPay(GameState state, Player player);
-        void Pay(GameState state, Player player);
+        bool CanPay(GameState state, Player player, Card source);
+        void Pay(GameState state, Player player, Card source);
+        string GetDescription();
     }
 }
 
@@ -15,8 +16,8 @@ namespace TCG.Core
 //     .Add(new StockCost(2))
 //     .Add(new DiscardHandCost(1));
 
-// if (cost.CanPay(state, player))
+// if (cost.CanPay(state, player, sourceCard))
 // {
-//     cost.Pay(state, player);
+//     cost.Pay(state, player, sourceCard);
 //     // 効果解決へ進む
 // }

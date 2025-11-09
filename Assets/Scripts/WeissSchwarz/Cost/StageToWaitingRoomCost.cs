@@ -12,13 +12,13 @@ namespace TCG.Weiss
             this.amount = amount;
         }
 
-        public bool CanPay(GameState state, Player player)
+        public bool CanPay(GameState state, Player player, Card source)
         {
             var stageZone = player.GetZone<IStageZone<TCard>>();
             return stageZone != null && stageZone.Cards.Count >= amount;
         }
 
-        public void Pay(GameState state, Player player)
+        public void Pay(GameState state, Player player, Card source)
         {
             var stageZone = player.GetZone<IStageZone<TCard>>();
             var discardPile = player.GetZone<IDiscardPile<TCard>>();
@@ -33,6 +33,11 @@ namespace TCG.Weiss
                 stageZone.RemoveCard(card);
                 discardPile.AddCard(card);
             }
+        }
+
+        public string GetDescription()
+        {
+            return $"舞台のカードを{amount}枚控え室に置く";
         }
     }
 }

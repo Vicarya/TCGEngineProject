@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using TCG.Core;
 
 namespace TCG.Weiss
@@ -18,25 +17,26 @@ namespace TCG.Weiss
             IsSourceCard = isSourceCard;
         }
 
-        public bool CanPay(Player player, Card source)
+        public bool CanPay(GameState state, Player player, Card source)
         {
             if (IsSourceCard)
             {
                 // The source card itself must be able to rest.
-                return source != null && !source.IsResting;
+                return source != null && !source.IsRested;
             }
             // TODO: Implement logic for selecting other cards to rest.
             return false;
         }
 
-        public async Task Pay(Player player, Card source)
+        public void Pay(GameState state, Player player, Card source)
         {
             if (IsSourceCard && source != null)
             {
-                source.Rest();
+                // Use the base Card API to mark as rested. If the concrete card type has extra behavior
+                // (e.g., WeissCard.Rest sets IsTapped), replicate that behavior here for compatibility.
+                source.SetRested(true);
+                source.IsTapped = true;
             }
-            // The await is here to satisfy the async requirement of the interface.
-            await Task.CompletedTask;
         }
 
         public string GetDescription()

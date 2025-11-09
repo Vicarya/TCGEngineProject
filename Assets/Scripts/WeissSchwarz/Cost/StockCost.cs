@@ -8,13 +8,13 @@ namespace TCG.Weiss
         private readonly int amount;
         public StockCost(int amount) => this.amount = amount;
 
-        public bool CanPay(GameState state, Player player)
+        public bool CanPay(GameState state, Player player, Card source)
         {
             var stock = player.GetZone<IStockZone<TCard>>();
             return stock != null && stock.Cards.Count >= amount;
         }
 
-        public void Pay(GameState state, Player player)
+        public void Pay(GameState state, Player player, Card source)
         {
             var stock = player.GetZone<IStockZone<TCard>>();
             var discardPile = player.GetZone<IDiscardPile<TCard>>();
@@ -28,6 +28,11 @@ namespace TCG.Weiss
                 stock.RemoveCard(card);
                 discardPile.AddCard(card);
             }
+        }
+
+        public string GetDescription()
+        {
+            return $"ストックを{amount}枚払う";
         }
     }
 }

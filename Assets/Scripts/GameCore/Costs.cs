@@ -16,17 +16,34 @@ namespace TCG.Core
             return this;
         }
 
-        public bool CanPay(GameState state, Player player)
+        public Costs AddRange(IEnumerable<ICost> costs)
         {
-            return costList.All(cost => cost.CanPay(state, player));
+            if (costs == null) return this;
+            foreach (var c in costs)
+            {
+                if (c != null) costList.Add(c);
+            }
+            return this;
         }
 
-        public void Pay(GameState state, Player player)
+        public bool CanPay(GameState state, Player player, Card source)
+        {
+            return costList.All(cost => cost.CanPay(state, player, source));
+        }
+
+        public void Pay(GameState state, Player player, Card source)
         {
             foreach (var cost in costList)
             {
-                cost.Pay(state, player);
+                cost.Pay(state, player, source);
             }
         }
+
+        public IEnumerator<ICost> GetEnumerator()
+        {
+            return costList.GetEnumerator();
+        }
+
+        public int Count => costList.Count;
     }
 }
