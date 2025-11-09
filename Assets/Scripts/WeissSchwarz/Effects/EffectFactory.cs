@@ -9,10 +9,10 @@ namespace TCG.Weiss.Effects
         // Defines a mapping from a regex pattern to a function that creates an IEffect object.
         private static readonly Dictionary<Regex, System.Func<Match, IEffect>> EffectParsers = new()
         {
-            // Matches "パワーを＋X" (Power +X)
-            { new Regex(@"パワーを＋(\d+)"), match => new PowerBoostEffect(int.Parse(match.Groups[1].Value)) },
-            // Matches "ソウルを＋X" (Soul +X)
-            { new Regex(@"ソウルを＋(\d+)"), match => new SoulBoostEffect(int.Parse(match.Groups[1].Value)) },
+            // Matches "あなたは自分の山札を上からX枚見て、山札の上か下に置く"
+            { new Regex(@"あなたは自分の山札を上から(\d+)枚見て、山札の上か下に置く"), match => new LookTopAndPlaceEffect(int.Parse(match.Groups[1].Value)) },
+            // Matches "あなたは自分の控え室のキャラをX枚選び、手札に戻す"
+            { new Regex(@"あなたは自分の控え室のキャラを(\d+)枚選び、手札に戻す"), match => new ReturnFromWaitingRoomEffect(int.Parse(match.Groups[1].Value)) },
             // Add more effect parsers here in the future
         };
 
@@ -26,17 +26,14 @@ namespace TCG.Weiss.Effects
             var effects = new List<IEffect>();
             if (string.IsNullOrWhiteSpace(description)) return effects;
 
-            // For now, we assume one effect per description string for simplicity.
-            // A more complex implementation could loop through the string to find multiple effects.
+            // Iterate through all parsers and find all matching effects in the description.
+            // This allows for multiple effects in a single description string.
             foreach (var pair in EffectParsers)
             {
                 var regex = pair.Key;
-                var match = regex.Match(description);
-                if (match.Success)
+                foreach (Match match in regex.Matches(description))
                 {
                     effects.Add(pair.Value(match));
-                    // For now, we stop after the first match.
-                    break;
                 }
             }
 
