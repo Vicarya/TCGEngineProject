@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TCG.Core; // For Card
-using System.IO; // For File.ReadAllText
+using TCG.Weiss.Core;
 using System.Threading.Tasks; // For async operations
 using Newtonsoft.Json; // For JSON deserialization
 
@@ -35,22 +35,22 @@ namespace TCG.Weiss.UI
             cardDetailView?.Hide(); // Ensure card detail view starts hidden
         }
 
-        void Start()
+        private void OnEnable()
+        {
+            AppManager.OnDataInitialized += HandleDataInitialized;
+        }
+
+        private void OnDisable()
+        {
+            AppManager.OnDataInitialized -= HandleDataInitialized;
+        }
+
+        private void HandleDataInitialized()
         {
             // Load card data from SQLite database
             _allCardData = Data.CardDataImporter.GetAllCardData();
             Debug.Log($"Loaded {_allCardData.Count} cards from SQLite database.");
             DisplayCardList();
-        }
-
-        /// <summary>
-        /// Loads card data from the sample JSON file in StreamingAssets.
-        /// </summary>
-        private async Task LoadCardDataFromJson()
-        {
-            // This method is no longer needed as data is loaded from SQLite.
-            // Keeping it for reference if needed for initial import.
-            await Task.CompletedTask; // To satisfy async requirement
         }
 
         /// <summary>

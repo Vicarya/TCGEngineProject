@@ -13,6 +13,8 @@ namespace TCG.Weiss.Core
     {
         public static AppManager Instance { get; private set; }
 
+        public static event System.Action OnDataInitialized;
+
         [SerializeField] private string cardDataJsonFileName = "weiss_schwarz_cards.json";
         [SerializeField] private string dbFileName = "cards.db";
 
@@ -71,6 +73,9 @@ namespace TCG.Weiss.Core
             }
 
             Debug.Log("AppManager: Data initialization complete.");
+
+            // Notify subscribers that data is ready
+            OnDataInitialized?.Invoke();
 
             // You might want to load your main game scene here after initialization
             // UnityEngine.SceneManagement.SceneManager.LoadScene("MainScene");

@@ -1,0 +1,82 @@
+  Unity
+  Editorでのデッキエディタシーン設定手順は、前回の私の回答に含まれてい  
+  が、改めてその部分を抜粋してご案内します。
+
+  ---
+
+  Unity Editorでのデッキエディタシーン設定手順
+
+  この手順は、デッキエディタのカードリスト表示機能とカード詳細表示機能  
+  作するために、Unity Editor上で行うべき設定です。
+
+   1. 新しいシーンの作成:
+       * Unity Editorで新しいシーンを作成し、DeckEditorScene
+         のような名前で保存します（例:
+         Assets/Scenes/DeckEditorScene.unity）。
+
+   2. UI Canvasのセットアップ:
+       * 新しいシーンにUI Canvasを作成します（GameObject -> UI ->       
+         Canvas）。
+       * Canvasの Render Mode を Screen Space - Camera に設定し、Render 
+         Camera にメインカメラを割り当てます。
+       * Canvas Scaler の UI Scale Mode を Scale With Screen Size       
+         に設定し、Reference Resolution を 1920x1080 などに設定します。 
+
+   3. `DeckEditorManager` の配置:
+       * 空のGameObjectを作成し、DeckEditorManager
+         のような名前を付けます。
+       * このGameObjectに DeckEditorManager.cs
+         スクリプトをアタッチします。
+
+   4. カードリスト表示UIの作成:
+       * Canvas内に ScrollView を作成します（GameObject -> UI -> Scroll 
+         View）。
+       * ScrollView の Viewport の子に Content
+         という名前のGameObjectがあることを確認します。
+       * この Content GameObjectに `Vertical Layout Group` コンポーネントと 
+         `Content Size Fitter` コンポーネントを追加します。
+       * `Content Size Fitter` の `Vertical Fit` を `Preferred Size` に設定します。
+       * DeckEditorManager スクリプトのインスペクターで、`Card List Content 
+         Parent` フィールドに、この Content
+         GameObjectをドラッグ＆ドロップで割り当てます。
+
+   5. `CardListItem` プレハブの作成:
+       * Content
+         GameObjectの子として、カードリストの1行を表すUIを作成します。  
+       * このUIは、カード名を表示する TextMeshPro - Text
+         と、カード番号を表示する TextMeshPro -
+         Text、そしてクリックを検出するための Button
+         コンポーネントを持つべきです。
+       * このUIのルートGameObjectに CardListItem.cs
+         スクリプトをアタッチし、cardNameText、cardNoText、selectButton 
+         の各フィールドにUI要素を割り当てます。
+       * このUIをプレハブとして保存します（例:
+         `Assets/Resources/Prefabs/CardListItem.prefab`）。
+       * プレハブ化が完了したら、Hierarchy上の `CardListItem` 
+         インスタンスは削除して構いません。
+       * DeckEditorManager スクリプトのインスペクターで、Card List Item 
+         Prefab フィールドに、この CardListItem.prefab
+         をドラッグ＆ドロップで割り当てます。
+
+   6. `CardDetailView` の配置と設定:
+       * Canvas内に、以前作成した CardDetailView.prefab
+         のインスタンスを配置します。通常、このUIは最初は非表示にしておくため、
+         GameObjectを非アクティブ(`Inspector`の左上のチェックボックスをオフ)
+         にしておくと良いでしょう。
+       * DeckEditorManager スクリプトのインスペクターで、Card Detail Viw
+         フィールドに、この CardDetailView
+         のインスタンスをドラッグ＆ドロップで割り当てます。
+
+   7. `AppManager` のシーンへの追加:
+       * アプリ起動時に最初にロードされるシーン（例: `SampleScene.unity`）に
+         空のGameObjectを作成し、`AppManager.cs` スクリプトをアタッチします。
+       * これにより、アプリ起動時にデータベースが初期化されます。
+       * `AppManager` は、シーンをまたいでデータを管理することが多いため、
+         `DontDestroyOnLoad` を使用して、シーン遷移時に破棄されないように
+         シングルトンパターンで実装するのが一般的です。
+
+  ---
+
+  これらの設定が完了すると、シーンを実行した際にカードデータが読み込ま  
+  スクロール可能なリストに表示され、リストのアイテムをクリックするとカ  
+  詳細が表示されるようになります。
