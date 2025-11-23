@@ -13,6 +13,7 @@ namespace TCG.Weiss.UI
     /// <summary>
     /// Manages the display of a single card's detailed information.
     /// </summary>
+    [RequireComponent(typeof(CanvasGroup))]
     public class CardDetailView : MonoBehaviour
     {
         [SerializeField] private Image cardImageView;
@@ -24,12 +25,7 @@ namespace TCG.Weiss.UI
         private void Awake()
         {
             _canvasGroup = GetComponent<CanvasGroup>();
-            if (_canvasGroup == null)
-            {
-                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
-            }
             closeButton?.onClick.AddListener(Hide);
-            Hide(); // Start hidden
         }
 
         /// <summary>

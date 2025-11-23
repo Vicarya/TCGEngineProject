@@ -2803,13 +2803,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   handZoneUI: {fileID: 1205205469}
   stageZoneUI: {fileID: 505852407}
-  climaxZoneUI: {fileID: 0}
-  levelZoneUI: {fileID: 0}
-  stockZoneUI: {fileID: 0}
-  clockZoneUI: {fileID: 0}
-  waitingRoomUI: {fileID: 0}
-  deckZoneUI: {fileID: 0}
-  memoryZoneUI: {fileID: 0}
+  climaxZoneUI: {fileID: 826932185}
+  levelZoneUI: {fileID: 756851868}
+  stockZoneUI: {fileID: 1747897827}
+  clockZoneUI: {fileID: 236678371}
+  waitingRoomUI: {fileID: 290386866}
+  deckZoneUI: {fileID: 789998575}
+  memoryZoneUI: {fileID: 573369215}
+  cardDetailView: {fileID: -5698874922256307265, guid: c93f761de35f7da4dbe06ff95bc6f6f8, type: 3}
+  mulliganConfirmButton: {fileID: 0}
 --- !u!1 &826932183
 GameObject:
   m_ObjectHideFlags: 0

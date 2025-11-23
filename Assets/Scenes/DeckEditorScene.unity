@@ -206,7 +206,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1304198737}
   m_Direction: 2
   m_Value: 0
-  m_Size: 1
+  m_Size: 0.9048343
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -249,6 +249,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 56401196}
   m_CullTransparentMesh: 1
+--- !u!1 &286420733
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 286420735}
+  - component: {fileID: 286420734}
+  m_Layer: 0
+  m_Name: AppManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &286420734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 286420733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a8afcde76288a84cb794c3f30c57fc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardDataJsonFileName: weiss_schwarz_cards.sample.json
+  dbFileName: cards.db
+--- !u!4 &286420735
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 286420733}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -6.9400406, y: 7.9400406, z: 90}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &339851746
 GameObject:
   m_ObjectHideFlags: 0
@@ -451,7 +497,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -17.000134, y: 0}
+  m_AnchoredPosition: {x: -0.000010967255, y: 9.639018}
   m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &425677989
@@ -790,9 +836,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b83f3d18aa7ddab46aa89d5c888ed1bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cardListItemPrefab: {fileID: 3230244500463028977, guid: fca286415bd2a0749961961102cf725c, type: 3}
+  cardDetailViewPrefab: {fileID: 8698524650937560670, guid: c93f761de35f7da4dbe06ff95bc6f6f8, type: 3}
   cardListContentParent: {fileID: 425677988}
-  cardListItemPrefab: {fileID: 731989999202765616, guid: fca286415bd2a0749961961102cf725c, type: 3}
-  cardDetailView: {fileID: -5698874922256307265, guid: c93f761de35f7da4dbe06ff95bc6f6f8, type: 3}
+  mainCanvas: {fileID: 2029638087}
 --- !u!4 &872689124
 Transform:
   m_ObjectHideFlags: 0
@@ -1061,8 +1108,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 371383194}
   m_HandleRect: {fileID: 371383193}
   m_Direction: 0
-  m_Value: 1.0000054
-  m_Size: 0.9811111
+  m_Value: 0
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1300,6 +1347,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Card_ListItem
       objectReference: {fileID: 0}
+    - target: {fileID: 3230244500463028977, guid: fca286415bd2a0749961961102cf725c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5233638617777404314, guid: fca286415bd2a0749961961102cf725c, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1314,7 +1365,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5233638617777404314, guid: fca286415bd2a0749961961102cf725c, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5233638617777404314, guid: fca286415bd2a0749961961102cf725c, type: 3}
       propertyPath: m_AnchorMin.x
@@ -1322,7 +1373,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5233638617777404314, guid: fca286415bd2a0749961961102cf725c, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5233638617777404314, guid: fca286415bd2a0749961961102cf725c, type: 3}
       propertyPath: m_SizeDelta.x
@@ -1362,11 +1413,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5233638617777404314, guid: fca286415bd2a0749961961102cf725c, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 450
       objectReference: {fileID: 0}
     - target: {fileID: 5233638617777404314, guid: fca286415bd2a0749961961102cf725c, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -90
       objectReference: {fileID: 0}
     - target: {fileID: 5233638617777404314, guid: fca286415bd2a0749961961102cf725c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1477,6 +1528,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: CardDetail
       objectReference: {fileID: 0}
+    - target: {fileID: 8698524650937560670, guid: c93f761de35f7da4dbe06ff95bc6f6f8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1491,3 +1546,4 @@ SceneRoots:
   - {fileID: 2029638087}
   - {fileID: 838860618}
   - {fileID: 872689124}
+  - {fileID: 286420735}
