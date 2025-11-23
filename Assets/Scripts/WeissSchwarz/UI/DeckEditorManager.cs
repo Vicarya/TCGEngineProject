@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using TCG.Core; // For Card
 using TCG.Weiss.Core;
-using System.Threading.Tasks; // For async operations
-using Newtonsoft.Json; // For JSON deserialization
 
 namespace TCG.Weiss.UI
 {
@@ -14,11 +11,13 @@ namespace TCG.Weiss.UI
     {
         public static DeckEditorManager Instance { get; private set; }
 
-        [Header("UI References")]
+        [Header("UI Prefabs & Parents")]
+        [SerializeField] private GameObject cardListItemPrefab; // Prefab for a single card in the list
+        [SerializeField] private GameObject cardDetailViewPrefab; // Prefab for the card detail view
         [SerializeField] private Transform cardListContentParent; // Parent for card list items
-        [SerializeField] private CardListItem cardListItemPrefab; // Prefab for a single card in the list
-        [SerializeField] private CardDetailView cardDetailView; // Reference to the CardDetailView
+        [SerializeField] private Transform mainCanvas; // Canvas to instantiate UI elements on
 
+        private CardDetailView _cardDetailViewInstance;
         private List<WeissCardData> _allCardData = new List<WeissCardData>();
 
         private void Awake()
@@ -26,13 +25,21 @@ namespace TCG.Weiss.UI
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+
+            // Instantiate the Card Detail View from a prefab and hide it initially.
+            if (cardDetailViewPrefab != null && mainCanvas != null)
+            {
+                GameObject detailViewObject = Instantiate(cardDetailViewPrefab, mainCanvas);
+                _cardDetailViewInstance = detailViewObject.GetComponent<CardDetailView>();
+                _cardDetailViewInstance?.Hide(); // Ensure card detail view starts hidden
             }
             else
             {
-                Instance = this;
+                Debug.LogError("CardDetailViewPrefab or MainCanvas is not assigned in DeckEditorManager.");
             }
-
-            cardDetailView?.Hide(); // Ensure card detail view starts hidden
         }
 
         private void OnEnable()
@@ -64,10 +71,20 @@ namespace TCG.Weiss.UI
                 Destroy(child.gameObject);
             }
 
+            if (cardListItemPrefab == null)
+            {
+                Debug.LogError("CardListItemPrefab is not assigned.");
+                return;
+            }
+
             foreach (var cardData in _allCardData)
             {
-                CardListItem newItem = Instantiate(cardListItemPrefab, cardListContentParent);
-                newItem.SetCardData(cardData);
+                GameObject newItemObject = Instantiate(cardListItemPrefab, cardListContentParent);
+                CardListItem newItem = newItemObject.GetComponent<CardListItem>();
+                if (newItem != null)
+                {
+                    newItem.SetCardData(cardData);
+                }
             }
         }
 
@@ -78,9 +95,8 @@ namespace TCG.Weiss.UI
         public void ShowCardDetail(WeissCardData cardData)
         {
             // Create a dummy WeissCard instance for display in CardDetailView
-            // In a real scenario, you might have a pool of WeissCard objects or create one on demand.
             WeissCard dummyCard = new WeissCard(cardData, null); // Player is null for display purposes
-            cardDetailView?.Show(dummyCard);
+            _cardDetailViewInstance?.Show(dummyCard);
         }
     }
 }
