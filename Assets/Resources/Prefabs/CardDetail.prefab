@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Close
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 1d07eb2607e28cb499540dc0228b2c0f, type: 2}
+  m_sharedMaterial: {fileID: 8017694458349558053, guid: 1d07eb2607e28cb499540dc0228b2c0f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -201,8 +201,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u30AB\u30FC\u30C9\u306E\u8AAC\u660E\u6587\nID\nName\nPower\netc..."
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: a09f96a3c37ec1e4ea68f192da10fe68, type: 2}
-  m_sharedMaterial: {fileID: -3274791035940125042, guid: a09f96a3c37ec1e4ea68f192da10fe68, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 1d07eb2607e28cb499540dc0228b2c0f, type: 2}
+  m_sharedMaterial: {fileID: 8017694458349558053, guid: 1d07eb2607e28cb499540dc0228b2c0f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -553,6 +553,7 @@ GameObject:
   - component: {fileID: 3216206680718604155}
   - component: {fileID: 2634209321986976924}
   - component: {fileID: -5698874922256307265}
+  - component: {fileID: 6843797076924554046}
   m_Layer: 5
   m_Name: CardDetail
   m_TagString: Untagged
@@ -634,3 +635,15 @@ MonoBehaviour:
   cardImageView: {fileID: 6720987476955298018}
   cardDetailText: {fileID: 1673428938202596551}
   closeButton: {fileID: 7115362459261771360}
+--- !u!225 &6843797076924554046
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8698524650937560670}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0

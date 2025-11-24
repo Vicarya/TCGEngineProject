@@ -31,7 +31,8 @@ namespace TCG.Weiss.UI
         {
             if (_cardData != null)
             {
-                DeckEditorManager.Instance?.ShowCardDetail(_cardData);
+                // When a card in the master list is selected, add it to the deck.
+                DeckEditorManager.Instance?.AddCardToDeck(_cardData);
             }
         }
     }

@@ -1,24 +1,39 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TCG.Weiss.Core;
+using TMPro;
+using System.Linq;
 
 namespace TCG.Weiss.UI
 {
     /// <summary>
-    /// Manages the Deck Editor scene, including loading card data and displaying the card list.
+    /// Manages the Deck Editor scene, including loading card data, displaying the card list, and handling deck construction.
     /// </summary>
     public class DeckEditorManager : MonoBehaviour
     {
         public static DeckEditorManager Instance { get; private set; }
 
-        [Header("UI Prefabs & Parents")]
-        [SerializeField] private GameObject cardListItemPrefab; // Prefab for a single card in the list
-        [SerializeField] private GameObject cardDetailViewPrefab; // Prefab for the card detail view
-        [SerializeField] private Transform cardListContentParent; // Parent for card list items
-        [SerializeField] private Transform mainCanvas; // Canvas to instantiate UI elements on
+        private const int MAX_DECK_SIZE = 50;
+        private const int MAX_COPIES_PER_CARD = 4;
+
+        [Header("Card List UI")]
+        [SerializeField] private GameObject cardListItemPrefab;
+        [SerializeField] private Transform cardListContentParent;
+
+        [Header("Card Detail UI")]
+        [SerializeField] private GameObject cardDetailViewPrefab;
+        [SerializeField] private Transform mainCanvas;
+
+        [Header("Deck Construction UI")]
+        [SerializeField] private GameObject deckCardListItemPrefab; // Prefab for an item in the deck list
+        [SerializeField] private Transform deckListContentParent; // Parent for deck list items
+        [SerializeField] private TextMeshProUGUI deckCountText; // Text to display "X / 50"
 
         private CardDetailView _cardDetailViewInstance;
         private List<WeissCardData> _allCardData = new List<WeissCardData>();
+        private Dictionary<string, int> _currentDeck = new Dictionary<string, int>();
+        private Dictionary<string, WeissCardData> _cardDataMap = new Dictionary<string, WeissCardData>();
+
 
         private void Awake()
         {
@@ -29,12 +44,11 @@ namespace TCG.Weiss.UI
             }
             Instance = this;
 
-            // Instantiate the Card Detail View from a prefab and hide it initially.
             if (cardDetailViewPrefab != null && mainCanvas != null)
             {
                 GameObject detailViewObject = Instantiate(cardDetailViewPrefab, mainCanvas);
                 _cardDetailViewInstance = detailViewObject.GetComponent<CardDetailView>();
-                _cardDetailViewInstance?.Hide(); // Ensure card detail view starts hidden
+                _cardDetailViewInstance?.Hide();
             }
             else
             {
@@ -54,23 +68,22 @@ namespace TCG.Weiss.UI
 
         private void HandleDataInitialized()
         {
-            // Load card data from SQLite database
             _allCardData = Data.CardDataImporter.GetAllCardData();
+            foreach(var card in _allCardData)
+            {
+                if(!_cardDataMap.ContainsKey(card.card_no))
+                {
+                    _cardDataMap.Add(card.card_no, card);
+                }
+            }
             Debug.Log($"Loaded {_allCardData.Count} cards from SQLite database.");
             DisplayCardList();
+            UpdateDeckUI();
         }
 
-        /// <summary>
-        /// Displays the loaded card data in a scrollable list.
-        /// </summary>
         private void DisplayCardList()
         {
-            // Clear existing list items
-            foreach (Transform child in cardListContentParent)
-            {
-                Destroy(child.gameObject);
-            }
-
+            foreach (Transform child in cardListContentParent) Destroy(child.gameObject);
             if (cardListItemPrefab == null)
             {
                 Debug.LogError("CardListItemPrefab is not assigned.");
@@ -88,14 +101,74 @@ namespace TCG.Weiss.UI
             }
         }
 
-        /// <summary>
-        /// Shows the CardDetailView for a specific card.
-        /// </summary>
-        /// <param name="cardData">The card data to display.</param>
+        public void AddCardToDeck(WeissCardData cardData)
+        {
+            if (cardData == null) return;
+
+            int currentDeckSize = _currentDeck.Values.Sum();
+            if (currentDeckSize >= MAX_DECK_SIZE)
+            {
+                Debug.LogWarning("Cannot add card: Deck is full (50 cards).");
+                return;
+            }
+
+            _currentDeck.TryGetValue(cardData.card_no, out int currentCopies);
+            if (currentCopies >= MAX_COPIES_PER_CARD)
+            {
+                Debug.LogWarning($"Cannot add card: Maximum copies ({MAX_COPIES_PER_CARD}) of {cardData.name} already in deck.");
+                return;
+            }
+
+            _currentDeck[cardData.card_no] = currentCopies + 1;
+            UpdateDeckUI();
+        }
+
+        public void RemoveCardFromDeck(WeissCardData cardData)
+        {
+            if (cardData == null || !_currentDeck.ContainsKey(cardData.card_no)) return;
+
+            _currentDeck[cardData.card_no]--;
+
+            if (_currentDeck[cardData.card_no] <= 0)
+            {
+                _currentDeck.Remove(cardData.card_no);
+            }
+            UpdateDeckUI();
+        }
+
+        private void UpdateDeckUI()
+        {
+            foreach (Transform child in deckListContentParent) Destroy(child.gameObject);
+            if (deckCardListItemPrefab == null)
+            {
+                // This is not an error if the UI is not set up, so just return.
+                return;
+            }
+
+            var sortedDeck = _currentDeck.OrderBy(kvp => _cardDataMap[kvp.Key].card_no);
+
+            foreach (var deckEntry in sortedDeck)
+            {
+                WeissCardData cardData = _cardDataMap[deckEntry.Key];
+                int count = deckEntry.Value;
+
+                GameObject newItemObject = Instantiate(deckCardListItemPrefab, deckListContentParent);
+                DeckCardListItem newItem = newItemObject.GetComponent<DeckCardListItem>();
+                if (newItem != null)
+                {
+                    newItem.Setup(cardData, count, RemoveCardFromDeck);
+                }
+            }
+            
+            if(deckCountText != null)
+            {
+                deckCountText.text = $"{_currentDeck.Values.Sum()} / {MAX_DECK_SIZE}";
+            }
+        }
+
         public void ShowCardDetail(WeissCardData cardData)
         {
-            // Create a dummy WeissCard instance for display in CardDetailView
-            WeissCard dummyCard = new WeissCard(cardData, null); // Player is null for display purposes
+            WeissCard dummyCard = new WeissCard(cardData, null);
             _cardDetailViewInstance?.Show(dummyCard);
         }
     }

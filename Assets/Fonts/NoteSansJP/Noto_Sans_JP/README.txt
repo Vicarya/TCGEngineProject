@@ -7,20 +7,20 @@ Noto Sans JP is a variable font with this axis:
   wght
 
 This means all the styles are contained in a single file:
-  NotoSansJP-VariableFont_wght.ttf
+  Noto_Sans_JP/NotoSansJP-VariableFont_wght.ttf
 
 If your app fully supports variable fonts, you can now pick intermediate styles
 that aren’t available as static fonts. Not all apps support variable fonts, and
 in those cases you can use the static font files for Noto Sans JP:
-  static/NotoSansJP-Thin.ttf
-  static/NotoSansJP-ExtraLight.ttf
-  static/NotoSansJP-Light.ttf
-  static/NotoSansJP-Regular.ttf
-  static/NotoSansJP-Medium.ttf
-  static/NotoSansJP-SemiBold.ttf
-  static/NotoSansJP-Bold.ttf
-  static/NotoSansJP-ExtraBold.ttf
-  static/NotoSansJP-Black.ttf
+  Noto_Sans_JP/static/NotoSansJP-Thin.ttf
+  Noto_Sans_JP/static/NotoSansJP-ExtraLight.ttf
+  Noto_Sans_JP/static/NotoSansJP-Light.ttf
+  Noto_Sans_JP/static/NotoSansJP-Regular.ttf
+  Noto_Sans_JP/static/NotoSansJP-Medium.ttf
+  Noto_Sans_JP/static/NotoSansJP-SemiBold.ttf
+  Noto_Sans_JP/static/NotoSansJP-Bold.ttf
+  Noto_Sans_JP/static/NotoSansJP-ExtraBold.ttf
+  Noto_Sans_JP/static/NotoSansJP-Black.ttf
 
 Get started
 -----------
