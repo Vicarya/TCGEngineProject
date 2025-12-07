@@ -40,6 +40,10 @@
 	- AbilityBase / IEffect / ITriggerCondition
 	- EventBus / GameEventType
 	- ICost / Costs
+	- Database
+		- CardDatabase<TData, TQuery> (汎用DB基底クラス)
+		- CardQuery<TData> (汎用検索クエリ基底クラス)
+		- DeckManager (汎用デッキ管理)
 
 - `TCG.Weiss` (ヴァイスシュヴァルツ実装、`Assets/Scripts/WeissSchwarz`)
 	- WeissCard : CardBase<WeissCardData>
@@ -47,6 +51,9 @@
 	- 独自ゾーンインターフェース（例: `IDeckZone`, `IStageZone`）およびその実装
 	- 具象コストクラス（例: `StockCost`, `DiscardHandCost`）
 	- CostFactory
+	- Database
+		- WeissCardDatabase (ヴァイスシュヴァルツカードDB)
+		- WeissCardQuery (ヴァイスシュヴァルツ用検索クエリ)
 
 （将来的な拡張）`TCG.TCGPokemon` 等の別ゲーム実装も同様の命名規則で配置されます。
 
@@ -90,6 +97,16 @@
 	 `CostFactory` は、カードのテキストからこれらの具象コストオブジェクトを生成する責務を持ちます。
 
 ## ドキュメントのギャップと追加提案
+
+### 4.5) データベース系
+
+	 - CardQuery<TData> (抽象)
+		 - WeissCardQuery : CardQuery<WeissCardData>
+	 - CardDatabase<TData, TQuery> (抽象)
+		 - WeissCardDatabase : CardDatabase<WeissCardData, WeissCardQuery>
+
+	 説明: `CardQuery` と `CardDatabase` は、特定のカードデータ構造に依存しない汎用的な検索インターフェースを提供します。
+	 各ゲーム固有の実装（`WeissSchwarz`など）は、これらの基底クラスを継承し、具体的なカードデータ（`WeissCardData`）に基づいた検索条件やデータロード処理を実装します。これにより、UI層は統一された方法でデータベースにアクセスできます。
 
 現在の `docs` は設計方針（責務分離、データ駆動の能力設計）をよく説明していますが、以下の追記を推奨します:
 

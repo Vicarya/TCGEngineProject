@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro; // For TextMeshProUGUI
+using TCG.Weiss;
 using UnityEngine.UI; // For Button
 
 namespace TCG.Weiss.UI
@@ -31,8 +32,8 @@ namespace TCG.Weiss.UI
         {
             if (_cardData != null)
             {
-                // When a card in the master list is selected, add it to the deck.
-                DeckEditorManager.Instance?.AddCardToDeck(_cardData);
+                // When a card in the master list is selected, show its details.
+                DeckEditorManager.Instance?.ShowCardDetail(_cardData);
             }
         }
     }

@@ -4,7 +4,7 @@ using UnityEngine;
 using TCG.Weiss.Data;
 using UnityEngine.Networking; // For UnityWebRequest
 
-namespace TCG.Weiss.Core
+namespace TCG.Weiss
 {
     /// <summary>
     /// Manages application-wide data initialization, including downloading and importing card data.

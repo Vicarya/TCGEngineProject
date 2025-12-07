@@ -18,9 +18,15 @@ namespace TCG.Weiss.UI
     {
         [SerializeField] private Image cardImageView;
         [SerializeField] private TextMeshProUGUI cardDetailText;
+        [Tooltip("Text to display \"In Deck: X / 4\"")]
+        [SerializeField] private TextMeshProUGUI cardCountText; // Text to display "In Deck: X / 4"
         [SerializeField] private Button closeButton;
+        [SerializeField] private Transform buttonContainer; // コンテナを指定
+        [SerializeField] private GameObject buttonPrefab; // Prefabを指定
 
+        private List<Button> _createdButtons = new List<Button>();
         private CanvasGroup _canvasGroup;
+        private WeissCard _currentCard;
 
         private void Awake()
         {
@@ -29,16 +35,48 @@ namespace TCG.Weiss.UI
         }
 
         /// <summary>
-        /// Displays the detailed information for the given WeissCard.
+        /// Displays the detailed information for the given WeissCard (in-game version).
         /// </summary>
         /// <param name="card">The WeissCard to display.</param>
         public void Show(WeissCard card)
         {
+            ClearButtons();
+
             if (card == null)
             {
                 Debug.LogError("CardDetailView.Show: Card is null.");
                 return;
             }
+            _currentCard = card;
+
+            // Load card image
+            if (!string.IsNullOrEmpty(card.Data.image_url))
+            {
+                StartCoroutine(LoadImage(card.Data.image_url));
+            }
+
+            // Format and display card details
+            cardDetailText.text = FormatCardDetails(card);
+
+            // Hide deck editor specific UI
+            SetDeckEditorUIActive(false);
+        }
+
+        /// <summary>
+        /// Displays the detailed information for the given WeissCard.
+        /// </summary>
+        /// <param name="card">The WeissCard to display.</param>
+        /// <param name="countInDeck">Number of this card currently in the deck.</param>
+        public void Show(WeissCard card, int countInDeck)
+        {
+            ClearButtons();
+
+            if (card == null)
+            {
+                Debug.LogError("CardDetailView.Show: Card is null.");
+                return;
+            }
+            _currentCard = card;
 
             // Load card image
             if (!string.IsNullOrEmpty(card.Data.image_url))
@@ -53,6 +91,14 @@ namespace TCG.Weiss.UI
             // Format and display card details
             cardDetailText.text = FormatCardDetails(card);
 
+            SetDeckEditorUIActive(true);
+
+            UpdateCardCount(countInDeck);
+
+            // Create Add and Remove buttons
+            CreateButton("+", () => DeckEditorManager.Instance?.AddCardToDeck(_currentCard.Data));
+            CreateButton("-", () => DeckEditorManager.Instance?.RemoveCardFromDeck(_currentCard.Data));
+
             _canvasGroup.alpha = 1f;
             _canvasGroup.interactable = true;
             _canvasGroup.blocksRaycasts = true;
@@ -64,10 +110,38 @@ namespace TCG.Weiss.UI
         /// </summary>
         public void Hide()
         {
+            StopAllCoroutines(); // Stop image loading if it's in progress
             _canvasGroup.alpha = 0f;
             _canvasGroup.interactable = false;
             _canvasGroup.blocksRaycasts = false;
+            _currentCard = null;
             Debug.Log("CardDetailView: Hidden.");
+            ClearButtons();
+        }
+
+        /// <summary>
+        /// Updates the displayed count of the current card in the deck.
+        /// </summary>
+        public void UpdateCardCount()
+        {
+            if (_currentCard != null && gameObject.activeInHierarchy)
+            {
+                int count = DeckEditorManager.Instance.GetCardCountInDeck(_currentCard.Data);
+                UpdateCardCount(count);
+            }
+        }
+
+        /// <summary>
+        /// Updates the displayed count of a specific card if it's the one being shown.
+        /// </summary>
+        /// <param name="cardData">The card data that was updated.</param>
+        public void UpdateCardCount(WeissCardData cardData)
+        {
+            if (_currentCard != null && _currentCard.Data.card_no == cardData.card_no)
+            {
+                int count = DeckEditorManager.Instance.GetCardCountInDeck(cardData);
+                UpdateCardCount(count);
+            }
         }
 
         private IEnumerator LoadImage(string url)
@@ -147,6 +221,59 @@ namespace TCG.Weiss.UI
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Creates a button with the given text and action.
+        /// </summary>
+        /// <param name="text">Text to display on the button.</param>
+        /// <param name="action">Action to perform when the button is clicked.</param>
+        private void CreateButton(string text, UnityEngine.Events.UnityAction action)
+        {
+            if (buttonPrefab == null || buttonContainer == null)
+            {
+                Debug.LogError("Button prefab or button container is not assigned.");
+                return;
+            }
+
+            GameObject buttonGO = Instantiate(buttonPrefab, buttonContainer);
+            Button button = buttonGO.GetComponent<Button>();
+            TextMeshProUGUI buttonText = buttonGO.GetComponentInChildren<TextMeshProUGUI>();
+
+            if (button != null && buttonText != null)
+            {
+                buttonText.text = text;
+                button.onClick.AddListener(action);
+                _createdButtons.Add(button);
+            }
+            else
+            {
+                Debug.LogError("Failed to initialize button from prefab.");
+            }
+        }
+        private void SetDeckEditorUIActive(bool isActive)
+        {
+            if (cardCountText != null)
+                cardCountText.gameObject.SetActive(isActive);
+
+            if (buttonContainer != null)
+                buttonContainer.gameObject.SetActive(isActive);
+        }
+
+        private void ClearButtons()
+        {
+            foreach (var button in _createdButtons)
+            {
+                Destroy(button.gameObject);
+            }
+            _createdButtons.Clear();
+        }
+        private void UpdateCardCount(int count)
+        {
+            if (cardCountText != null)
+            {
+                cardCountText.text = $"デッキ内: {count} / 4";
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Data;
 using Mono.Data.Sqlite;
 using Newtonsoft.Json;
+using TCG.Weiss;
 using UnityEngine;
 
 namespace TCG.Weiss.Data

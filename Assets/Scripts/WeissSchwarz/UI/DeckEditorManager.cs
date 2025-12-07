@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
-using TCG.Weiss.Core;
+using TCG.Weiss;
 using TMPro;
 using System.Linq;
+using System;
 
 namespace TCG.Weiss.UI
 {
@@ -15,6 +16,9 @@ namespace TCG.Weiss.UI
 
         private const int MAX_DECK_SIZE = 50;
         private const int MAX_COPIES_PER_CARD = 4;
+
+        [Header("Search UI")]
+        [SerializeField] private TMP_InputField searchInputField;
 
         [Header("Card List UI")]
         [SerializeField] private GameObject cardListItemPrefab;
@@ -34,7 +38,6 @@ namespace TCG.Weiss.UI
         private Dictionary<string, int> _currentDeck = new Dictionary<string, int>();
         private Dictionary<string, WeissCardData> _cardDataMap = new Dictionary<string, WeissCardData>();
 
-
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -53,6 +56,14 @@ namespace TCG.Weiss.UI
             else
             {
                 Debug.LogError("CardDetailViewPrefab or MainCanvas is not assigned in DeckEditorManager.");
+            }
+        }
+
+        private void Start()
+        {
+            if (searchInputField != null)
+            {
+                searchInputField.onValueChanged.AddListener(FilterAndDisplayCards);
             }
         }
 
@@ -77,11 +88,30 @@ namespace TCG.Weiss.UI
                 }
             }
             Debug.Log($"Loaded {_allCardData.Count} cards from SQLite database.");
-            DisplayCardList();
+            // Initially display all cards
+            FilterAndDisplayCards(string.Empty);
             UpdateDeckUI();
         }
 
-        private void DisplayCardList()
+        private void FilterAndDisplayCards(string query)
+        {
+            List<WeissCardData> cardsToDisplay;
+
+            if (string.IsNullOrEmpty(query))
+            {
+                cardsToDisplay = _allCardData;
+            }
+            else
+            {
+                cardsToDisplay = _allCardData
+                    .Where(card => card.name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+            
+            DisplayCardList(cardsToDisplay);
+        }
+
+        private void DisplayCardList(List<WeissCardData> cardsToDisplay)
         {
             foreach (Transform child in cardListContentParent) Destroy(child.gameObject);
             if (cardListItemPrefab == null)
@@ -90,7 +120,7 @@ namespace TCG.Weiss.UI
                 return;
             }
 
-            foreach (var cardData in _allCardData)
+            foreach (var cardData in cardsToDisplay)
             {
                 GameObject newItemObject = Instantiate(cardListItemPrefab, cardListContentParent);
                 CardListItem newItem = newItemObject.GetComponent<CardListItem>();
@@ -121,6 +151,7 @@ namespace TCG.Weiss.UI
 
             _currentDeck[cardData.card_no] = currentCopies + 1;
             UpdateDeckUI();
+            _cardDetailViewInstance?.UpdateCardCount(cardData);
         }
 
         public void RemoveCardFromDeck(WeissCardData cardData)
@@ -134,6 +165,7 @@ namespace TCG.Weiss.UI
                 _currentDeck.Remove(cardData.card_no);
             }
             UpdateDeckUI();
+            _cardDetailViewInstance?.UpdateCardCount(cardData);
         }
 
         private void UpdateDeckUI()
@@ -141,7 +173,6 @@ namespace TCG.Weiss.UI
             foreach (Transform child in deckListContentParent) Destroy(child.gameObject);
             if (deckCardListItemPrefab == null)
             {
-                // This is not an error if the UI is not set up, so just return.
                 return;
             }
 
@@ -164,12 +195,21 @@ namespace TCG.Weiss.UI
             {
                 deckCountText.text = $"{_currentDeck.Values.Sum()} / {MAX_DECK_SIZE}";
             }
+
+            // If detail view is open, update its count as well
+            _cardDetailViewInstance?.UpdateCardCount();
         }
 
         public void ShowCardDetail(WeissCardData cardData)
         {
             WeissCard dummyCard = new WeissCard(cardData, null);
-            _cardDetailViewInstance?.Show(dummyCard);
+            _cardDetailViewInstance?.Show(dummyCard, GetCardCountInDeck(cardData));
+        }
+
+        public int GetCardCountInDeck(WeissCardData cardData)
+        {
+            if (cardData == null) return 0;
+            return _currentDeck.TryGetValue(cardData.card_no, out int count) ? count : 0;
         }
     }
 }
