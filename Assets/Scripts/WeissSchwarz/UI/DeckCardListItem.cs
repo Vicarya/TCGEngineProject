@@ -7,29 +7,44 @@ using TCG.Weiss;
 namespace TCG.Weiss.UI
 {
     /// <summary>
-    /// Represents a single card item in the constructed deck list.
-    /// Displays card name, count, and provides a button to remove one copy.
+    /// 構築されたデッキリスト内で単一のカード項目を表示するUIコンポーネント。
+    /// カード名、枚数を表示し、カードを1枚削除するボタンを提供します。
     /// </summary>
     [RequireComponent(typeof(Button))]
     public class DeckCardListItem : MonoBehaviour
     {
+        /// <summary>
+        /// カード名を表示するTextMeshProUGUI。
+        /// </summary>
         [SerializeField] private TextMeshProUGUI cardNameText;
+        /// <summary>
+        /// デッキ内のカード枚数を表示するTextMeshProUGUI。
+        /// </summary>
         [SerializeField] private TextMeshProUGUI cardCountText;
 
+        /// <summary>
+        /// このUI項目に関連付けられたカードデータ。
+        /// </summary>
         private WeissCardData _cardData;
+        /// <summary>
+        /// カードが削除されたときに呼び出されるアクション。
+        /// </summary>
         private Action<WeissCardData> _removeAction;
 
+        /// <summary>
+        /// オブジェクト初期化時に呼び出され、削除ボタンにリスナーを追加します。
+        /// </summary>
         private void Awake()
         {
             GetComponent<Button>().onClick.AddListener(OnRemoveButtonClicked);
         }
 
         /// <summary>
-        /// Sets up the display and action for this deck list item.
+        /// このデッキリスト項目の表示とアクションを設定します。
         /// </summary>
-        /// <param name="cardData">The card data to display.</param>
-        /// <param name="count">The number of copies in the deck.</param>
-        /// <param name="removeAction">The action to call when the remove button is clicked.</param>
+        /// <param name="cardData">表示するカードデータ。</param>
+        /// <param name="count">デッキ内のカード枚数。</param>
+        /// <param name="removeAction">削除ボタンがクリックされたときに呼び出すアクション。</param>
         public void Setup(WeissCardData cardData, int count, Action<WeissCardData> removeAction)
         {
             _cardData = cardData;
@@ -46,6 +61,10 @@ namespace TCG.Weiss.UI
             }
         }
 
+        /// <summary>
+        /// 削除ボタンがクリックされたときに呼び出されます。
+        /// 設定された削除アクションを実行します。
+        /// </summary>
         private void OnRemoveButtonClicked()
         {
             _removeAction?.Invoke(_cardData);

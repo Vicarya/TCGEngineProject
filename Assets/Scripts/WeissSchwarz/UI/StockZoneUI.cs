@@ -20,43 +20,49 @@ namespace TCG.Weiss.UI
         private List<CardUI> _cardUIs = new List<CardUI>();
 
         /// <summary>
-        /// Updates the Stock Zone display.
+        /// 提供されたストックゾーンの状態に合わせてUI表示を更新します。
+        /// 既存のカードUIオブジェクトをクリアし、新しいストックゾーンのカードに対応するUIオブジェクトを生成・配置します。
         /// </summary>
-        /// <param name="stockZone">The stock zone from the game logic.</param>
+        /// <param name="stockZone">ゲームロジックからのストックゾーンデータ。</param>
         public void UpdateZone(StockZone stockZone)
         {
-            // Clear existing UI objects
+            // 既存のUIオブジェクトを全て破棄
             foreach (var cardUI in _cardUIs)
             {
                 Destroy(cardUI.gameObject);
             }
-            _cardUIs.Clear();
+            _cardUIs.Clear(); // リストもクリア
 
+            // ストックゾーンがnullの場合は何もしない
             if (stockZone == null) return;
 
-            // Stock is LIFO, but for UI we can just show the count. We'll show them in order for visual flair.
+            // ストックはLIFO（後入れ先出し）ですが、UIではカードの枚数を視覚的に示すため、
+            // 生成順に重ねて表示します。
             for (int i = 0; i < stockZone.Cards.Count; i++)
             {
                 var card = stockZone.Cards[i];
+                // カードプレハブをカードコンテナの子としてインスタンス化
                 var cardObject = Instantiate(cardPrefab, cardContainer);
                 var cardUI = cardObject.GetComponent<CardUI>();
 
                 if (cardUI != null)
                 {
-                    // Stock cards are always face down
+                    // ストックに置かれているカードは常に裏向きです。
                     card.IsFaceUp = false;
-                    cardUI.SetCard(card);
-                    _cardUIs.Add(cardUI);
+                    cardUI.SetCard(card); // カードデータをCardUIに設定
+                    _cardUIs.Add(cardUI); // 生成したCardUIをリストに追加
 
-                    // Apply stacking layout
+                    // 重ねて表示するためのレイアウトを適用
                     var rectTransform = cardObject.GetComponent<RectTransform>();
                     if (rectTransform != null)
                     {
+                        // 各カードを少しずつオフセットして、重ねて表示されるように位置を調整
                         rectTransform.anchoredPosition = i * cardOffset;
                     }
                 }
                 else
                 {
+                    // CardUIコンポーネントが見つからない場合はエラーをログに記録し、オブジェクトを破棄
                     Debug.LogError("Card prefab is missing CardUI component!");
                     Destroy(cardObject);
                 }

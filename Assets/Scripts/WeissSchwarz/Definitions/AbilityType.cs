@@ -1,22 +1,23 @@
-namespace TCG.Weiss
+namespace TCG.Weiss.Definitions
 {
     /// <summary>
-    /// Defines the type of a card ability.
+    /// ヴァイスシュヴァルツのカードが持つ能力の種類を定義します。
+    /// データ駆動設計における能力定義の基礎となります。
     /// </summary>
     public enum AbilityType
     {
         /// <summary>
-        /// An automatic ability that triggers on a specific event. (【自】)
+        /// 【自】(自動能力): 「～した時」「～フェイズの始めに」など、特定のイベント発生時に自動的に誘発する能力。
         /// </summary>
         Auto,
 
         /// <summary>
-        /// An activated ability that requires a cost to be paid. (【起】)
+        /// 【起】(起動能力): メインフェイズ中にプレイヤーが任意でコストを支払って使用できる能力。
         /// </summary>
         Activated,
 
         /// <summary>
-        /// A continuous ability that is always active. (【永】)
+        /// 【永】(常時能力): このカードが特定のゾーンにある限り、常に効果が適用され続ける能力。
         /// </summary>
         Continuous
     }

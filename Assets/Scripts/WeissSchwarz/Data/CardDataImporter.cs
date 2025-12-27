@@ -8,35 +8,39 @@ using UnityEngine;
 namespace TCG.Weiss.Data
 {
     /// <summary>
-    /// Utility class for importing card data from JSON into an SQLite database.
+    /// JSON形式のカードデータをSQLiteデータベースにインポート・エクスポートするための静的ユーティリティクラス。
+    /// 外部ライブラリである `Newtonsoft.Json` と、UnityでSQLiteを扱うための `Mono.Data.Sqlite` を使用します。
     /// </summary>
     public static class CardDataImporter
     {
+        // データベースファイルへの接続パス
         private static string _dbPath;
 
         /// <summary>
-        /// Initializes the database connection path.
+        /// データベースへの接続パスを初期化します。
         /// </summary>
-        /// <param name="dbFileName">The name of the SQLite database file (e.g., "cards.db").</param>
+        /// <param name="dbFileName">SQLiteデータベースのファイル名（例: "cards.db"）。</param>
         public static void Initialize(string dbFileName)
         {
+            // データベースのパスを、デバイスの永続的なデータ保存領域に設定
             _dbPath = $"URI=file:{Application.persistentDataPath}/{dbFileName}";
             Debug.Log($"SQLite DB Path: {_dbPath}");
         }
 
         /// <summary>
-        /// Imports card data from a JSON string into the SQLite database.
-        /// Creates the table if it doesn't exist.
+        /// JSON文字列からカードデータを読み込み、SQLiteデータベースにインポートします。
+        /// テーブルが存在しない場合は自動的に作成します。
         /// </summary>
-        /// <param name="jsonContent">The JSON string containing card data.</param>
+        /// <param name="jsonContent">カードデータが含まれるJSON文字列。</param>
         public static void ImportJsonToDatabase(string jsonContent)
         {
             if (string.IsNullOrEmpty(_dbPath))
             {
-                Debug.LogError("CardDataImporter not initialized. Call Initialize() first.");
+                Debug.LogError("CardDataImporterが初期化されていません。先にInitialize()を呼び出してください。");
                 return;
             }
 
+            // 1. JSON文字列をWeissCardDataオブジェクトのリストにデシリアライズ
             List<WeissCardData> cardDataList;
             try
             {
@@ -44,22 +48,23 @@ namespace TCG.Weiss.Data
             }
             catch (JsonException e)
             {
-                Debug.LogError($"Failed to deserialize JSON content: {e.Message}");
+                Debug.LogError($"JSONのデシリアライズに失敗しました: {e.Message}");
                 return;
             }
 
             if (cardDataList == null || cardDataList.Count == 0)
             {
-                Debug.LogWarning("No card data found in JSON content.");
+                Debug.LogWarning("JSONコンテンツにカードデータが見つかりませんでした。");
                 return;
             }
 
+            // 2. データベースに接続
             using (var dbConnection = new SqliteConnection(_dbPath))
             {
                 dbConnection.Open();
                 using (var dbCommand = dbConnection.CreateCommand())
                 {
-                    // Create table if not exists
+                    // 3. テーブルが存在しない場合に備えて、CREATE TABLE文を実行
                     dbCommand.CommandText = @"
                         CREATE TABLE IF NOT EXISTS cards (
                             card_no TEXT PRIMARY KEY,
@@ -75,21 +80,23 @@ namespace TCG.Weiss.Data
                             cost TEXT,
                             rarity TEXT,
                             trigger TEXT,
-                            features TEXT, -- Stored as JSON array
+                            features TEXT, -- List<string>をJSON文字列として格納
                             flavor_text TEXT,
-                            abilities TEXT -- Stored as JSON array
+                            abilities TEXT -- List<string>をJSON文字列として格納
                         );";
                     dbCommand.ExecuteNonQuery();
 
-                    // Insert or Update data
+                    // 4. 各カードデータをデータベースに挿入または更新
                     foreach (var cardData in cardDataList)
                     {
+                        // `card_no`が既に存在する場合はレコードを更新し、存在しない場合は挿入する
                         dbCommand.CommandText = @"
                             INSERT OR REPLACE INTO cards (
                                 card_no, name, detail_page_url, image_url, side, type, level, color, power, soul, rarity, trigger, features, flavor_text, abilities, cost
                             ) VALUES (
                                 @card_no, @name, @detail_page_url, @image_url, @side, @type, @level, @color, @power, @soul, @rarity, @trigger, @features, @flavor_text, @abilities, @cost
                             );";
+                        
                         dbCommand.Parameters.Clear();
                         dbCommand.Parameters.AddWithValue("@card_no", cardData.card_no);
                         dbCommand.Parameters.AddWithValue("@name", cardData.name);
@@ -104,27 +111,30 @@ namespace TCG.Weiss.Data
                         dbCommand.Parameters.AddWithValue("@cost", cardData.コスト);
                         dbCommand.Parameters.AddWithValue("@rarity", cardData.レアリティ);
                         dbCommand.Parameters.AddWithValue("@trigger", cardData.トリガー);
-                        dbCommand.Parameters.AddWithValue("@features", JsonConvert.SerializeObject(cardData.特徴)); // Serialize list to JSON
                         dbCommand.Parameters.AddWithValue("@flavor_text", cardData.flavor_text);
-                        dbCommand.Parameters.AddWithValue("@abilities", JsonConvert.SerializeObject(cardData.abilities)); // Serialize list to JSON
+                        
+                        // List<string>型のプロパティをJSON文字列に変換してTEXTカラムに保存
+                        dbCommand.Parameters.AddWithValue("@features", JsonConvert.SerializeObject(cardData.特徴));
+                        dbCommand.Parameters.AddWithValue("@abilities", JsonConvert.SerializeObject(cardData.abilities));
+                        
                         dbCommand.ExecuteNonQuery();
                     }
                 }
                 dbConnection.Close();
             }
-            Debug.Log($"Successfully imported {cardDataList.Count} cards into SQLite database.");
+            Debug.Log($"SQLiteデータベースに{cardDataList.Count}枚のカードを正常にインポートしました。");
         }
 
         /// <summary>
-        /// Retrieves all card data from the SQLite database.
+        /// SQLiteデータベースからすべてのカードデータを取得します。
         /// </summary>
-        /// <returns>A list of WeissCardData objects.</returns>
+        /// <returns>データベース内のすべてのカードデータを含むWeissCardDataのリスト。</returns>
         public static List<WeissCardData> GetAllCardData()
         {
             var cardDataList = new List<WeissCardData>();
             if (string.IsNullOrEmpty(_dbPath))
             {
-                Debug.LogError("CardDataImporter not initialized. Call Initialize() first.");
+                Debug.LogError("CardDataImporterが初期化されていません。先にInitialize()を呼び出してください。");
                 return cardDataList;
             }
 
@@ -153,9 +163,11 @@ namespace TCG.Weiss.Data
                                 コスト = reader["cost"].ToString(),
                                 レアリティ = reader["rarity"].ToString(),
                                 トリガー = reader["trigger"].ToString(),
-                                特徴 = JsonConvert.DeserializeObject<List<string>>(reader["features"].ToString()), // Deserialize JSON to list
                                 flavor_text = reader["flavor_text"].ToString(),
-                                abilities = JsonConvert.DeserializeObject<List<string>>(reader["abilities"].ToString()) // Deserialize JSON to list
+                                
+                                // TEXTカラムから読み込んだJSON文字列をList<string>にデシリアライズして戻す
+                                特徴 = JsonConvert.DeserializeObject<List<string>>(reader["features"].ToString()),
+                                abilities = JsonConvert.DeserializeObject<List<string>>(reader["abilities"].ToString())
                             };
                             cardDataList.Add(cardData);
                         }
@@ -163,7 +175,7 @@ namespace TCG.Weiss.Data
                 }
                 dbConnection.Close();
             }
-            Debug.Log($"Retrieved {cardDataList.Count} cards from SQLite database.");
+            Debug.Log($"SQLiteデータベースから{cardDataList.Count}枚のカードを取得しました。");
             return cardDataList;
         }
     }

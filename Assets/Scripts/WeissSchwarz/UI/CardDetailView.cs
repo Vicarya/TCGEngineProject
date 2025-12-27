@@ -6,135 +6,158 @@ using TCG.Weiss.Effects;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-using TMPro; // For TextMeshProUGUI
+using TMPro; // TextMeshProUGUIを使用するために必要
 
 namespace TCG.Weiss.UI
 {
     /// <summary>
-    /// Manages the display of a single card's detailed information.
+    /// 単一のヴァイスシュヴァルツカードの詳細情報を表示するUIビューを管理するMonoBehaviourクラス。
+    /// カード画像、詳細テキスト、デッキ内の枚数表示、デッキ編集ボタンなどを制御します。
+    /// ゲームプレイ中とデッキエディタ画面の両方での利用を想定しています。
     /// </summary>
-    [RequireComponent(typeof(CanvasGroup))]
+    [RequireComponent(typeof(CanvasGroup))] // CanvasGroupコンポーネントが必須であることを指定
     public class CardDetailView : MonoBehaviour
     {
-        [SerializeField] private Image cardImageView;
-        [SerializeField] private TextMeshProUGUI cardDetailText;
-        [Tooltip("Text to display \"In Deck: X / 4\"")]
-        [SerializeField] private TextMeshProUGUI cardCountText; // Text to display "In Deck: X / 4"
-        [SerializeField] private Button closeButton;
-        [SerializeField] private Transform buttonContainer; // コンテナを指定
-        [SerializeField] private GameObject buttonPrefab; // Prefabを指定
+        [Header("UI Elements")]
+        [SerializeField] private Image cardImageView; // カード画像を表示するImageコンポーネント
+        [SerializeField] private TextMeshProUGUI cardDetailText; // カードの詳細情報を表示するTextMeshProUGUI
+        [Tooltip("「デッキ内: X / 4」のテキストを表示")]
+        [SerializeField] private TextMeshProUGUI cardCountText; // デッキ内のカード枚数を表示するTextMeshProUGUI
+        [SerializeField] private Button closeButton; // 詳細ビューを閉じるボタン
+        [SerializeField] private Transform buttonContainer; // デッキ編集ボタンを配置するコンテナ
+        [SerializeField] private GameObject buttonPrefab; // 動的に生成するボタンのPrefab
 
-        private List<Button> _createdButtons = new List<Button>();
-        private CanvasGroup _canvasGroup;
-        private WeissCard _currentCard;
+        // 内部状態
+        private List<Button> _createdButtons = new List<Button>(); // 生成されたボタンのリスト
+        private CanvasGroup _canvasGroup; // UIの表示/非表示、インタラクトを制御するためのCanvasGroup
+        private WeissCard _currentCard; // 現在表示中のWeissCardインスタンス
 
         private void Awake()
         {
-            _canvasGroup = GetComponent<CanvasGroup>();
-            closeButton?.onClick.AddListener(Hide);
+            _canvasGroup = GetComponent<CanvasGroup>(); // CanvasGroupコンポーネントを取得
+            closeButton?.onClick.AddListener(Hide); // 閉じるボタンにHideメソッドをリスナーとして追加
         }
 
         /// <summary>
-        /// Displays the detailed information for the given WeissCard (in-game version).
+        /// ゲームプレイ中のカード（WeissCardインスタンス）の詳細情報を表示します。
+        /// デッキ編集特有のUIは非表示になります。
         /// </summary>
-        /// <param name="card">The WeissCard to display.</param>
+        /// <param name="card">表示するWeissCardインスタンス。</param>
         public void Show(WeissCard card)
         {
-            ClearButtons();
+            ClearButtons(); // 既存のボタンをクリア
 
             if (card == null)
             {
-                Debug.LogError("CardDetailView.Show: Card is null.");
+                Debug.LogError("CardDetailView.Show: 表示するカードがnullです。");
                 return;
             }
-            _currentCard = card;
+            _currentCard = card; // 現在のカードとして保持
 
-            // Load card image
-            if (!string.IsNullOrEmpty(card.Data.image_url))
-            {
-                StartCoroutine(LoadImage(card.Data.image_url));
-            }
-
-            // Format and display card details
-            cardDetailText.text = FormatCardDetails(card);
-
-            // Hide deck editor specific UI
-            SetDeckEditorUIActive(false);
-        }
-
-        /// <summary>
-        /// Displays the detailed information for the given WeissCard.
-        /// </summary>
-        /// <param name="card">The WeissCard to display.</param>
-        /// <param name="countInDeck">Number of this card currently in the deck.</param>
-        public void Show(WeissCard card, int countInDeck)
-        {
-            ClearButtons();
-
-            if (card == null)
-            {
-                Debug.LogError("CardDetailView.Show: Card is null.");
-                return;
-            }
-            _currentCard = card;
-
-            // Load card image
+            // カード画像を非同期でロード
             if (!string.IsNullOrEmpty(card.Data.image_url))
             {
                 StartCoroutine(LoadImage(card.Data.image_url));
             }
             else
             {
-                cardImageView.sprite = null; // Clear previous image
+                cardImageView.sprite = null; // 画像URLがない場合は以前の画像をクリア
             }
 
-            // Format and display card details
+            // カード詳細を整形して表示
             cardDetailText.text = FormatCardDetails(card);
 
-            SetDeckEditorUIActive(true);
+            // デッキ編集UIを非表示に設定
+            SetDeckEditorUIActive(false);
 
-            UpdateCardCount(countInDeck);
-
-            // Create Add and Remove buttons
-            CreateButton("+", () => DeckEditorManager.Instance?.AddCardToDeck(_currentCard.Data));
-            CreateButton("-", () => DeckEditorManager.Instance?.RemoveCardFromDeck(_currentCard.Data));
-
+            // CanvasGroupを介してUIを表示状態にする
             _canvasGroup.alpha = 1f;
             _canvasGroup.interactable = true;
             _canvasGroup.blocksRaycasts = true;
-            Debug.Log($"CardDetailView: Displaying details for {card.Data.name}");
+            Debug.Log($"CardDetailView: {card.Data.name} の詳細を表示中。");
         }
 
         /// <summary>
-        /// Hides the card detail view.
+        /// デッキエディタ用のカード詳細情報を表示します。
+        /// デッキ内の枚数表示や、デッキへの追加/削除ボタンが有効になります。
+        /// </summary>
+        /// <param name="card">表示するWeissCardインスタンス。</param>
+        /// <param name="countInDeck">現在デッキ内にあるこのカードの枚数。</param>
+        public void Show(WeissCard card, int countInDeck)
+        {
+            ClearButtons(); // 既存のボタンをクリア
+
+            if (card == null)
+            {
+                Debug.LogError("CardDetailView.Show: 表示するカードがnullです。");
+                return;
+            }
+            _currentCard = card; // 現在のカードとして保持
+
+            // カード画像を非同期でロード
+            if (!string.IsNullOrEmpty(card.Data.image_url))
+            {
+                StartCoroutine(LoadImage(card.Data.image_url));
+            }
+            else
+            {
+                cardImageView.sprite = null; // 以前の画像をクリア
+            }
+
+            // カード詳細を整形して表示
+            cardDetailText.text = FormatCardDetails(card);
+
+            // デッキ編集UIを有効に設定
+            SetDeckEditorUIActive(true);
+
+            // デッキ内のカード枚数表示を更新
+            UpdateCardCount(countInDeck);
+
+            // デッキ追加/削除ボタンを動的に生成
+            // DeckEditorManagerのインスタンス経由でデッキ操作メソッドを呼び出す
+            CreateButton("+", () => DeckEditorManager.Instance?.AddCardToDeck(_currentCard.Data));
+            CreateButton("-", () => DeckEditorManager.Instance?.RemoveCardFromDeck(_currentCard.Data));
+
+            // CanvasGroupを介してUIを表示状態にする
+            _canvasGroup.alpha = 1f;
+            _canvasGroup.interactable = true;
+            _canvasGroup.blocksRaycasts = true;
+            Debug.Log($"CardDetailView: {card.Data.name} の詳細を表示中。");
+        }
+
+        /// <summary>
+        /// カード詳細ビューを非表示にします。
+        /// 画像ロード中のコルーチンも停止します。
         /// </summary>
         public void Hide()
         {
-            StopAllCoroutines(); // Stop image loading if it's in progress
-            _canvasGroup.alpha = 0f;
-            _canvasGroup.interactable = false;
-            _canvasGroup.blocksRaycasts = false;
-            _currentCard = null;
-            Debug.Log("CardDetailView: Hidden.");
-            ClearButtons();
+            StopAllCoroutines(); // 画像ロード中のコルーチンを停止
+            _canvasGroup.alpha = 0f; // 透明にして非表示
+            _canvasGroup.interactable = false; // 非インタラクティブに
+            _canvasGroup.blocksRaycasts = false; // レイキャストをブロックしない
+            _currentCard = null; // 現在のカード情報をクリア
+            Debug.Log("CardDetailView: 非表示にしました。");
+            ClearButtons(); // 生成されたボタンをクリア
         }
 
         /// <summary>
-        /// Updates the displayed count of the current card in the deck.
+        /// 現在表示中のカードのデッキ内枚数表示を更新します。
+        /// アクティブなGameObjectの場合のみ処理を実行します。
         /// </summary>
         public void UpdateCardCount()
         {
             if (_currentCard != null && gameObject.activeInHierarchy)
             {
                 int count = DeckEditorManager.Instance.GetCardCountInDeck(_currentCard.Data);
-                UpdateCardCount(count);
+                UpdateCardCount(count); // オーバーロードされたメソッドを呼び出す
             }
         }
 
         /// <summary>
-        /// Updates the displayed count of a specific card if it's the one being shown.
+        /// 特定のカード（CardData）のデッキ内枚数表示を更新します。
+        /// 現在表示中のカードが、更新対象のカードである場合のみ適用されます。
         /// </summary>
-        /// <param name="cardData">The card data that was updated.</param>
+        /// <param name="cardData">枚数が更新されたカードのデータ。</param>
         public void UpdateCardCount(WeissCardData cardData)
         {
             if (_currentCard != null && _currentCard.Data.card_no == cardData.card_no)
@@ -144,27 +167,37 @@ namespace TCG.Weiss.UI
             }
         }
 
+        /// <summary>
+        /// 指定されたURLからカード画像を非同期でロードし、UIに表示します。
+        /// </summary>
+        /// <param name="url">ロードする画像のURL。</param>
         private IEnumerator LoadImage(string url)
         {
             UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
-            yield return request.SendWebRequest();
+            yield return request.SendWebRequest(); // リクエストを送信し、完了を待機
 
             if (request.result == UnityWebRequest.Result.Success)
             {
                 Texture2D texture = DownloadHandlerTexture.GetContent(request);
                 Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.one * 0.5f);
-                cardImageView.sprite = sprite;
+                cardImageView.sprite = sprite; // 取得した画像をSpriteとして設定
             }
             else
             {
-                Debug.LogError($"Failed to load image from {url}: {request.error}");
+                Debug.LogError($"画像ロード失敗 ({url}): {request.error}");
             }
         }
 
+        /// <summary>
+        /// WeissCardオブジェクトから詳細情報を抽出し、TextMeshPro向けのリッチテキスト形式で整形します。
+        /// </summary>
+        /// <param name="card">詳細をフォーマットするWeissCardインスタンス。</param>
+        /// <returns>整形されたカード詳細テキスト。</returns>
         private string FormatCardDetails(WeissCard card)
         {
             StringBuilder sb = new StringBuilder();
 
+            // 基本情報
             sb.AppendLine($"<b><size=120%>{card.Data.name}</size></b> ({card.Data.card_no})");
             sb.AppendLine($"<color=#808080>種類: {card.Data.種類}</color>");
             sb.AppendLine($"<color=#808080>レベル: {card.Data.レベル} / コスト: {card.Data.コスト}</color>");
@@ -178,42 +211,46 @@ namespace TCG.Weiss.UI
             sb.AppendLine($"<color=#808080>トリガー: {card.Data.トリガー}</color>");
             sb.AppendLine();
 
+            // 能力情報
             if (card.Abilities != null && card.Abilities.Count > 0)
             {
-                sb.AppendLine("<b>--- Abilities ---</b>");
+                sb.AppendLine("<b>--- 能力 ---</b>");
                 foreach (var abilityBase in card.Abilities)
                 {
                     if (abilityBase is WeissAbility ability)
                     {
+                        // 能力タイプを表示 (例: 【自】)
                         sb.AppendLine($"<b>[{ability.AbilityType}]</b>");
+                        // コストを表示
                         if (ability.Costs != null && ability.Costs.Count > 0)
                         {
-                            sb.Append("  Cost: ");
+                            sb.Append("  コスト: ");
                             foreach (var cost in ability.Costs)
                             {
-                                sb.Append($"[{cost.GetDescription()}] ");
+                                sb.Append($"[{cost.GetDescription()}] "); // CostFactoryで生成されたコストの説明文
                             }
                             sb.AppendLine();
                         }
-                        sb.AppendLine($"  Effect: {ability.Description}");
-                        // For now, we just print the raw description.
-                        // In the future, we can iterate through ability.Effects and describe them.
+                        // 効果の説明を表示
+                        sb.AppendLine($"  効果: {ability.Description}");
+                        // TODO: 将来的にはability.Effectsを反復処理し、個々の効果を詳細に記述するべき
                     }
                     else
                     {
-                        // SourceCard may be a CardBase<WeissCardData> or other concrete type. Cast safely.
+                        // 汎用AbilityBaseの場合の処理 (WeissAbility以外)
                         if (abilityBase.SourceCard is TCG.Core.CardBase<TCG.Weiss.WeissCardData> srcWithData)
                         {
-                            sb.AppendLine($"  [Generic Ability] {srcWithData.Data.name}");
+                            sb.AppendLine($"  [汎用能力] {srcWithData.Data.name}");
                         }
                         else
                         {
-                            sb.AppendLine($"  [Generic Ability] (unknown source)");
+                            sb.AppendLine($"  [汎用能力] (発生源不明)");
                         }
                     }
                 }
             }
 
+            // フレーバーテキスト
             if (!string.IsNullOrEmpty(card.Data.flavor_text))
             {
                 sb.AppendLine();
@@ -224,33 +261,39 @@ namespace TCG.Weiss.UI
         }
 
         /// <summary>
-        /// Creates a button with the given text and action.
+        /// 指定されたテキストとアクションを持つボタンを動的に生成し、コンテナに追加します。
         /// </summary>
-        /// <param name="text">Text to display on the button.</param>
-        /// <param name="action">Action to perform when the button is clicked.</param>
+        /// <param name="text">ボタンに表示するテキスト。</param>
+        /// <param name="action">ボタンがクリックされたときに実行するアクション。</param>
         private void CreateButton(string text, UnityEngine.Events.UnityAction action)
         {
             if (buttonPrefab == null || buttonContainer == null)
             {
-                Debug.LogError("Button prefab or button container is not assigned.");
+                Debug.LogError("ボタンPrefabまたはボタンコンテナが割り当てられていません。");
                 return;
             }
 
+            // Prefabからボタンをインスタンス化し、コンテナの子にする
             GameObject buttonGO = Instantiate(buttonPrefab, buttonContainer);
             Button button = buttonGO.GetComponent<Button>();
             TextMeshProUGUI buttonText = buttonGO.GetComponentInChildren<TextMeshProUGUI>();
 
             if (button != null && buttonText != null)
             {
-                buttonText.text = text;
-                button.onClick.AddListener(action);
-                _createdButtons.Add(button);
+                buttonText.text = text; // ボタンテキストを設定
+                button.onClick.AddListener(action); // クリックアクションを追加
+                _createdButtons.Add(button); // 生成したボタンをリストに追加
             }
             else
             {
-                Debug.LogError("Failed to initialize button from prefab.");
+                Debug.LogError("Prefabからのボタン初期化に失敗しました。");
             }
         }
+        
+        /// <summary>
+        /// デッキエディタ特有のUI要素（カード枚数テキスト、ボタンコンテナ）の表示/非表示を切り替えます。
+        /// </summary>
+        /// <param name="isActive">有効にする場合はtrue、無効にする場合はfalse。</param>
         private void SetDeckEditorUIActive(bool isActive)
         {
             if (cardCountText != null)
@@ -260,14 +303,22 @@ namespace TCG.Weiss.UI
                 buttonContainer.gameObject.SetActive(isActive);
         }
 
+        /// <summary>
+        /// 動的に生成されたデッキ編集ボタンをすべて破棄し、リストをクリアします。
+        /// </summary>
         private void ClearButtons()
         {
             foreach (var button in _createdButtons)
             {
-                Destroy(button.gameObject);
+                Destroy(button.gameObject); // ボタンのGameObjectを破棄
             }
-            _createdButtons.Clear();
+            _createdButtons.Clear(); // リストをクリア
         }
+
+        /// <summary>
+        /// デッキ内枚数表示のテキストを更新します。
+        /// </summary>
+        /// <param name="count">新しい枚数。</param>
         private void UpdateCardCount(int count)
         {
             if (cardCountText != null)

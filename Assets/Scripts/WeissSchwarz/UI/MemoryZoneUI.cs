@@ -20,44 +20,52 @@ namespace TCG.Weiss.UI
         private List<CardUI> _cardUIs = new List<CardUI>();
 
         /// <summary>
-        /// Updates the Memory Zone display.
+        /// 提供されたメモリーゾーンの状態に合わせてUI表示を更新します。
+        /// 既存のカードUIオブジェクトをクリアし、新しいメモリーゾーンのカードに対応するUIオブジェクトを生成・配置します。
         /// </summary>
-        /// <param name="memoryZone">The memory zone from the game logic.</param>
+        /// <param name="memoryZone">ゲームロジックからのメモリーゾーンデータ。</param>
         public void UpdateZone(MemoryZone memoryZone)
         {
-            // Clear existing UI objects
+            // 既存のUIオブジェクトを全て破棄
             foreach (var cardUI in _cardUIs)
             {
                 Destroy(cardUI.gameObject);
             }
-            _cardUIs.Clear();
+            _cardUIs.Clear(); // リストもクリア
 
+            // メモリーゾーンがnullの場合は何もしない
             if (memoryZone == null) return;
 
+            // メモリーゾーン内の各カードに対して新しいUIオブジェクトを生成
             for (int i = 0; i < memoryZone.MemoryCards.Count; i++)
             {
                 var memoryCardInfo = memoryZone.MemoryCards[i];
                 var card = memoryCardInfo.Card;
 
+                // カードプレハブをカードコンテナの子としてインスタンス化
                 var cardObject = Instantiate(cardPrefab, cardContainer);
                 var cardUI = cardObject.GetComponent<CardUI>();
 
                 if (cardUI != null)
                 {
                     // Set the face-up state before setting the card data
+                    // メモリーカードの表示状態（表向きか裏向きか）を設定してからカードデータを設定します。
+                    // これにより、UIが正確なカードの向きを反映するようにします。
                     card.IsFaceUp = memoryCardInfo.FaceUp;
-                    cardUI.SetCard(card);
-                    _cardUIs.Add(cardUI);
+                    cardUI.SetCard(card); // カードデータをCardUIに設定
+                    _cardUIs.Add(cardUI); // 生成したCardUIをリストに追加
 
-                    // Apply basic horizontal layout
+                    // 基本的な水平レイアウトを適用
                     var rectTransform = cardObject.GetComponent<RectTransform>();
                     if (rectTransform != null)
                     {
+                        // カードの間隔を考慮して位置を設定
                         rectTransform.anchoredPosition = new Vector2(i * cardSpacing, 0);
                     }
                 }
                 else
                 {
+                    // CardUIコンポーネントが見つからない場合はエラーをログに記録し、オブジェクトを破棄
                     Debug.LogError("Card prefab is missing CardUI component!");
                     Destroy(cardObject);
                 }

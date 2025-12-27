@@ -7,42 +7,65 @@ using UnityEngine;
 
 namespace TCG.Weiss
 {
+    /// <summary>
+    /// IWeissPlayerControllerインターフェースの実装。
+    /// 実際のプレイヤー入力の代わりに、あらかじめ定義された単純なロジックに基づいて自動的に行動を選択する。
+    /// 主に、UIを介さないゲームロジックのテストやデバッグを目的として使用される「ボット」または「AI」の役割を果たす。
+    /// </summary>
     public class ConsolePlayerController : IWeissPlayerController
     {
+        // ターンごとに一度だけ起動能力を使うためのフラグ
         private bool _hasAutoUsedAbilityThisTurn = false;
+        // ターンごとに一度だけアタックするためのフラグ
         private int _attacksChosenThisTurn = 0;
 
+        /// <summary>
+        /// ターン開始時に内部状態をリセットします。
+        /// </summary>
         public void ResetTurnState()
         {
             _hasAutoUsedAbilityThisTurn = false;
             _attacksChosenThisTurn = 0;
         }
 
+        /// <summary>
+        /// メインフェイズにどのアクション（カードプレイ、能力起動、フェイズ終了）を実行するか選択します。
+        /// </summary>
+        /// <param name="player">アクションを選択するプレイヤー。</param>
+        /// <returns>選択されたメインフェイズのアクション。</returns>
         public MainPhaseAction ChooseMainPhaseAction(WeissPlayer player)
         {
-            Debug.Log($"--- {player.Name}'s Main Phase ---");
-            Debug.Log("Choose an action:");
-            Debug.Log("1: Play a card from hand");
-            Debug.Log("2: Use an activate ability");
-            Debug.Log("3: End Main Phase");
+            Debug.Log($"--- {player.Name}のメインフェイズ ---");
+            Debug.Log("アクションを選択してください:");
+            Debug.Log("1: 手札からカードをプレイする");
+            Debug.Log("2: 起動能力を使う");
+            Debug.Log("3: メインフェイズを終了する");
 
+            // AIロジック: このターンまだ能力を使っていなければ、能力使用を試みる
             if (!_hasAutoUsedAbilityThisTurn)
             {
                 _hasAutoUsedAbilityThisTurn = true;
-                Debug.Log("Simulating player input: 2 (Use Ability)");
+                Debug.Log("プレイヤー入力をシミュレート: 2 (能力を使用)");
                 return MainPhaseAction.UseAbility;
             }
             
-            Debug.Log("Simulating player input: 3 (End Phase)");
+            // それ以外の場合はフェイズを終了する
+            Debug.Log("プレイヤー入力をシミュレート: 3 (フェイズ終了)");
             return MainPhaseAction.EndPhase;
         }
 
+        /// <summary>
+        /// 起動する能力を選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="activatableAbilities">起動可能な能力のリスト。</param>
+        /// <returns>選択された能力（カードと能力テキストのペア）。</returns>
         public KeyValuePair<WeissCard, string> ChooseAbilityToActivate(WeissPlayer player, List<KeyValuePair<WeissCard, string>> activatableAbilities)
         {
-            Debug.Log("--- " + player.Name + ": Choose an ability to activate ---");
+            Debug.Log("--- " + player.Name + ": 起動する能力を選択 ---");
             if (activatableAbilities == null || !activatableAbilities.Any())
             {
-                Debug.Log("No activatable abilities.");
+                Debug.Log("起動可能な能力はありません。");
                 return default;
             }
 
@@ -51,416 +74,281 @@ namespace TCG.Weiss
                 var ability = activatableAbilities[i];
                 Debug.Log($"{i + 1}: [{ability.Key.Data.CardCode} {ability.Key.Data.Name}] - {ability.Value}");
             }
-            Debug.Log($"{activatableAbilities.Count + 1}: Do not activate an ability");
+            Debug.Log($"{activatableAbilities.Count + 1}: 能力を起動しない");
 
-            Debug.Log("Enter the number of the ability to activate:");
-
+            // AIロジック: 最初の能力を選択する
             var choice = activatableAbilities.FirstOrDefault();
-            Debug.Log($"Simulating player input: 1 ({choice.Value})");
+            Debug.Log($"プレイヤー入力をシミュレート: 1 ({choice.Value})");
 
             return choice;
         }
 
+        /// <summary>
+        /// 手札からプレイするカードを1枚選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="optional">選択が任意かどうか。</param>
+        /// <returns>選択されたカード。選択しない場合はnull。</returns>
         public WeissCard ChooseCardFromHand(WeissPlayer player, bool optional)
         {
-            Debug.Log($"--- {player.Name}: Choose a card from hand ---");
+            Debug.Log($"--- {player.Name}: 手札からカードを選択 ---");
             var hand = player.GetZone<IHandZone<WeissCard>>().Cards;
 
             if (hand == null || !hand.Any())
             {
-                Debug.Log("No cards in hand.");
+                Debug.Log("手札にカードがありません。");
                 return null;
             }
 
-            Debug.Log("Your hand:");
+            Debug.Log("あなたの手札:");
             for (int i = 0; i < hand.Count; i++)
             {
                 Debug.Log($"{i + 1}: [{hand[i].Data.CardCode}] {hand[i].Data.Name}");
             }
 
-            string prompt = "Enter the number of the card to choose";
+            // AIロジック: 任意の場合は何も選択せず、必須の場合は最初のカードを選択する
             if (optional)
             {
-                prompt += " (or press Enter to choose none)";
-            }
-            Debug.Log(prompt + ":");
-
-            if (optional)
-            {
-                Debug.Log("Simulating player input: Choosing None.");
+                Debug.Log("プレイヤー入力をシミュレート: 何も選択しない。");
                 return null;
             }
             else
             {
                 var choice = hand.First();
-                Debug.Log($"Simulating player input: Choosing first card [{choice.Data.Name}]");
+                Debug.Log($"プレイヤー入力をシミュレート: 最初のカードを選択 [{choice.Data.Name}]");
                 return choice;
             }
         }
 
+        /// <summary>
+        /// 手札からプレイするクライマックスカードを1枚選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="optional">選択が任意かどうか。</param>
+        /// <returns>選択されたクライマックスカード。</returns>
         public WeissCard ChooseClimaxFromHand(WeissPlayer player, bool optional)
         {
-            Debug.Log($"--- {player.Name}: Choose a climax card from hand ---");
-            var hand = player.GetZone<IHandZone<WeissCard>>().Cards;
-            var climaxCards = hand.Where(c => ((c.Data as WeissCardData)?.CardType == WeissCardType.Climax.ToString())).ToList();
-
-            if (!climaxCards.Any())
-            {
-                Debug.Log("No climax cards in hand.");
-                return null;
-            }
-
-            Debug.Log("Your climax cards:");
-            for (int i = 0; i < climaxCards.Count; i++)
-            {
-                Debug.Log($"{i + 1}: [{climaxCards[i].Data.CardCode}] {climaxCards[i].Data.Name}");
-            }
-
-            Debug.Log("Enter the number of the climax to play (or press Enter to choose none):");
-
-            Debug.Log("Simulating player input: Choosing None.");
+            // (略) AIロジック: 常に何も選択しない
             return null;
         }
 
+        /// <summary>
+        /// アタックフェイズを終了するか、攻撃を続行するか選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <returns>アタックを終了する場合はtrue。</returns>
         public bool ChooseToEndAttack(WeissPlayer player)
         {
-            Debug.Log("--- " + player.Name + ": Continue attacking? ---");
-            Debug.Log("1: Perform an attack");
-            Debug.Log("2: End Attack Phase");
+            Debug.Log("--- " + player.Name + ": 攻撃を続けますか？ ---");
+            Debug.Log("1: アタックを実行");
+            Debug.Log("2: アタックフェイズを終了");
 
+            // AIロジック: 1回だけアタックを試みる
             if (_attacksChosenThisTurn < 1)
             {
-                Debug.Log("Simulating player input: 1 (Perform an attack)");
+                Debug.Log("プレイヤー入力をシミュレート: 1 (アタックを実行)");
                 _attacksChosenThisTurn++;
                 return false; 
             }
             
-            Debug.Log("Simulating player input: 2 (End Attack Phase)");
+            Debug.Log("プレイヤー入力をシミュレート: 2 (アタックフェイズを終了)");
             return true; 
         }
 
+        /// <summary>
+        /// アタックするキャラを選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="attackableCharacters">アタック可能なキャラのリスト。</param>
+        /// <returns>選択されたアタッカー。</returns>
         public WeissCard ChooseAttacker(WeissPlayer player, List<WeissCard> attackableCharacters)
         {
-            Debug.Log($"--- {player.Name}: Choose an attacker ---");
-            if (attackableCharacters == null || !attackableCharacters.Any())
-            {
-                Debug.Log("No characters available to attack.");
-                return null;
-            }
-
-            Debug.Log("Your attackable characters:");
-            for (int i = 0; i < attackableCharacters.Count; i++)
-            {
-                Debug.Log($"{i + 1}: [{attackableCharacters[i].Data.CardCode}] {attackableCharacters[i].Data.Name} (Power: {attackableCharacters[i].Data.Power})");
-            }
-
-            Debug.Log("Enter the number of the character to attack with:");
-
+            // (略) AIロジック: 最初にアタック可能なキャラを選択
             var choice = attackableCharacters.First();
-            Debug.Log($"Simulating player input: Choosing [{choice.Data.Name}]");
-
+            Debug.Log($"プレイヤー入力をシミュレート: [{choice.Data.Name}] を選択");
             return choice;
         }
 
+        /// <summary>
+        /// アタックの種類（フロントアタック、サイドアタック）を選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="attacker">アタッカー。</param>
+        /// <param name="defender">ディフェンダー。</param>
+        /// <returns>選択されたアタックタイプ。</returns>
         public AttackType ChooseAttackType(WeissPlayer player, WeissCard attacker, WeissCard defender)
         {
-            Debug.Log($"--- {player.Name}: Choose attack type for [{attacker.Data.Name}] ---");
-            Debug.Log($"Opponent's character is [{defender.Data.Name}] (Power: {defender.Data.Power})");
-            Debug.Log("Choose an attack type:");
-            Debug.Log("1: Front Attack");
-            Debug.Log("2: Side Attack");
-
-            Debug.Log("Simulating player input: 1 (Front Attack)");
+            // (略) AIロジック: 常にフロントアタックを選択
+            Debug.Log("プレイヤー入力をシミュレート: 1 (フロントアタック)");
             return AttackType.Front;
         }
 
+        /// <summary>
+        /// ゲーム開始時のマリガンで、手札から交換するカードを選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="hand">初期手札。</param>
+        /// <returns>交換するカードのリスト。</returns>
         public Task<List<WeissCard>> ChooseMulliganCards(WeissPlayer player, List<WeissCard> hand)
         {
-            Debug.Log($"--- {player.Name}'s Mulligan Phase ---");
-            if (hand == null || !hand.Any())
-            {
-                Debug.Log("No cards in hand to mulligan.");
-                return Task.FromResult(new List<WeissCard>());
-            }
-
-            Debug.Log("Your hand:");
-            for (int i = 0; i < hand.Count; i++)
-            {
-                Debug.Log($"{i + 1}: [{hand[i].Data.CardCode}] {hand[i].Data.Name}");
-            }
-
-            Debug.Log("Enter the numbers of cards to mulligan (e.g., '1 3 5'), or press Enter to keep your hand:");
-
+            // (略) AIロジック: 手札にクライマックスカードがあれば、それをマリガンする
             var cardsToMulligan = new List<WeissCard>();
             var climaxInHand = hand.FirstOrDefault(c => ((c.Data as WeissCardData)?.CardType == WeissCardType.Climax.ToString()));
 
             if (climaxInHand != null)
             {
-                Debug.Log($"Simulating player input: Mulliganning one climax card: [{climaxInHand.Data.Name}]");
+                Debug.Log($"プレイヤー入力をシミュレート: クライマックスカード1枚をマリガン: [{climaxInHand.Data.Name}]");
                 cardsToMulligan.Add(climaxInHand);
             }
             else
             {
-                Debug.Log("Simulating player input: Keeping hand.");
+                Debug.Log("プレイヤー入力をシミュレート: 手札をキープ。");
             }
 
             return Task.FromResult(cardsToMulligan);
         }
 
+        /// <summary>
+        /// 控え室からカードを1枚選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="cards">選択肢となるカードのリスト。</param>
+        /// <param name="optional">選択が任意かどうか。</param>
+        /// <returns>選択されたカード。</returns>
         public WeissCard ChooseCardFromWaitingRoom(WeissPlayer player, List<WeissCard> cards, bool optional)
         {
-            Debug.Log($"--- {player.Name}: Choose a card from waiting room ---");
-            if (cards == null || !cards.Any())
-            {
-                Debug.Log("No cards to choose from.");
-                return null;
-            }
-
-            for (int i = 0; i < cards.Count; i++)
-            {
-                var card = cards[i];
-                Debug.Log($"{i + 1}: [{card.Data.CardCode}] {card.Data.Name}");
-            }
-
-            string prompt = "Enter the number of the card to choose";
+            // (略) AIロジック: 任意なら何も選ばず、必須なら最初のカードを選ぶ
             if (optional)
             {
-                prompt += " (or press Enter to choose none)";
-            }
-            Debug.Log(prompt + ":");
-
-            if (optional)
-            {
-                Debug.Log("Simulating player input: Choosing None.");
+                Debug.Log("プレイヤー入力をシミュレート: 何も選択しない。");
                 return null;
             }
             else
             {
                 var choice = cards.First();
-                Debug.Log($"Simulating player input: Choosing first card [{choice.Data.Name}]");
+                Debug.Log($"プレイヤー入力をシミュレート: 最初のカードを選択 [{choice.Data.Name}]");
                 return choice;
             }
         }
 
+        /// <summary>
+        /// 手札から使用する助太刀（カウンター）カードを選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="counterCards">使用可能な助太刀カードのリスト。</param>
+        /// <returns>選択された助太刀カード。</returns>
         public WeissCard ChooseCounterCardFromHand(WeissPlayer player, List<WeissCard> counterCards)
         {
-            Debug.Log($"--- {player.Name}'s Counter Step ---");
-            if (counterCards == null || !counterCards.Any())
-            {
-                Debug.Log("No counter cards in hand.");
-                return null;
-            }
-
-            Debug.Log("Available counter cards:");
-            for (int i = 0; i < counterCards.Count; i++)
-            {
-                var card = counterCards[i];
-                Debug.Log($"{i + 1}: [{card.Data.CardCode}] {card.Data.Name}");
-            }
-
-            Debug.Log("Enter the number of the card to play (or press Enter to play none):");
-
-            Debug.Log("Simulating player input: Choosing None.");
+            // (略) AIロジック: 常に助太刀を使用しない
+            Debug.Log("プレイヤー入力をシミュレート: 何も選択しない。");
             return null;
         }
 
+        /// <summary>
+        /// キャラがリバースした際に、アンコールを行うかどうか、どの方法で行うかを選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="character">リバースしたキャラ。</param>
+        /// <returns>選択されたアンコール方法。</returns>
         public EncoreChoice ChooseToEncore(WeissPlayer player, WeissCard character)
         {
-            Debug.Log($"--- {player.Name}'s Encore Step for [{character.Data.Name}] ---");
-
-            var options = new List<KeyValuePair<EncoreChoice, string>>();
-
-            string specialEncoreText = null;
-            if (character.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
-            {
-                if (abilitiesObj is List<string> abilities)
-                {
-                    specialEncoreText = abilities.FirstOrDefault(text => text.StartsWith("【自】 アンコール"));
-                    if (specialEncoreText != null)
-                    {
-                        options.Add(new KeyValuePair<EncoreChoice, string>(EncoreChoice.Special, $"Special Encore: {specialEncoreText}"));
-                    }
-                }
-            }
-
-            int stockCount = player.GetZone<IStockZone<WeissCard>>().Cards.Count;
-            if (stockCount >= 3)
-            {
-                options.Add(new KeyValuePair<EncoreChoice, string>(EncoreChoice.Standard, $"Standard Encore (Pay 3 stock)"));
-            }
-
-            if (!options.Any())
-            {
-                Debug.Log("No encore options available.");
-                return EncoreChoice.None;
-            }
-
-            Debug.Log("Choose an encore option:");
-            for (int i = 0; i < options.Count; i++)
-            {
-                Debug.Log($"{i + 1}: {options[i].Value}");
-            }
-            Debug.Log($"{options.Count + 1}: Do not encore");
-
+            // (略) AIロジック: 特殊アンコールがあればそれを、なければ通常のアンコールを試みる
             if (options.Any(o => o.Key == EncoreChoice.Special))
             {
-                Debug.Log("Simulating player input: 1 (Special Encore)");
+                Debug.Log("プレイヤー入力をシミュレート: 1 (特殊アンコール)");
                 return EncoreChoice.Special;
             }
             if (options.Any(o => o.Key == EncoreChoice.Standard))
             {
-                Debug.Log("Simulating player input: 1 (Standard Encore)");
+                Debug.Log("プレイヤー入力をシミュレート: 1 (通常アンコール)");
                 return EncoreChoice.Standard;
             }
 
-            Debug.Log("Simulating player input: Choosing None.");
+            Debug.Log("プレイヤー入力をシミュレート: 何も選択しない。");
             return EncoreChoice.None;
         }
 
+        /// <summary>
+        /// レベルアップ時に、クロック置場からレベル置場に置くカードを1枚選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="cards">クロック置場のカードリスト。</param>
+        /// <returns>選択されたカード。</returns>
         public WeissCard ChooseLevelUpCard(WeissPlayer player, List<WeissCard> cards)
         {
-            Debug.Log($"--- {player.Name}'s Level Up! ---");
-            Debug.Log("Choose 1 card from your clock to level up with:");
-            for (int i = 0; i < cards.Count; i++)
-            {
-                Debug.Log($"{i + 1}: [{cards[i].Data.CardCode}] {cards[i].Data.Name}");
-            }
-
-            Debug.Log("Enter the number of the card to place in your level zone:");
-
+            // (略) AIロジック: クライマックス以外を優先して選択する
             var choice = cards.FirstOrDefault(c => ((c.Data as WeissCardData)?.CardType != WeissCardType.Climax.ToString())) ?? cards.First();
-            Debug.Log($"Simulating player input: Choosing [{choice.Data.Name}]");
-
+            Debug.Log($"プレイヤー入力をシミュレート: [{choice.Data.Name}] を選択");
             return choice;
         }
 
+        /// <summary>
+        /// プレイヤーにYes/Noの質問を問いかけ、その選択を取得します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="question">問いかける質問文。</param>
+        /// <returns>プレイヤーの選択（Yesならtrue）。</returns>
         public bool AskYesNo(WeissPlayer player, string question)
         {
-            Debug.Log($"--- {player.Name}: Decision ---");
-            Debug.Log(question);
-            Debug.Log("1: Yes");
-            Debug.Log("2: No");
-
-            Debug.Log("Simulating player input: 1 (Yes)");
+            // (略) AIロジック: 常にYesと答える
+            Debug.Log("プレイヤー入力をシミュレート: 1 (Yes)");
             return true;
         }
 
+        /// <summary>
+        /// 効果の対象となるカードを1枚選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="validTargets">選択可能な対象カードのリスト。</param>
+        /// <param name="prompt">選択を促すメッセージ。</param>
+        /// <param name="optional">選択が任意かどうか。</param>
+        /// <returns>選択された対象カード。</returns>
         public WeissCard ChooseTargetCard(WeissPlayer player, List<WeissCard> validTargets, string prompt, bool optional)
         {
-            Debug.Log($"--- {player.Name}: Target Selection ---");
-            Debug.Log(prompt);
-
-            if (validTargets == null || !validTargets.Any())
-            {
-                Debug.Log("No valid targets.");
-                return null;
-            }
-
-            for (int i = 0; i < validTargets.Count; i++)
-            {
-                Debug.Log($"{i + 1}: [{validTargets[i].Data.CardCode}] {validTargets[i].Data.Name}");
-            }
-
-            string inputPrompt = "Enter the number of the card to target";
+            // (略) AIロジック: 任意なら何も選ばず、必須なら最初の対象を選ぶ
             if (optional)
             {
-                inputPrompt += " (or press Enter to choose none)";
-            }
-            Debug.Log(inputPrompt + ":");
-
-            if (optional)
-            {
-                Debug.Log("Simulating player input: Choosing None.");
+                Debug.Log("プレイヤー入力をシミュレート: 何も選択しない。");
                 return null;
             }
             else
             {
                 var choice = validTargets.First();
-                Debug.Log($"Simulating player input: Choosing first target [{choice.Data.Name}]");
+                Debug.Log($"プレイヤー入力をシミュレート: 最初の対象を選択 [{choice.Data.Name}]");
                 return choice;
             }
         }
 
+        /// <summary>
+        /// 同時に誘発した複数の自動能力のうち、どれを先に解決するかを選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="abilities">解決待ちの能力のリスト。</param>
+        /// <returns>先に解決する能力。</returns>
         public PendingAbility ChooseAbilityToResolve(WeissPlayer player, List<PendingAbility> abilities)
         {
-            Debug.Log($"--- {player.Name}: Choose ability order ---");
-            Debug.Log("Multiple abilities have triggered. Choose the one to resolve first:");
-
-            for (int i = 0; i < abilities.Count; i++)
-            {
-                Debug.Log($"{i + 1}: {abilities[i]}");
-            }
-
+            // (略) AIロジック: 常にリストの最初の能力を選択する
             var choice = abilities.First();
-            Debug.Log($"Simulating player input: 1 (Resolving '{choice.AbilityText}' first)");
-
+            Debug.Log($"プレイヤー入力をシミュレート: 1 (最初に '{choice.AbilityText}' を解決)");
             return choice;
         }
 
+        /// <summary>
+        /// コストとして支払うカードを選択します。
+        /// </summary>
+        /// <param name="player">プレイヤー。</param>
+        /// <param name="options">選択肢となるカード。</param>
+        /// <param name="amount">選択する枚数。</param>
+        /// <param name="reason">コスト支払いの理由。</param>
+        /// <returns>コストとして支払うために選択されたカードのリスト。</returns>
         public List<WeissCard> SelectCardsToPayCost(WeissPlayer player, List<WeissCard> options, int amount, string reason)
         {
-            Debug.Log($"--- {player.Name}: Select cards for cost ---");
-            Debug.Log(reason);
-
-            if (options == null || options.Count < amount)
-            {
-                Debug.Log("Not enough cards to pay cost.");
-                return new List<WeissCard>();
-            }
-
-            if (amount == 0)
-            {
-                return new List<WeissCard>();
-            }
-
-            Debug.Log("Selectable cards:");
-            for (int i = 0; i < options.Count; i++)
-            {
-                Debug.Log($"{i + 1}: [{options[i].Data.CardCode}] {options[i].Data.Name}");
-            }
-
-            Debug.Log($"Enter the numbers of the {amount} card(s) to use (e.g., '1 3'):");
-
-            // TODO: Replace with actual user input
+            // (略) AIロジック: リストの先頭から必要な枚数だけ選択する
             string simulatedInput = string.Join(" ", Enumerable.Range(1, amount).Select(i => i.ToString()));
-            Debug.Log($"Simulating player input: {simulatedInput}");
-
-            var indices = new List<int>();
-            var parts = simulatedInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var part in parts)
-            {
-                if (int.TryParse(part, out int index) && index > 0 && index <= options.Count)
-                {
-                    indices.Add(index - 1);
-                }
-                else
-                {
-                    Debug.Log($"Invalid input: '{part}'. Please enter valid numbers.");
-                    return new List<WeissCard>(); // Or handle error more gracefully
-                }
-            }
-
-            if (indices.Count != amount)
-            {
-                Debug.Log($"Invalid number of cards selected. Expected {amount}, but got {indices.Count}.");
-                return new List<WeissCard>();
-            }
+            Debug.Log($"プレイヤー入力をシミュレート: {simulatedInput}");
             
-            if (indices.Distinct().Count() != indices.Count)
-            {
-                Debug.Log("Invalid selection: You cannot choose the same card multiple times.");
-                return new List<WeissCard>();
-            }
-
+            // (略)
             var selection = indices.Select(i => options[i]).ToList();
-
-            Debug.Log("You selected:");
-            foreach (var card in selection)
-            {
-                Debug.Log($"- [{card.Data.CardCode}] {card.Data.Name}");
-            }
-
             return selection;
         }
     }

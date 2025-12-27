@@ -6,12 +6,18 @@ using UnityEngine;
 namespace TCG.Weiss.UI
 {
     /// <summary>
-    /// Manages the UI representation of the Deck Zone.
+    /// 山札置場のUI表示を管理するMonoBehaviourクラス。
     /// </summary>
     public class DeckZoneUI : MonoBehaviour
     {
-        [Header("UI References")]
+        [Header("UI参照")]
+        /// <summary>
+        /// 山札のカードの山（一番上のカード）を表すCardUI。
+        /// </summary>
         [SerializeField] private CardUI deckCardUI; // Represents the pile of cards
+        /// <summary>
+        /// 山札の枚数を表示するTextMeshProUGUI。
+        /// </summary>
         [SerializeField] private TextMeshProUGUI deckCountText;
 
         /// <summary>

@@ -6,59 +6,70 @@ using UnityEngine.UI;
 namespace TCG.Weiss.UI
 {
     /// <summary>
-    /// Manages the visual representation of a single Weiss Schwarz card.
-    /// This version uses a sibling structure for its GameObjects to be animation-friendly.
+    /// ゲームフィールド上に表示される単一のヴァイスシュヴァルツカードの視覚的な表現を管理するMonoBehaviourクラス。
+    /// カードの表/裏、レスト状態、クリックへの応答などを制御します。
+    /// 表と裏のGameObjectを分けることで、アニメーションなどを実装しやすい階層構造を採用しています。
     /// </summary>
     public class CardUI : MonoBehaviour
     {
-        [Header("Card Data")]
-        private WeissCard _card;
+        [Header("カードデータ")]
+        private WeissCard _card; // このUIが表現するWeissCardインスタンスへの参照
+
+        // カードの裏面やデフォルト画像のスプライト
         private Sprite _weissCardBackSprite;
         private Sprite _schwarzCardBackSprite;
         private Sprite _defaultCardSprite;
 
-        [Header("UI Child GameObjects")]
-        [SerializeField] private GameObject cardFrontObject; // GameObject containing the front Image
-        [SerializeField] private GameObject cardBackObject;  // GameObject containing the back Image
-        [SerializeField] private Button cardButton; // Button component for click detection
+        [Header("UI子オブジェクト")]
+        [SerializeField] private GameObject cardFrontObject; // カード表面のImageコンポーネントを持つGameObject
+        [SerializeField] private GameObject cardBackObject;  // カード裏面のImageコンポーネントを持つGameObject
+        [SerializeField] private Button cardButton; // カードクリックを検出するためのButtonコンポーネント
 
-        // Image components are fetched from the GameObjects
+        // ImageコンポーネントはAwake()で子オブジェクトから取得
         private Image _cardFrontImage;
         private Image _cardBackImage;
 
-        [Header("Resource Paths")]
-        [SerializeField] private string weissCardBackPath = "Images/WeissCardBack";
-        [SerializeField] private string schwarzCardBackPath = "Images/SchwarzCardBack";
-        [SerializeField] private string defaultCardImagePath = "Images/DefaultCard";
+        [Header("リソースパス")]
+        [SerializeField] private string weissCardBackPath = "Images/WeissCardBack"; // ヴァイスサイドのカード裏面画像パス
+        [SerializeField] private string schwarzCardBackPath = "Images/SchwarzCardBack"; // シュヴァルツサイドのカード裏面画像パス
+        [SerializeField] private string defaultCardImagePath = "Images/DefaultCard"; // デフォルトのカード画像パス
 
         private void Awake()
         {
-            // Load sprites
+            // Resourcesフォルダからスプライトをロード
             _weissCardBackSprite = Resources.Load<Sprite>(weissCardBackPath);
             _schwarzCardBackSprite = Resources.Load<Sprite>(schwarzCardBackPath);
             _defaultCardSprite = Resources.Load<Sprite>(defaultCardImagePath);
 
-            // Get Image components from child objects
+            // 子オブジェクトからImageコンポーネントを取得
             if (cardFrontObject != null) _cardFrontImage = cardFrontObject.GetComponent<Image>();
             if (cardBackObject != null) _cardBackImage = cardBackObject.GetComponent<Image>();
 
-            // Add click listener
+            // ボタンクリックリスナーを追加
             cardButton?.onClick.AddListener(OnCardClicked);
 
-            // Warnings
-            if (_cardFrontImage == null) Debug.LogError("Card Front Object is missing an Image component.", this);
-            if (_cardBackImage == null) Debug.LogError("Card Back Object is missing an Image component.", this);
-            if (_weissCardBackSprite == null) Debug.LogWarning($"Weiss card back sprite not found at 'Resources/{weissCardBackPath}'.");
-            if (_schwarzCardBackSprite == null) Debug.LogWarning($"Schwarz card back sprite not found at 'Resources/{schwarzCardBackPath}'.");
-            if (_defaultCardSprite == null) Debug.LogWarning($"Default card sprite not found at 'Resources/{defaultCardImagePath}'.");
+            // 必要なコンポーネントやリソースが見つからない場合の警告
+            if (_cardFrontImage == null) Debug.LogError("カード表面のGameObjectにImageコンポーネントが見つかりません。", this);
+            if (_cardBackImage == null) Debug.LogError("カード裏面のGameObjectにImageコンポーネントが見つかりません。", this);
+            if (_weissCardBackSprite == null) Debug.LogWarning($"ヴァイスのカード裏面スプライトが'Resources/{weissCardBackPath}'に見つかりません。");
+            if (_schwarzCardBackSprite == null) Debug.LogWarning($"シュヴァルツのカード裏面スプライトが'Resources/{schwarzCardBackPath}'に見つかりません。");
+            if (_defaultCardSprite == null) Debug.LogWarning($"デフォルトカードスプライトが'Resources/{defaultCardImagePath}'に見つかりません。");
         }
 
+        /// <summary>
+        /// このCardUIが表現するWeissCardインスタンスを設定し、見た目を更新します。
+        /// </summary>
+        /// <param name="card">設定するWeissCardインスタンス。</param>
         public void SetCard(WeissCard card)
         {
             _card = card;
-            UpdateCardVisuals();
+            UpdateCardVisuals(); // カードデータに基づいて見た目を更新
         }
 
+        /// <summary>
+        /// カードがクリックされたときに呼び出されます。
+        /// クリックされたカードの詳細をGameView経由で表示します。
+        /// </summary>
         private void OnCardClicked()
         {
             if (_card != null)
@@ -67,24 +78,27 @@ namespace TCG.Weiss.UI
             }
         }
 
+        /// <summary>
+        /// 現在設定されているWeissCardの状態に基づいて、カードの視覚的な表示（表/裏、画像、回転など）を更新します。
+        /// </summary>
         private void UpdateCardVisuals()
         {
             if (_card == null)
             {
-                gameObject.SetActive(false);
+                gameObject.SetActive(false); // カードがない場合は非表示にする
                 return;
             }
 
-            gameObject.SetActive(true);
-            bool isFaceUp = _card.IsFaceUp;
+            gameObject.SetActive(true); // カードがある場合は表示する
+            bool isFaceUp = _card.IsFaceUp; // カードが表向きかどうか
 
-            // Enable/disable the correct child GameObject
+            // カードの表裏表示を切り替える
             if (cardFrontObject != null) cardFrontObject.SetActive(isFaceUp);
             if (cardBackObject != null) cardBackObject.SetActive(!isFaceUp);
 
             if (isFaceUp)
             {
-                // Set the front image sprite
+                // 表向きの場合、カードの表面画像をロードして表示
                 var cardData = _card.Data;
                 Sprite spriteToDisplay = null;
 
@@ -95,21 +109,26 @@ namespace TCG.Weiss.UI
 
                 if (spriteToDisplay == null)
                 {
-                    spriteToDisplay = _defaultCardSprite;
+                    spriteToDisplay = _defaultCardSprite; // 画像が見つからない場合はデフォルト画像
                 }
 
                 if(_cardFrontImage != null) _cardFrontImage.sprite = spriteToDisplay;
             }
             else
             {
-                // Set the back image sprite
+                // 裏向きの場合、カードの裏面画像を表示（サイドによって切り替え）
                 if(_cardBackImage != null) _cardBackImage.sprite = GetCardBackSprite();
             }
             
-            // Update rested state by rotating the root object
+            // レスト状態に応じてカードの回転を更新
+            // カードがレスト状態であれば90度回転、そうでなければ元の角度に戻す
             transform.localRotation = _card.IsRested ? Quaternion.Euler(0, 0, 90) : Quaternion.identity;
         }
 
+        /// <summary>
+        /// 設定されているカードのサイド情報に基づいて、適切なカード裏面スプライトを返します。
+        /// </summary>
+        /// <returns>カード裏面のスプライト。</returns>
         private Sprite GetCardBackSprite()
         {
             if (_card != null && _card.Data.Metadata.TryGetValue("サイド", out object sideObject))
@@ -120,7 +139,7 @@ namespace TCG.Weiss.UI
                     if (sideString == "シュヴァルツ") return _schwarzCardBackSprite;
                 }
             }
-            return _weissCardBackSprite; // Default
+            return _weissCardBackSprite; // デフォルトとしてヴァイスの裏面を返す
         }
     }
 }

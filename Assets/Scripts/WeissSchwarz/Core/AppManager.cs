@@ -2,17 +2,24 @@ using System.Collections;
 using System.IO;
 using UnityEngine;
 using TCG.Weiss.Data;
-using UnityEngine.Networking; // For UnityWebRequest
+using UnityEngine.Networking; // UnityWebRequestを使用するために必要
 
 namespace TCG.Weiss
 {
     /// <summary>
-    /// Manages application-wide data initialization, including downloading and importing card data.
+    /// アプリケーション全体のデータ初期化を管理するシングルトンクラス。
+    /// 主に、カードデータ（JSON）の読み込みとSQLiteデータベースへのインポートを担当する。
     /// </summary>
     public class AppManager : MonoBehaviour
     {
+        /// <summary>
+        /// AppManagerのシングルトンインスタンス。
+        /// </summary>
         public static AppManager Instance { get; private set; }
 
+        /// <summary>
+        /// データ初期化が完了したときに発行されるイベント。
+        /// </summary>
         public static event System.Action OnDataInitialized;
 
         [SerializeField] private string cardDataJsonFileName = "weiss_schwarz_cards.json";
@@ -20,6 +27,7 @@ namespace TCG.Weiss
 
         private void Awake()
         {
+            // シングルトンパターンの実装
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
@@ -27,25 +35,31 @@ namespace TCG.Weiss
             else
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject); // Keep this manager alive across scenes
+                // シーンをまたいでもこのオブジェクトが破棄されないようにする
+                DontDestroyOnLoad(gameObject);
             }
         }
 
+        // Startメソッドはコルーチンとして定義されている。
+        // これは、ファイルI/Oやネットワーク通信などの時間のかかる非同期処理を、
+        // メインスレッドをブロックせずに行うため。
         IEnumerator Start()
         {
-            Debug.Log("AppManager: Initializing data...");
+            Debug.Log("AppManager: データの初期化を開始します...");
 
-            // Initialize CardDataImporter with the database file name
+            // CardDataImporterにデータベースファイル名を渡して初期化
             CardDataImporter.Initialize(dbFileName);
 
-            // Check if the database exists and has data. For simplicity, we'll always try to import for now.
-            // In a real app, you'd have version checks or only import if DB is empty/outdated.
+            // 本来のアプリケーションでは、DBのバージョンをチェックしたり、
+            // DBが空または古い場合のみインポートを実行したりするべき。
+            // ここでは簡潔さのために、毎回インポートを試みる。
 
-            // Load JSON from StreamingAssets (or download from URL in a real app)
+            // StreamingAssetsからJSONファイルを読み込む
             string jsonFilePath = Path.Combine(Application.streamingAssetsPath, cardDataJsonFileName);
             string jsonString = "";
 
-            // Use UnityWebRequest for platform compatibility (especially for Android/iOS StreamingAssets)
+            // File.ReadAllTextではなくUnityWebRequestを使用する。
+            // これにより、AndroidやiOSなどの異なるプラットフォームでもStreamingAssetsに正しくアクセスできる。
             using (UnityWebRequest www = UnityWebRequest.Get(jsonFilePath))
             {
                 yield return www.SendWebRequest();
@@ -53,31 +67,31 @@ namespace TCG.Weiss
                 if (www.result == UnityWebRequest.Result.Success)
                 {
                     jsonString = www.downloadHandler.text;
-                    Debug.Log("AppManager: Card data JSON loaded from StreamingAssets.");
+                    Debug.Log("AppManager: StreamingAssetsからカードデータJSONを読み込みました。");
                 }
                 else
                 {
-                    Debug.LogError($"AppManager: Failed to load card data JSON from StreamingAssets: {www.error}");
-                    // Fallback or error handling
+                    Debug.LogError($"AppManager: StreamingAssetsからのカードデータJSONの読み込みに失敗しました: {www.error}");
+                    // エラーハンドリングまたはフォールバック処理
                 }
             }
 
             if (!string.IsNullOrEmpty(jsonString))
             {
-                // Import data into SQLite
+                // JSONデータをSQLiteデータベースにインポートする
                 CardDataImporter.ImportJsonToDatabase(jsonString);
             }
             else
             {
-                Debug.LogWarning("AppManager: No JSON data to import.");
+                Debug.LogWarning("AppManager: インポートするJSONデータがありません。");
             }
 
-            Debug.Log("AppManager: Data initialization complete.");
+            Debug.Log("AppManager: データの初期化が完了しました。");
 
-            // Notify subscribers that data is ready
+            // データ準備完了をサブスクライバー（他のモジュール）に通知する
             OnDataInitialized?.Invoke();
 
-            // You might want to load your main game scene here after initialization
+            // 初期化後にメインのゲームシーンに遷移するなどの処理をここに追加できる
             // UnityEngine.SceneManagement.SceneManager.LoadScene("MainScene");
         }
     }

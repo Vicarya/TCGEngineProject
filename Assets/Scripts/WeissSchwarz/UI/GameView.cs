@@ -10,6 +10,9 @@ namespace TCG.Weiss.UI
     /// </summary>
     public class GameView : MonoBehaviour
     {
+        /// <summary>
+        /// GameViewのシングルトンインスタンス。
+        /// </summary>
         public static GameView Instance { get; private set; }
 
         [Header("Player UI Zone Managers")]
@@ -31,8 +34,13 @@ namespace TCG.Weiss.UI
 
         private UIGamePlayerController _activeController;
 
+        /// <summary>
+        /// UnityのAwakeイベントで呼び出されます。
+        /// GameViewのシングルトンインスタンスを設定し、UI要素の初期状態を準備します。
+        /// </summary>
         private void Awake()
         {
+            // シングルトンパターンの実装
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
@@ -42,52 +50,64 @@ namespace TCG.Weiss.UI
                 Instance = this;
             }
 
+            // マリガン確認ボタンは初期状態で非アクティブに設定
             mulliganConfirmButton?.SetActive(false);
-            cardDetailView?.Hide(); // Ensure card detail view starts hidden
+            // カード詳細ビューも初期状態で非表示に設定
+            cardDetailView?.Hide(); 
         }
 
         /// <summary>
-        /// Displays the detailed information for a given card.
+        /// 指定されたカードの詳細情報をUIに表示します。
         /// </summary>
-        /// <param name="card">The WeissCard to display details for.</param>
+        /// <param name="card">詳細を表示するヴァイスシュヴァルツのカード。</param>
         public void ShowCardDetail(WeissCard card)
         {
             cardDetailView?.Show(card);
         }
 
         /// <summary>
-        /// Hides the card detail view.
+        /// カード詳細ビューを非表示にします。
         /// </summary>
         public void HideCardDetail()
         {
             cardDetailView?.Hide();
         }
 
+        /// <summary>
+        /// マリガン選択フェーズを開始し、UIを更新します。
+        /// </summary>
+        /// <param name="controller">マリガンを行うプレイヤーのUIコントローラー。</param>
         public void BeginMulliganSelection(UIGamePlayerController controller)
         {
-            _activeController = controller;
-            handZoneUI.EnterMulliganSelectionMode();
-            mulliganConfirmButton?.SetActive(true);
+            _activeController = controller; // 現在のマリガン操作を担当するコントローラーを保持
+            handZoneUI.EnterMulliganSelectionMode(); // 手札UIをマリガン選択モードに切り替える
+            mulliganConfirmButton?.SetActive(true); // マリガン確定ボタンを表示
             Debug.Log("GameView: Mulligan selection started. Confirm button is now visible.");
         }
 
+        /// <summary>
+        /// マリガン確定ボタンがクリックされたときに呼び出されます。
+        /// 選択されたカードをコントローラーに渡し、UIをリセットします。
+        /// </summary>
         public void ConfirmMulliganClicked()
         {
-            if (_activeController == null) return;
+            if (_activeController == null) return; // コントローラーが設定されていなければ何もしない
 
+            // 手札UIからマリガンで選択されたカードのリストを取得
             var selectedCards = handZoneUI.GetSelectedCardsForMulligan();
+            // 取得したカードリストをアクティブなコントローラーに渡し、マリガン処理を実行
             _activeController.ConfirmMulligan(selectedCards);
 
-            // Clean up UI
-            mulliganConfirmButton?.SetActive(false);
-            _activeController = null;
+            // UI要素をクリーンアップ
+            mulliganConfirmButton?.SetActive(false); // マリガン確定ボタンを非表示
+            _activeController = null; // アクティブコントローラーをクリア
             Debug.Log("GameView: Mulligan confirmed. UI has been reset.");
         }
 
         /// <summary>
-        /// Updates all managed UI zones to reflect the state of the provided player.
+        /// 管理対象の全てのUIゾーンを更新し、指定されたプレイヤーのゲーム状態を反映させます。
         /// </summary>
-        /// <param name="player">The player whose state should be displayed.</param>
+        /// <param name="player">状態を表示するプレイヤー。</param>
         public void UpdateView(Player player)
         {
             if (player == null)
@@ -96,21 +116,20 @@ namespace TCG.Weiss.UI
                 return;
             }
 
-            // Update Hand Zone
+            // 各ゾーンUIマネージャーを更新
+            // 各UIゾーンが対象のプレイヤーの対応するゾーンデータと同期されるようにします。
             if (handZoneUI != null)
             {
                 var handZone = player.GetZone<IHandZone<WeissCard>>() as HandZone;
                 handZoneUI.UpdateZone(handZone);
             }
 
-            // Update Stage Zone
             if (stageZoneUI != null)
             {
                 var stageZone = player.GetZone<IStageZone<WeissCard>>() as StageZone;
                 stageZoneUI.UpdateZone(stageZone);
             }
 
-            // Update Climax Zone
             if (climaxZoneUI != null)
             {
                 var climaxZone = player.GetZone<IClimaxZone<WeissCard>>() as ClimaxZone;
@@ -123,7 +142,6 @@ namespace TCG.Weiss.UI
                 stockZoneUI.UpdateZone(stockZone);
             }
 
-            // Update Clock Zone
             if (clockZoneUI != null)
             {
                 var clockZone = player.GetZone<IClockZone<WeissCard>>() as ClockZone;
@@ -136,13 +154,21 @@ namespace TCG.Weiss.UI
                 waitingRoomUI.UpdateZone(waitingRoom);
             }
 
-            // Update Deck Zone
             if (deckZoneUI != null)
             {
                 var deckZone = player.GetZone<IDeckZone<WeissCard>>() as DeckZone;
                 deckZoneUI.UpdateZone(deckZone);
             }
-            // if (clockZoneUI != null) { ... }
+            if (levelZoneUI != null)
+            {
+                var levelZone = player.GetZone<ILevelZone<WeissCard>>() as LevelZone;
+                levelZoneUI.UpdateZone(levelZone);
+            }
+            if (levelZoneUI != null)
+            {
+                var levelZone = player.GetZone<ILevelZone<WeissCard>>() as LevelZone;
+                levelZoneUI.UpdateZone(levelZone);
+            }
         }
     }
 }
