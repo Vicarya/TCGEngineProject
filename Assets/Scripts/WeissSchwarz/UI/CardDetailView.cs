@@ -24,18 +24,28 @@ namespace TCG.Weiss.UI
         [Tooltip("「デッキ内: X / 4」のテキストを表示")]
         [SerializeField] private TextMeshProUGUI cardCountText; // デッキ内のカード枚数を表示するTextMeshProUGUI
         [SerializeField] private Button closeButton; // 詳細ビューを閉じるボタン
-        [SerializeField] private Transform buttonContainer; // デッキ編集ボタンを配置するコンテナ
-        [SerializeField] private GameObject buttonPrefab; // 動的に生成するボタンのPrefab
+        
+        [Header("Deck Editor Buttons")]
+        [Tooltip("カードをデッキに追加するボタン")]
+        [SerializeField] private Button incCardButton;
+        [Tooltip("カードをデッキから削除するボタン")]
+        [SerializeField] private Button decCardButton;
+
 
         // 内部状態
-        private List<Button> _createdButtons = new List<Button>(); // 生成されたボタンのリスト
         private CanvasGroup _canvasGroup; // UIの表示/非表示、インタラクトを制御するためのCanvasGroup
         private WeissCard _currentCard; // 現在表示中のWeissCardインスタンス
+        private const int MAX_COPIES_PER_CARD = 4;
+
 
         private void Awake()
         {
             _canvasGroup = GetComponent<CanvasGroup>(); // CanvasGroupコンポーネントを取得
             closeButton?.onClick.AddListener(Hide); // 閉じるボタンにHideメソッドをリスナーとして追加
+            
+            // デッキ編集ボタンにリスナーを追加
+            incCardButton?.onClick.AddListener(OnIncCardClicked);
+            decCardButton?.onClick.AddListener(OnDecCardClicked);
         }
 
         /// <summary>
@@ -45,8 +55,6 @@ namespace TCG.Weiss.UI
         /// <param name="card">表示するWeissCardインスタンス。</param>
         public void Show(WeissCard card)
         {
-            ClearButtons(); // 既存のボタンをクリア
-
             if (card == null)
             {
                 Debug.LogError("CardDetailView.Show: 表示するカードがnullです。");
@@ -85,8 +93,6 @@ namespace TCG.Weiss.UI
         /// <param name="countInDeck">現在デッキ内にあるこのカードの枚数。</param>
         public void Show(WeissCard card, int countInDeck)
         {
-            ClearButtons(); // 既存のボタンをクリア
-
             if (card == null)
             {
                 Debug.LogError("CardDetailView.Show: 表示するカードがnullです。");
@@ -110,13 +116,8 @@ namespace TCG.Weiss.UI
             // デッキ編集UIを有効に設定
             SetDeckEditorUIActive(true);
 
-            // デッキ内のカード枚数表示を更新
+            // デッキ内のカード枚数表示とボタンの状態を更新
             UpdateCardCount(countInDeck);
-
-            // デッキ追加/削除ボタンを動的に生成
-            // DeckEditorManagerのインスタンス経由でデッキ操作メソッドを呼び出す
-            CreateButton("+", () => DeckEditorManager.Instance?.AddCardToDeck(_currentCard.Data));
-            CreateButton("-", () => DeckEditorManager.Instance?.RemoveCardFromDeck(_currentCard.Data));
 
             // CanvasGroupを介してUIを表示状態にする
             _canvasGroup.alpha = 1f;
@@ -137,7 +138,6 @@ namespace TCG.Weiss.UI
             _canvasGroup.blocksRaycasts = false; // レイキャストをブロックしない
             _currentCard = null; // 現在のカード情報をクリア
             Debug.Log("CardDetailView: 非表示にしました。");
-            ClearButtons(); // 生成されたボタンをクリア
         }
 
         /// <summary>
@@ -261,69 +261,71 @@ namespace TCG.Weiss.UI
         }
 
         /// <summary>
-        /// 指定されたテキストとアクションを持つボタンを動的に生成し、コンテナに追加します。
-        /// </summary>
-        /// <param name="text">ボタンに表示するテキスト。</param>
-        /// <param name="action">ボタンがクリックされたときに実行するアクション。</param>
-        private void CreateButton(string text, UnityEngine.Events.UnityAction action)
-        {
-            if (buttonPrefab == null || buttonContainer == null)
-            {
-                Debug.LogError("ボタンPrefabまたはボタンコンテナが割り当てられていません。");
-                return;
-            }
-
-            // Prefabからボタンをインスタンス化し、コンテナの子にする
-            GameObject buttonGO = Instantiate(buttonPrefab, buttonContainer);
-            Button button = buttonGO.GetComponent<Button>();
-            TextMeshProUGUI buttonText = buttonGO.GetComponentInChildren<TextMeshProUGUI>();
-
-            if (button != null && buttonText != null)
-            {
-                buttonText.text = text; // ボタンテキストを設定
-                button.onClick.AddListener(action); // クリックアクションを追加
-                _createdButtons.Add(button); // 生成したボタンをリストに追加
-            }
-            else
-            {
-                Debug.LogError("Prefabからのボタン初期化に失敗しました。");
-            }
-        }
-        
-        /// <summary>
-        /// デッキエディタ特有のUI要素（カード枚数テキスト、ボタンコンテナ）の表示/非表示を切り替えます。
+        /// デッキ編集特有のUI要素（カード枚数テキスト、ボタン）の表示/非表示を切り替えます。
         /// </summary>
         /// <param name="isActive">有効にする場合はtrue、無効にする場合はfalse。</param>
         private void SetDeckEditorUIActive(bool isActive)
         {
-            if (cardCountText != null)
-                cardCountText.gameObject.SetActive(isActive);
-
-            if (buttonContainer != null)
-                buttonContainer.gameObject.SetActive(isActive);
-        }
-
-        /// <summary>
-        /// 動的に生成されたデッキ編集ボタンをすべて破棄し、リストをクリアします。
-        /// </summary>
-        private void ClearButtons()
-        {
-            foreach (var button in _createdButtons)
+            cardCountText?.gameObject.SetActive(isActive);
+            incCardButton?.gameObject.SetActive(isActive);
+            decCardButton?.gameObject.SetActive(isActive);
+            
+            // 初期状態では両方のボタンを非表示にしておき、UpdateButtonsで制御する
+            if (isActive)
             {
-                Destroy(button.gameObject); // ボタンのGameObjectを破棄
+                incCardButton?.gameObject.SetActive(false);
+                decCardButton?.gameObject.SetActive(false);
             }
-            _createdButtons.Clear(); // リストをクリア
+        }
+        
+        /// <summary>
+        /// デッキ内のカード枚数に応じて、追加・削除ボタンの表示/非表示を切り替えます。
+        /// </summary>
+        /// <param name="countInDeck">デッキ内の現在の枚数。</param>
+        private void UpdateButtons(int countInDeck)
+        {
+            if (incCardButton != null)
+            {
+                incCardButton.gameObject.SetActive(countInDeck < MAX_COPIES_PER_CARD);
+            }
+            if (decCardButton != null)
+            {
+                decCardButton.gameObject.SetActive(countInDeck > 0);
+            }
         }
 
         /// <summary>
-        /// デッキ内枚数表示のテキストを更新します。
+        /// デッキ内枚数表示のテキストを更新し、ボタンの表示状態も更新します。
         /// </summary>
         /// <param name="count">新しい枚数。</param>
         private void UpdateCardCount(int count)
         {
             if (cardCountText != null)
             {
-                cardCountText.text = $"デッキ内: {count} / 4";
+                cardCountText.text = $"デッキ内: {count} / {MAX_COPIES_PER_CARD}";
+            }
+            UpdateButtons(count);
+        }
+        
+        /// <summary>
+        /// 「+」ボタンがクリックされた時の処理。
+        /// </summary>
+        private void OnIncCardClicked()
+        {
+            if (_currentCard != null)
+            {
+                DeckEditorManager.Instance?.AddCardToDeck(_currentCard.Data);
+            }
+        }
+
+        /// <summary>
+        /// 「-」ボタンがクリックされた時の処理。
+        /// </summary>
+        private void OnDecCardClicked()
+        {
+            if (_currentCard != null)
+            {
+                DeckEditorManager.Instance?.RemoveCardFromDeck(_currentCard.Data);
             }
         }
     }

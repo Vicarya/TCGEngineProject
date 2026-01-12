@@ -281,8 +281,7 @@ namespace TCG.Weiss.UI
                 DeckCardListItem newItem = newItemObject.GetComponent<DeckCardListItem>();
                 if (newItem != null)
                 {
-                    // 削除アクションをDeckEditorManagerのRemoveCardFromDeckにバインド
-                    newItem.Setup(cardData, count, RemoveCardFromDeck);
+                    newItem.Setup(cardData, count);
                 }
             }
             
