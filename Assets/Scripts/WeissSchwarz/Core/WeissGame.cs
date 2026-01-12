@@ -104,7 +104,7 @@ namespace TCG.Weiss
                 var memoryZone = new MemoryZone(player);
                 var resolutionZone = new ResolutionZone(player);
 
-                player.RegisterZone<LevelZone>(levelZone);
+                player.RegisterZone<ILevelZone<WeissCard>>(levelZone);
                 player.RegisterZone<IDiscardPile<WeissCard>>(waitingRoom);
                 player.RegisterZone<IClockZone<WeissCard>>(clockZone);
                 player.RegisterZone<IDeckZone<WeissCard>>(deckZone);

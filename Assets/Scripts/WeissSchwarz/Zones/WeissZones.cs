@@ -277,7 +277,7 @@ namespace TCG.Weiss
     /// <summary>
     /// レベル置場。公開領域。順序固定。4枚以上で敗北条件。
     /// </summary>
-    public class LevelZone : WeissZone
+    public class LevelZone : WeissZone, ILevelZone<WeissCard>
     {
         private readonly List<(WeissCard Card, bool FaceUp)> levelCards = new();
         public LevelZone(Player owner) : base("Level", owner, isPublic: true) { }

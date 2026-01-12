@@ -252,18 +252,44 @@ namespace TCG.Weiss
         /// <returns>選択されたアンコール方法。</returns>
         public EncoreChoice ChooseToEncore(WeissPlayer player, WeissCard character)
         {
-            // (略) AIロジック: 特殊アンコールがあればそれを、なければ通常のアンコールを試みる
+            var options = new List<KeyValuePair<EncoreChoice, string>>();
+
+            // 特殊アンコール（例：「【自】 アンコール」）の存在をチェック
+            string specialEncoreText = null;
+            if (character.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
+            {
+                if (abilitiesObj is List<string> abilities)
+                {
+                    specialEncoreText = abilities.FirstOrDefault(text => text.StartsWith("【自】 アンコール"));
+                    if (specialEncoreText != null)
+                    {
+                        options.Add(new KeyValuePair<EncoreChoice, string>(EncoreChoice.Special, $"Special Encore: {specialEncoreText}"));
+                    }
+                }
+            }
+
+            // 通常アンコール（3コスト）が可能かストック数を確認
+            int stockCount = player.GetZone<IStockZone<WeissCard>>().Cards.Count;
+            if (stockCount >= 3)
+            {
+                options.Add(new KeyValuePair<EncoreChoice, string>(EncoreChoice.Standard, $"Standard Encore (Pay 3 stock)"));
+            }
+
+            // AIロジック：計算された選択肢の中から行動を決定する
+            // 特殊アンコールが利用可能ならそれを優先
             if (options.Any(o => o.Key == EncoreChoice.Special))
             {
                 Debug.Log("プレイヤー入力をシミュレート: 1 (特殊アンコール)");
                 return EncoreChoice.Special;
             }
+            // 次に通常アンコールが利用可能ならそれを行う
             if (options.Any(o => o.Key == EncoreChoice.Standard))
             {
                 Debug.Log("プレイヤー入力をシミュレート: 1 (通常アンコール)");
                 return EncoreChoice.Standard;
             }
 
+            // 利用可能なアンコールがなければ何もしない
             Debug.Log("プレイヤー入力をシミュレート: 何も選択しない。");
             return EncoreChoice.None;
         }
@@ -346,9 +372,9 @@ namespace TCG.Weiss
             // (略) AIロジック: リストの先頭から必要な枚数だけ選択する
             string simulatedInput = string.Join(" ", Enumerable.Range(1, amount).Select(i => i.ToString()));
             Debug.Log($"プレイヤー入力をシミュレート: {simulatedInput}");
-            
-            // (略)
-            var selection = indices.Select(i => options[i]).ToList();
+
+            // AIのロジックを実装。コメントに基づき、リストの先頭から指定された枚数のカードを選択します。
+            var selection = options.Take(amount).ToList();
             return selection;
         }
     }

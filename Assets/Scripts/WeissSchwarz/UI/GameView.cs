@@ -164,11 +164,6 @@ namespace TCG.Weiss.UI
                 var levelZone = player.GetZone<ILevelZone<WeissCard>>() as LevelZone;
                 levelZoneUI.UpdateZone(levelZone);
             }
-            if (levelZoneUI != null)
-            {
-                var levelZone = player.GetZone<ILevelZone<WeissCard>>() as LevelZone;
-                levelZoneUI.UpdateZone(levelZone);
-            }
         }
     }
 }
