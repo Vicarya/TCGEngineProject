@@ -51,6 +51,11 @@ namespace TCG.Weiss.UI
             {
                 cardCountText.text = $"x{count}";
             }
+
+            if (_cardData != null)
+            {
+                StartCoroutine(ImageLoader.LoadImage(_cardData.image_url, this.gameObject.GetComponent<Image>()));
+            }
         }
 
         /// <summary>

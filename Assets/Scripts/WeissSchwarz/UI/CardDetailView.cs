@@ -65,7 +65,7 @@ namespace TCG.Weiss.UI
             // カード画像を非同期でロード
             if (!string.IsNullOrEmpty(card.Data.image_url))
             {
-                StartCoroutine(LoadImage(card.Data.image_url));
+                StartCoroutine(ImageLoader.LoadImage(card.Data.image_url, cardImageView));
             }
             else
             {
@@ -103,7 +103,7 @@ namespace TCG.Weiss.UI
             // カード画像を非同期でロード
             if (!string.IsNullOrEmpty(card.Data.image_url))
             {
-                StartCoroutine(LoadImage(card.Data.image_url));
+                StartCoroutine(ImageLoader.LoadImage(card.Data.image_url, cardImageView));
             }
             else
             {
@@ -164,27 +164,6 @@ namespace TCG.Weiss.UI
             {
                 int count = DeckEditorManager.Instance.GetCardCountInDeck(cardData);
                 UpdateCardCount(count);
-            }
-        }
-
-        /// <summary>
-        /// 指定されたURLからカード画像を非同期でロードし、UIに表示します。
-        /// </summary>
-        /// <param name="url">ロードする画像のURL。</param>
-        private IEnumerator LoadImage(string url)
-        {
-            UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
-            yield return request.SendWebRequest(); // リクエストを送信し、完了を待機
-
-            if (request.result == UnityWebRequest.Result.Success)
-            {
-                Texture2D texture = DownloadHandlerTexture.GetContent(request);
-                Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.one * 0.5f);
-                cardImageView.sprite = sprite; // 取得した画像をSpriteとして設定
-            }
-            else
-            {
-                Debug.LogError($"画像ロード失敗 ({url}): {request.error}");
             }
         }
 
@@ -302,7 +281,8 @@ namespace TCG.Weiss.UI
         {
             if (cardCountText != null)
             {
-                cardCountText.text = $"デッキ内: {count} / {MAX_COPIES_PER_CARD}";
+                cardCountText.text = $"{count} / {MAX_COPIES_PER_CARD}";
+                Debug.Log($"CardDetailView: デッキ内の枚数を更新 - {count} / {MAX_COPIES_PER_CARD}");
             }
             UpdateButtons(count);
         }
