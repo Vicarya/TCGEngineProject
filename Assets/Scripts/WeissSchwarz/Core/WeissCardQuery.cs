@@ -1,95 +1,144 @@
 using GameCore.Database;
-using TCG.Weiss;
+using System;
 using System.Linq;
+using TCG.Weiss;
 
-namespace WeissSchwarz.Database
+namespace TCG.Weiss
 {
     /// <summary>
-    /// ヴァイスシュヴァルツカードの検索条件を構築するためのクエリビルダー。
-    /// メソッドチェーン（例: new WeissCardQuery().FilterByColor("Red").SortByLevel()）を可能にする
-    /// ビルダーパターンで実装されています。
+    /// ヴァイスシュヴァルツカードの検索クエリを構築するための具象クラス。
     /// </summary>
     public class WeissCardQuery : CardQuery<WeissCardData>
     {
         /// <summary>
-        /// カード名（部分一致）で絞り込みます。
+        /// 指定した文字列がカード名に含まれているかでフィルタリングします。
         /// </summary>
-        /// <param name="name">検索するカード名の文字列。</param>
-        /// <returns>メソッドチェーンのための自身のインスタンス。</returns>
-        public WeissCardQuery FilterByName(string name)
+        public WeissCardQuery HasName(string name)
         {
             if (!string.IsNullOrEmpty(name))
             {
-                // 基底クラスのFiltersリストに、名前での絞り込み条件（ラムダ式）を追加
-                Filters.Add(card => card.name.Contains(name));
+                Filters.Add(c => c.Name.Contains(name, StringComparison.OrdinalIgnoreCase));
             }
             return this;
         }
 
         /// <summary>
-        /// カードの色で絞り込みます。
+        /// 指定したレベルでフィルタリングします。
         /// </summary>
-        /// <param name="color">絞り込む色（"Red", "Blue"など）。</param>
-        /// <returns>メソッドチェーンのための自身のインスタンス。</returns>
-        public WeissCardQuery FilterByColor(string color)
+        public WeissCardQuery HasLevel(int? level)
+        {
+            if (level.HasValue)
+            {
+                Filters.Add(c => c.Level == level.Value);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 指定したコストでフィルタリングします。
+        /// </summary>
+        public WeissCardQuery HasCost(int? cost)
+        {
+            if (cost.HasValue)
+            {
+                Filters.Add(c => c.Cost == cost.Value);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 指定した色でフィルタリングします。
+        /// </summary>
+        public WeissCardQuery HasColor(string color)
         {
             if (!string.IsNullOrEmpty(color))
             {
-                Filters.Add(card => card.Color == color);
+                Filters.Add(c => c.Color.Equals(color, StringComparison.OrdinalIgnoreCase));
             }
             return this;
         }
 
         /// <summary>
-        /// カードのレベルで絞り込みます。
+        /// 指定したカードタイプでフィルタリングします。
         /// </summary>
-        /// <param name="level">絞り込むレベル。</param>
-        /// <returns>メソッドチェーンのための自身のインスタンス。</returns>
-        public WeissCardQuery FilterByLevel(int level)
+        public WeissCardQuery IsCardType(string cardType)
         {
-            Filters.Add(card => card.Level == level);
+            if (!string.IsNullOrEmpty(cardType))
+            {
+                Filters.Add(c => c.CardType.Equals(cardType, StringComparison.OrdinalIgnoreCase));
+            }
             return this;
         }
 
         /// <summary>
-        /// カードの特徴で絞り込みます。
+        /// 指定したサイドでフィルタリングします。
         /// </summary>
-        /// <param name="trait">絞り込む特徴（例：「音楽」）。</param>
-        /// <returns>メソッドチェーンのための自身のインスタンス。</returns>
-        public WeissCardQuery FilterByTrait(string trait)
+        public WeissCardQuery IsSide(string side)
+        {
+            if (!string.IsNullOrEmpty(side))
+            {
+                Filters.Add(c => c.Side.Equals(side, StringComparison.OrdinalIgnoreCase));
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 指定した特徴を少なくとも1つ持っているかでフィルタリングします。
+        /// </summary>
+        public WeissCardQuery HasTrait(string trait)
         {
             if (!string.IsNullOrEmpty(trait))
             {
-                Filters.Add(card => card.Traits != null && card.Traits.Contains(trait));
+                Filters.Add(c => c.Traits != null && c.Traits.Any(t => t.Contains(trait, StringComparison.OrdinalIgnoreCase)));
             }
             return this;
         }
 
-        // 他にも必要なフィルタ条件（コスト、パワー、トリガーなど）を同様に追加
-
         /// <summary>
-        /// レベルで並べ替えます。
+        /// 指定したトリガーアイコンでフィルタリングします。
         /// </summary>
-        /// <param name="ascending">昇順の場合はtrue、降順の場合はfalse。</param>
-        /// <returns>メソッドチェーンのための自身のインスタンス。</returns>
-        public WeissCardQuery SortByLevel(bool ascending = true)
+        public WeissCardQuery HasTrigger(string trigger)
         {
-            // 基底クラスのSorterに、レベルでの並べ替え処理（ラムダ式）を代入
-            if (ascending)
-                Sorter = cards => cards.OrderBy(c => c.Level);
-            else
-                Sorter = cards => cards.OrderByDescending(c => c.Level);
+            if (!string.IsNullOrEmpty(trigger))
+            {
+                Filters.Add(c => c.TriggerIcon.Equals(trigger, StringComparison.OrdinalIgnoreCase));
+            }
             return this;
         }
 
         /// <summary>
-        /// カード名で並べ替えます。
+        /// 指定したカード番号でフィルタリングします。
         /// </summary>
-        /// <param name="ascending">昇順の場合はtrue、降順の場合はfalse。</param>
-        /// <returns>メソッドチェーンのための自身のインスタンス。</returns>
-        public WeissCardQuery SortByName(bool ascending = true)
+        public WeissCardQuery HasCardCode(string cardCode)
         {
-            Sorter = cards => ascending ? cards.OrderBy(c => c.name) : cards.OrderByDescending(c => c.name);
+            if (!string.IsNullOrEmpty(cardCode))
+            {
+                Filters.Add(c => c.CardCode.Contains(cardCode, StringComparison.OrdinalIgnoreCase));
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 指定した作品IDでフィルタリングします。
+        /// </summary>
+        public WeissCardQuery HasWorkId(string workId)
+        {
+            if (!string.IsNullOrEmpty(workId))
+            {
+                Filters.Add(c => c.WorkId != null && c.WorkId.Equals(workId, StringComparison.OrdinalIgnoreCase));
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 指定したレアリティでフィルタリングします。
+        /// </summary>
+        public WeissCardQuery HasRarity(string rarity)
+        {
+            if (!string.IsNullOrEmpty(rarity))
+            {
+                Filters.Add(c => c.Rarity.Equals(rarity, StringComparison.OrdinalIgnoreCase));
+            }
             return this;
         }
     }

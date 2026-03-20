@@ -4,6 +4,7 @@ using TCG.Weiss;
 using TMPro;
 using System.Linq;
 using System;
+using TCG.Weiss.Data.Generated;
 
 namespace TCG.Weiss.UI
 {
@@ -32,6 +33,12 @@ namespace TCG.Weiss.UI
         /// </summary>
         [Header("検索UI")]
         [SerializeField] private TMP_InputField searchInputField;
+        [SerializeField] private TMP_Dropdown colorDropdown;
+        [SerializeField] private TMP_Dropdown cardTypeDropdown;
+        [SerializeField] private TMP_InputField levelInputField;
+        [SerializeField] private TMP_InputField costInputField;
+        [SerializeField] private TMP_InputField traitInputField;
+        [SerializeField] private TMP_Dropdown workIdDropdown;
 
         [Header("カードリストUI")]
         /// <summary>
@@ -85,7 +92,7 @@ namespace TCG.Weiss.UI
         private Dictionary<string, WeissCardData> _cardDataMap = new Dictionary<string, WeissCardData>();
 
         /// <summary>
-        /// オブジェクトの初期化時に呼び出され、シングルトンインスタンスの設定とカード詳細ビューの準備を行います。
+        /// オブジェクトの初期化時に呼び出され、シングルトンインスタンスの設定とカード詳細ビューの準備、UIイベントの購読を行います。
         /// </summary>
         private void Awake()
         {
@@ -107,17 +114,89 @@ namespace TCG.Weiss.UI
             {
                 Debug.LogError("DeckEditorManager: CardDetailViewPrefab または MainCanvas が割り当てられていません。", this);
             }
+            
+            // --- イベントリスナーの設定 ---
+            searchInputField?.onValueChanged.AddListener(_ => UpdateCardFilter());
+            colorDropdown?.onValueChanged.AddListener(_ => UpdateCardFilter());
+            cardTypeDropdown?.onValueChanged.AddListener(_ => UpdateCardFilter());
+            levelInputField?.onValueChanged.AddListener(_ => UpdateCardFilter());
+            costInputField?.onValueChanged.AddListener(_ => UpdateCardFilter());
+            traitInputField?.onValueChanged.AddListener(_ => UpdateCardFilter());
+            workIdDropdown?.onValueChanged.AddListener(_ => UpdateCardFilter());
+
+            // --- ドロップダウンの初期化 ---
+            InitializeDropdowns();
         }
 
         /// <summary>
-        /// 最初のフレーム更新前に呼び出され、検索入力フィールドのイベントリスナーを設定します。
+        /// 検索用ドロップダウンの選択肢を初期化します。
         /// </summary>
-        private void Start()
+        private void InitializeDropdowns()
         {
-            if (searchInputField != null)
+            if (colorDropdown != null)
             {
-                searchInputField.onValueChanged.AddListener(FilterAndDisplayCards);
+                colorDropdown.ClearOptions();
+                colorDropdown.AddOptions(new List<string> { "すべて", "黄", "緑", "赤", "青" });
             }
+
+            if (cardTypeDropdown != null)
+            {
+                cardTypeDropdown.ClearOptions();
+                cardTypeDropdown.AddOptions(new List<string> { "すべて", "キャラクター", "イベント", "クライマックス" });
+            }
+
+            if (workIdDropdown != null)
+            {
+                workIdDropdown.ClearOptions();
+                var options = new List<string> { "すべて" };
+                options.AddRange(WorkIdData.AllWorkIds.Select(w => $"{w.Name} ({w.Id})"));
+                workIdDropdown.AddOptions(options);
+            }
+        }
+
+        /// <summary>
+        /// 検索UIの入力に基づいてカードリストをフィルタリングし、再表示します。
+        /// </summary>
+        private void UpdateCardFilter()
+        {
+            var query = new WeissCardQuery();
+
+            // 名前でのフィルタ
+            query.HasName(searchInputField.text);
+
+            // 色でのフィルタ
+            // 0は "すべて" なので null を渡してフィルタを無効化する
+            string color = (colorDropdown.value > 0) ? colorDropdown.options[colorDropdown.value].text : null;
+            query.HasColor(color);
+
+            // カード種類でのフィルタ
+            string cardType = (cardTypeDropdown.value > 0) ? cardTypeDropdown.options[cardTypeDropdown.value].text : null;
+            query.IsCardType(cardType);
+
+            // レベルでのフィルタ
+            int? level = int.TryParse(levelInputField.text, out int l) ? l : (int?)null;
+            query.HasLevel(level);
+
+            // コストでのフィルタ
+            int? cost = int.TryParse(costInputField.text, out int c) ? c : (int?)null;
+            query.HasCost(cost);
+
+            // 特徴でのフィルタ
+            query.HasTrait(traitInputField.text);
+
+            // 作品IDでのフィルタ
+            if (workIdDropdown != null && workIdDropdown.value > 0)
+            {
+                // 先頭の "すべて" をスキップするためインデックスを -1 する
+                query.HasWorkId(WorkIdData.AllWorkIds[workIdDropdown.value - 1].Id);
+            }
+
+            // クエリを適用して表示
+            var results = query.Apply(_allCardData);
+            Debug.Log($"[DeckEditorManager] クエリ適用後のカード数: {results.Count()} 件");
+            var resultList = results.ToList();
+            Debug.Log($"[DeckEditorManager] フィルタリング結果: {resultList.Count} 件 / 全 {_allCardData.Count} 件");
+            DisplayCardList(resultList);
         }
 
         /// <summary>
@@ -153,33 +232,9 @@ namespace TCG.Weiss.UI
             }
             Debug.Log($"SQLiteデータベースから{_allCardData.Count}枚のカードをロードしました。");
             // 初期状態としてすべてのカードを表示
-            FilterAndDisplayCards(string.Empty);
+            UpdateCardFilter();
             // デッキUIを更新（最初は空デッキ）
             UpdateDeckUI();
-        }
-
-        /// <summary>
-        /// 検索クエリに基づいてカードリストをフィルタリングし、UIに表示します。
-        /// </summary>
-        /// <param name="query">カード名をフィルタリングするための検索文字列。</param>
-        private void FilterAndDisplayCards(string query)
-        {
-            List<WeissCardData> cardsToDisplay;
-
-            if (string.IsNullOrEmpty(query))
-            {
-                // クエリが空の場合はすべてのカードを表示
-                cardsToDisplay = _allCardData;
-            }
-            else
-            {
-                // クエリに部分一致するカードをフィルタリング
-                cardsToDisplay = _allCardData
-                    .Where(card => card.name.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-            
-            DisplayCardList(cardsToDisplay);
         }
 
         /// <summary>
@@ -189,6 +244,8 @@ namespace TCG.Weiss.UI
         /// <param name="cardsToDisplay">表示するWeissCardDataのリスト。</param>
         private void DisplayCardList(List<WeissCardData> cardsToDisplay)
         {
+            Debug.Log($"[DeckEditorManager] DisplayCardList開始: {cardsToDisplay?.Count ?? 0} 件のカードを生成します。");
+
             // 既存のリスト項目をクリア
             foreach (Transform child in cardListContentParent) Destroy(child.gameObject);
             if (cardListItemPrefab == null)
