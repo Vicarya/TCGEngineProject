@@ -51,3 +51,7 @@ ExportedObj/
 *.apk
 *.aab
 *.unitypackage
+
+# LargeResources
+*.db
+*.db.meta

@@ -2,6 +2,7 @@ using GameCore.Database;
 using TCG.Weiss;
 using UnityEngine;
 using System.Linq;
+using TCG.Weiss.Data; // CardDataImporterを使用するために追加
 
 // NOTE: namespaceがファイルの物理パスと一致していません (WeissSchwarz.Database vs. Assets/Scripts/WeissSchwarz/Core)。リファクタリング中の可能性があります。
 namespace WeissSchwarz.Database
@@ -32,14 +33,18 @@ namespace WeissSchwarz.Database
         /// </summary>
         public override void LoadDatabase()
         {
-            // UnityのResourcesフォルダ内にある'CardData'サブフォルダから、
-            // すべてのWeissCardDataAsset型のアセットを読み込みます。
-            var cardAssets = Resources.LoadAll<WeissCardDataAsset>("CardData");
             
-            // 読み込んだアセットから実際のWeissCardDataオブジェクトを抽出し、データベースの内部リストに格納します。
-            allCards = cardAssets.Select(asset => asset.Data).ToList();
-            
-            Debug.Log($"WeissCardDatabase: {allCards.Count}枚のカードがロードされました。");
+            // ScriptableObjectを経由せず、SQLiteから直接データをロードする
+            allCards = CardDataImporter.GetAllCardData();
+
+            if (allCards.Count > 0)
+            {
+                Debug.Log($"WeissCardDatabase: {allCards.Count}枚のカードがロードされました。");
+            }
+            else
+            {
+                Debug.LogWarning("WeissCardDatabase: カードデータが0件です。JSONのインポートを行ってください。");
+            }
         }
     }
 }
