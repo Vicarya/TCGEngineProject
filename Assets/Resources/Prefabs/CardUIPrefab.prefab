@@ -61,6 +61,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardFrontObject: {fileID: 4504047989174733616}
   cardBackObject: {fileID: 7257444271125286708}
+  cardButton: {fileID: 0}
   weissCardBackPath: Images/WeissCardBack
   schwarzCardBackPath: Images/SchwarzCardBack
   defaultCardImagePath: Images/DefaultCardFront

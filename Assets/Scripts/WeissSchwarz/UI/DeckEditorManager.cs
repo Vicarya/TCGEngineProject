@@ -1,37 +1,26 @@
-using System.Collections.Generic;
-using UnityEngine;
-using TCG.Weiss;
-using TMPro;
-using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using TCG.Weiss.Data.Generated;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace TCG.Weiss.UI
 {
-    /// <summary>
-    /// デッキエディタシーンを管理するMonoBehaviourクラス。
-    /// カードデータのロード、カードリストの表示、デッキ構築の処理などを行います。
-    /// </summary>
     public class DeckEditorManager : MonoBehaviour
     {
-        /// <summary>
-        /// DeckEditorManagerのシングルトンインスタンス。
-        /// </summary>
         public static DeckEditorManager Instance { get; private set; }
 
-        /// <summary>
-        /// デッキの最大枚数。
-        /// </summary>
         private const int MAX_DECK_SIZE = 50;
-        /// <summary>
-        /// 1種類のカードのデッキ内最大枚数。
-        /// </summary>
         private const int MAX_COPIES_PER_CARD = 4;
 
-        /// <summary>
-        /// 検索入力フィールド。
-        /// </summary>
-        [Header("検索UI")]
+        [Header("UI")]
+        [SerializeField] private Transform cardGridContentParent;
+        [SerializeField] private Transform paginationParent;
+        [SerializeField] private int itemsPerPage = 18;
+
+        [Header("Filters")]
         [SerializeField] private TMP_InputField searchInputField;
         [SerializeField] private TMP_Dropdown colorDropdown;
         [SerializeField] private TMP_Dropdown cardTypeDropdown;
@@ -40,60 +29,28 @@ namespace TCG.Weiss.UI
         [SerializeField] private TMP_InputField traitInputField;
         [SerializeField] private TMP_Dropdown workIdDropdown;
 
-        [Header("カードリストUI")]
-        /// <summary>
-        /// カードリスト項目のPrefab。
-        /// </summary>
-        [SerializeField] private GameObject cardListItemPrefab;
-        /// <summary>
-        /// カードリストのContent要素の親Transform。
-        /// </summary>
-        [SerializeField] private Transform cardListContentParent;
-
-        [Header("カード詳細UI")]
-        /// <summary>
-        /// カード詳細ビューのPrefab。
-        /// </summary>
+        [Header("Detail View")]
         [SerializeField] private GameObject cardDetailViewPrefab;
-        /// <summary>
-        /// カード詳細ビューをインスタンス化するメインCanvas。
-        /// </summary>
         [SerializeField] private Transform mainCanvas;
 
-        [Header("デッキ構築UI")]
-        /// <summary>
-        /// デッキリスト内のアイテム用Prefab。
-        /// </summary>
-        [SerializeField] private GameObject deckCardListItemPrefab; // デッキリスト内のアイテム用Prefab
-        /// <summary>
-        /// デッキリストアイテムの親Transform。
-        /// </summary>
-        [SerializeField] private Transform deckListContentParent; // デッキリストアイテムの親
-        /// <summary>
-        /// 現在のデッキ枚数を表示するTextMeshProUGUI ("X / 50"形式)。
-        /// </summary>
-        [SerializeField] private TextMeshProUGUI deckCountText; // "X / 50"を表示するテキスト
+        [Header("Deck UI")]
+        [SerializeField] private GameObject deckCardListItemPrefab;
+        [SerializeField] private Transform deckListContentParent;
+        [SerializeField] private TextMeshProUGUI deckCountText;
 
-        /// <summary>
-        /// 生成されたカード詳細ビューのインスタンス。
-        /// </summary>
         private CardDetailView _cardDetailViewInstance;
-        /// <summary>
-        /// ロードされたすべてのカードデータのリスト。
-        /// </summary>
-        private List<WeissCardData> _allCardData = new List<WeissCardData>();
-        /// <summary>
-        /// 現在構築中のデッキ（カードIDと枚数のペア）。
-        /// </summary>
-        private Dictionary<string, int> _currentDeck = new Dictionary<string, int>();
-        /// <summary>
-        /// カードIDをキーとするカードデータのマップ。
-        /// </summary>
-        private Dictionary<string, WeissCardData> _cardDataMap = new Dictionary<string, WeissCardData>();
+        private PaginationUI _paginationUI;
 
-        /// <summary>
-        /// オブジェクトの初期化時に呼び出され、シングルトンインスタンスの設定とカード詳細ビューの準備、UIイベントの購読を行います。
-        /// </summary>
+        private List<WeissCardData> _allCardData = new List<WeissCardData>();
+        private Dictionary<string, WeissCardData> _cardDataMap = new Dictionary<string, WeissCardData>();
+        private List<WeissCardData> _filteredCardData = new List<WeissCardData>();
+        private Dictionary<string, int> _currentDeck = new Dictionary<string, int>();
+
+        private int _currentPage = 1;
+        private int _totalPages;
+        private bool _isUiReady;
+        private bool _hasLoadedData;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -101,21 +58,103 @@ namespace TCG.Weiss.UI
                 Destroy(gameObject);
                 return;
             }
+
             Instance = this;
 
-            // カード詳細ビューを生成し、非表示状態で初期化
             if (cardDetailViewPrefab != null && mainCanvas != null)
             {
                 GameObject detailViewObject = Instantiate(cardDetailViewPrefab, mainCanvas);
                 _cardDetailViewInstance = detailViewObject.GetComponent<CardDetailView>();
                 _cardDetailViewInstance?.Hide();
             }
-            else
+        }
+
+        private void Start()
+        {
+            CreatePaginationControls();
+
+            if (_paginationUI == null || _paginationUI.NextButton == null || _paginationUI.PrevButton == null)
             {
-                Debug.LogError("DeckEditorManager: CardDetailViewPrefab または MainCanvas が割り当てられていません。", this);
+                Debug.LogError("DeckEditorManager: Pagination UI failed to initialize.");
+                return;
             }
-            
-            // --- イベントリスナーの設定 ---
+
+            InitializeDropdowns();
+            ResetFilterUi();
+            RegisterUiListeners();
+
+            _isUiReady = true;
+            RefreshCardViewsIfReady();
+        }
+
+        private void OnEnable()
+        {
+            AppManager.OnDataInitialized += HandleDataInitialized;
+        }
+
+        private void OnDisable()
+        {
+            AppManager.OnDataInitialized -= HandleDataInitialized;
+
+            if (searchInputField != null) searchInputField.onValueChanged.RemoveAllListeners();
+            if (colorDropdown != null) colorDropdown.onValueChanged.RemoveAllListeners();
+            if (cardTypeDropdown != null) cardTypeDropdown.onValueChanged.RemoveAllListeners();
+            if (levelInputField != null) levelInputField.onValueChanged.RemoveAllListeners();
+            if (costInputField != null) costInputField.onValueChanged.RemoveAllListeners();
+            if (traitInputField != null) traitInputField.onValueChanged.RemoveAllListeners();
+            if (workIdDropdown != null) workIdDropdown.onValueChanged.RemoveAllListeners();
+
+            if (_paginationUI != null)
+            {
+                _paginationUI.NextButton.onClick.RemoveAllListeners();
+                _paginationUI.PrevButton.onClick.RemoveAllListeners();
+            }
+        }
+
+        private void CreatePaginationControls()
+        {
+            if (paginationParent == null)
+            {
+                Debug.LogError("Pagination Parent is not assigned in the inspector.");
+                return;
+            }
+
+            GameObject panel = new GameObject("PaginationPanel", typeof(RectTransform), typeof(LayoutElement));
+            panel.transform.SetParent(paginationParent, false);
+
+            RectTransform panelRect = panel.GetComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0, 0);
+            panelRect.anchorMax = new Vector2(1, 1);
+            panelRect.pivot = new Vector2(0.5f, 0.5f);
+            panelRect.anchoredPosition = Vector2.zero;
+            panelRect.offsetMin = Vector2.zero;
+            panelRect.offsetMax = Vector2.zero;
+
+            LayoutElement layoutElement = panel.GetComponent<LayoutElement>();
+            layoutElement.flexibleWidth = 1f;
+            layoutElement.flexibleHeight = 1f;
+            layoutElement.minWidth = 1f;
+            layoutElement.minHeight = 1f;
+
+            _paginationUI = panel.AddComponent<PaginationUI>();
+        }
+
+        private void HandleDataInitialized()
+        {
+            _allCardData = Data.CardDataImporter.GetAllCardData();
+            _cardDataMap = _allCardData.ToDictionary(card => card.card_no, card => card);
+            _hasLoadedData = true;
+
+            if (_isUiReady)
+            {
+                ResetFilterUi();
+            }
+
+            RefreshCardViewsIfReady();
+        }
+
+        private void RegisterUiListeners()
+        {
             searchInputField?.onValueChanged.AddListener(_ => UpdateCardFilter());
             colorDropdown?.onValueChanged.AddListener(_ => UpdateCardFilter());
             cardTypeDropdown?.onValueChanged.AddListener(_ => UpdateCardFilter());
@@ -124,253 +163,339 @@ namespace TCG.Weiss.UI
             traitInputField?.onValueChanged.AddListener(_ => UpdateCardFilter());
             workIdDropdown?.onValueChanged.AddListener(_ => UpdateCardFilter());
 
-            // --- ドロップダウンの初期化 ---
-            InitializeDropdowns();
+            _paginationUI.NextButton.onClick.AddListener(GoToNextPage);
+            _paginationUI.PrevButton.onClick.AddListener(GoToPreviousPage);
         }
 
-        /// <summary>
-        /// 検索用ドロップダウンの選択肢を初期化します。
-        /// </summary>
         private void InitializeDropdowns()
         {
             if (colorDropdown != null)
             {
                 colorDropdown.ClearOptions();
-                colorDropdown.AddOptions(new List<string> { "すべて", "黄", "緑", "赤", "青" });
+                colorDropdown.AddOptions(new List<string> { "All", "Yellow", "Green", "Red", "Blue" });
+                colorDropdown.value = 0;
+                colorDropdown.RefreshShownValue();
             }
 
             if (cardTypeDropdown != null)
             {
                 cardTypeDropdown.ClearOptions();
-                cardTypeDropdown.AddOptions(new List<string> { "すべて", "キャラクター", "イベント", "クライマックス" });
+                cardTypeDropdown.AddOptions(new List<string> { "All", "Character", "Event", "Climax" });
+                cardTypeDropdown.value = 0;
+                cardTypeDropdown.RefreshShownValue();
             }
 
             if (workIdDropdown != null)
             {
                 workIdDropdown.ClearOptions();
-                var options = new List<string> { "すべて" };
+                List<string> options = new List<string> { "All" };
                 options.AddRange(WorkIdData.AllWorkIds.Select(w => $"{w.Name} ({w.Id})"));
                 workIdDropdown.AddOptions(options);
+                workIdDropdown.value = 0;
+                workIdDropdown.RefreshShownValue();
             }
         }
 
-        /// <summary>
-        /// 検索UIの入力に基づいてカードリストをフィルタリングし、再表示します。
-        /// </summary>
-        private void UpdateCardFilter()
+        private void ResetFilterUi()
         {
-            var query = new WeissCardQuery();
+            if (searchInputField != null) searchInputField.SetTextWithoutNotify(string.Empty);
+            if (levelInputField != null) levelInputField.SetTextWithoutNotify(string.Empty);
+            if (costInputField != null) costInputField.SetTextWithoutNotify(string.Empty);
+            if (traitInputField != null) traitInputField.SetTextWithoutNotify(string.Empty);
 
-            // 名前でのフィルタ
-            query.HasName(searchInputField.text);
-
-            // 色でのフィルタ
-            // 0は "すべて" なので null を渡してフィルタを無効化する
-            string color = (colorDropdown.value > 0) ? colorDropdown.options[colorDropdown.value].text : null;
-            query.HasColor(color);
-
-            // カード種類でのフィルタ
-            string cardType = (cardTypeDropdown.value > 0) ? cardTypeDropdown.options[cardTypeDropdown.value].text : null;
-            query.IsCardType(cardType);
-
-            // レベルでのフィルタ
-            int? level = int.TryParse(levelInputField.text, out int l) ? l : (int?)null;
-            query.HasLevel(level);
-
-            // コストでのフィルタ
-            int? cost = int.TryParse(costInputField.text, out int c) ? c : (int?)null;
-            query.HasCost(cost);
-
-            // 特徴でのフィルタ
-            query.HasTrait(traitInputField.text);
-
-            // 作品IDでのフィルタ
-            if (workIdDropdown != null && workIdDropdown.value > 0)
+            if (colorDropdown != null)
             {
-                // 先頭の "すべて" をスキップするためインデックスを -1 する
-                query.HasWorkId(WorkIdData.AllWorkIds[workIdDropdown.value - 1].Id);
+                colorDropdown.SetValueWithoutNotify(0);
+                colorDropdown.RefreshShownValue();
             }
 
-            // クエリを適用して表示
-            var results = query.Apply(_allCardData);
-            Debug.Log($"[DeckEditorManager] クエリ適用後のカード数: {results.Count()} 件");
-            var resultList = results.ToList();
-            Debug.Log($"[DeckEditorManager] フィルタリング結果: {resultList.Count} 件 / 全 {_allCardData.Count} 件");
-            DisplayCardList(resultList);
-        }
-
-        /// <summary>
-        /// オブジェクトが有効になったときに呼び出され、AppManagerからのデータ初期化イベントを購読します。
-        /// </summary>
-        private void OnEnable()
-        {
-            AppManager.OnDataInitialized += HandleDataInitialized;
-        }
-
-        /// <summary>
-        /// オブジェクトが無効になったときに呼び出され、AppManagerからのデータ初期化イベントの購読を解除します。
-        /// </summary>
-        private void OnDisable()
-        {
-            AppManager.OnDataInitialized -= HandleDataInitialized;
-        }
-
-        /// <summary>
-        /// AppManagerによるデータ初期化が完了した際に呼び出されます。
-        /// SQLiteデータベースからすべてのカードデータをロードし、初期表示を更新します。
-        /// </summary>
-        private void HandleDataInitialized()
-        {
-            _allCardData = Data.CardDataImporter.GetAllCardData();
-            // カードデータをマップに格納し、card_noで高速参照できるようにする
-            foreach(var card in _allCardData)
+            if (cardTypeDropdown != null)
             {
-                if(!_cardDataMap.ContainsKey(card.card_no))
-                {
-                    _cardDataMap.Add(card.card_no, card);
-                }
+                cardTypeDropdown.SetValueWithoutNotify(0);
+                cardTypeDropdown.RefreshShownValue();
             }
-            Debug.Log($"SQLiteデータベースから{_allCardData.Count}枚のカードをロードしました。");
-            // 初期状態としてすべてのカードを表示
-            UpdateCardFilter();
-            // デッキUIを更新（最初は空デッキ）
-            UpdateDeckUI();
+
+            if (workIdDropdown != null)
+            {
+                workIdDropdown.SetValueWithoutNotify(0);
+                workIdDropdown.RefreshShownValue();
+            }
         }
 
-        /// <summary>
-        /// 指定されたカードデータのリストをカードリストUIに表示します。
-        /// 既存のリスト項目はすべて破棄され、新しく生成されます。
-        /// </summary>
-        /// <param name="cardsToDisplay">表示するWeissCardDataのリスト。</param>
-        private void DisplayCardList(List<WeissCardData> cardsToDisplay)
+        private void RefreshCardViewsIfReady()
         {
-            Debug.Log($"[DeckEditorManager] DisplayCardList開始: {cardsToDisplay?.Count ?? 0} 件のカードを生成します。");
-
-            // 既存のリスト項目をクリア
-            foreach (Transform child in cardListContentParent) Destroy(child.gameObject);
-            if (cardListItemPrefab == null)
+            if (!_isUiReady || !_hasLoadedData)
             {
-                Debug.LogError("CardListItemPrefabが割り当てられていません。");
                 return;
             }
 
-            // 各カードデータに対応するリスト項目を生成し、UIに設定
-            foreach (var cardData in cardsToDisplay)
+            UpdateCardFilter();
+            UpdateDeckUI();
+        }
+
+        private void UpdateCardFilter()
+        {
+            WeissCardQuery query = new WeissCardQuery();
+
+            string searchText = searchInputField != null ? searchInputField.text?.Trim() : null;
+            query.HasName(searchText);
+
+            string color = (colorDropdown != null && colorDropdown.value > 0) ? colorDropdown.options[colorDropdown.value].text : null;
+            query.HasColor(color);
+
+            string cardType = (cardTypeDropdown != null && cardTypeDropdown.value > 0) ? cardTypeDropdown.options[cardTypeDropdown.value].text : null;
+            query.IsCardType(cardType);
+
+            int? level = int.TryParse(levelInputField != null ? levelInputField.text : null, out int levelValue) ? levelValue : (int?)null;
+            query.HasLevel(level);
+
+            int? cost = int.TryParse(costInputField != null ? costInputField.text : null, out int costValue) ? costValue : (int?)null;
+            query.HasCost(cost);
+
+            string trait = traitInputField != null ? traitInputField.text?.Trim() : null;
+            query.HasTrait(trait);
+
+            if (workIdDropdown != null && workIdDropdown.value > 0)
             {
-                GameObject newItemObject = Instantiate(cardListItemPrefab, cardListContentParent);
-                CardListItem newItem = newItemObject.GetComponent<CardListItem>();
-                if (newItem != null)
+                query.HasWorkId(WorkIdData.AllWorkIds[workIdDropdown.value - 1].Id);
+            }
+
+            _filteredCardData = query.Apply(_allCardData).ToList();
+
+            _currentPage = 1;
+            _totalPages = (int)Math.Ceiling((double)_filteredCardData.Count / itemsPerPage);
+            if (_totalPages == 0)
+            {
+                _totalPages = 1;
+            }
+
+            Debug.Log($"DeckEditorManager: loaded={_allCardData.Count}, filtered={_filteredCardData.Count}, pages={_totalPages}");
+
+            DisplayPage(_currentPage);
+            UpdatePaginationUI();
+        }
+
+        private void DisplayPage(int page)
+        {
+            foreach (Transform child in cardGridContentParent)
+            {
+                Destroy(child.gameObject);
+            }
+
+            int startIndex = (page - 1) * itemsPerPage;
+            int endIndex = Math.Min(startIndex + itemsPerPage, _filteredCardData.Count);
+
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                WeissCardData cardData = _filteredCardData[i];
+                GameObject cardObject = new GameObject(cardData.card_no, typeof(RectTransform));
+                cardObject.transform.SetParent(cardGridContentParent, false);
+                CardGridItem gridItem = cardObject.AddComponent<CardGridItem>();
+                gridItem.Initialize(cardData);
+            }
+        }
+
+        private void UpdatePaginationUI()
+        {
+            if (_paginationUI == null)
+            {
+                return;
+            }
+
+            _paginationUI.PrevButton.interactable = _currentPage > 1;
+            _paginationUI.NextButton.interactable = _currentPage < _totalPages;
+            UpdatePageButtons();
+        }
+
+        private void UpdatePageButtons()
+        {
+            List<int> pages = BuildPageButtonPages();
+
+            for (int i = 0; i < _paginationUI.PageButtons.Count; i++)
+            {
+                Button button = _paginationUI.PageButtons[i];
+                button.onClick.RemoveAllListeners();
+
+                if (i >= pages.Count)
                 {
-                    newItem.SetCardData(cardData);
+                    _paginationUI.SetPageButtonState(i, string.Empty, false, false, false);
+                    continue;
+                }
+
+                int page = pages[i];
+                bool isCurrent = page == _currentPage;
+                _paginationUI.SetPageButtonState(i, page.ToString(), true, !isCurrent, isCurrent);
+
+                if (!isCurrent)
+                {
+                    int capturedPage = page;
+                    button.onClick.AddListener(() => GoToPage(capturedPage));
                 }
             }
         }
 
-        /// <summary>
-        /// 指定されたカードをデッキに追加します。
-        /// デッキの最大枚数や同一カードの最大枚数を超過しないかチェックします。
-        /// </summary>
-        /// <param name="cardData">デッキに追加するカードのデータ。</param>
+        private List<int> BuildPageButtonPages()
+        {
+            HashSet<int> pages = new HashSet<int>();
+            if (_totalPages <= 0)
+            {
+                pages.Add(1);
+            }
+            else
+            {
+                pages.Add(1);
+                pages.Add(_totalPages);
+                for (int page = _currentPage - 2; page <= _currentPage + 2; page++)
+                {
+                    if (page >= 1 && page <= _totalPages)
+                    {
+                        pages.Add(page);
+                    }
+                }
+            }
+
+            List<int> ordered = pages.OrderBy(page => page).ToList();
+            if (ordered.Count <= 7)
+            {
+                return ordered;
+            }
+
+            List<int> centered = ordered
+                .OrderBy(page => Mathf.Abs(page - _currentPage))
+                .ThenBy(page => page)
+                .Take(7)
+                .OrderBy(page => page)
+                .ToList();
+
+            if (!centered.Contains(1))
+            {
+                centered[0] = 1;
+            }
+            if (!centered.Contains(_totalPages))
+            {
+                centered[centered.Count - 1] = _totalPages;
+            }
+
+            return centered.Distinct().OrderBy(page => page).ToList();
+        }
+
+        private void GoToPage(int page)
+        {
+            if (page < 1 || page > _totalPages || page == _currentPage)
+            {
+                return;
+            }
+
+            _currentPage = page;
+            DisplayPage(_currentPage);
+            UpdatePaginationUI();
+        }
+
+        public void GoToNextPage()
+        {
+            if (_currentPage < _totalPages)
+            {
+                _currentPage++;
+                DisplayPage(_currentPage);
+                UpdatePaginationUI();
+            }
+        }
+
+        public void GoToPreviousPage()
+        {
+            if (_currentPage > 1)
+            {
+                _currentPage--;
+                DisplayPage(_currentPage);
+                UpdatePaginationUI();
+            }
+        }
+
         public void AddCardToDeck(WeissCardData cardData)
         {
-            if (cardData == null) return;
+            if (cardData == null)
+            {
+                return;
+            }
 
             int currentDeckSize = _currentDeck.Values.Sum();
             if (currentDeckSize >= MAX_DECK_SIZE)
             {
-                Debug.LogWarning("カードを追加できません: デッキが最大枚数 (50枚) に達しています。");
                 return;
             }
 
             _currentDeck.TryGetValue(cardData.card_no, out int currentCopies);
             if (currentCopies >= MAX_COPIES_PER_CARD)
             {
-                Debug.LogWarning($"カードを追加できません: {cardData.name} は既に最大枚数 ({MAX_COPIES_PER_CARD}枚) デッキに入っています。");
                 return;
             }
 
             _currentDeck[cardData.card_no] = currentCopies + 1;
-            UpdateDeckUI(); // デッキUIを更新
-            _cardDetailViewInstance?.UpdateCardCount(cardData); // カード詳細ビューの枚数表示も更新
+            UpdateDeckUI();
+            _cardDetailViewInstance?.UpdateCardCount(cardData);
         }
 
-        /// <summary>
-        /// 指定されたカードをデッキから1枚削除します。
-        /// </summary>
-        /// <param name="cardData">デッキから削除するカードのデータ。</param>
         public void RemoveCardFromDeck(WeissCardData cardData)
         {
-            if (cardData == null || !_currentDeck.ContainsKey(cardData.card_no)) return;
-
-            _currentDeck[cardData.card_no]--; // 枚数を減らす
-
-            if (_currentDeck[cardData.card_no] <= 0)
+            if (cardData == null || !_currentDeck.ContainsKey(cardData.card_no))
             {
-                _currentDeck.Remove(cardData.card_no); // 枚数が0以下になったらエントリを削除
-            }
-            UpdateDeckUI(); // デッキUIを更新
-            _cardDetailViewInstance?.UpdateCardCount(cardData); // カード詳細ビューの枚数表示も更新
-        }
-
-        /// <summary>
-        /// 現在構築中のデッキの内容に基づいて、デッキリストUIとデッキ枚数表示を更新します。
-        /// </summary>
-        private void UpdateDeckUI()
-        {
-            // 既存のデッキリスト項目をクリア
-            foreach (Transform child in deckListContentParent) Destroy(child.gameObject);
-            if (deckCardListItemPrefab == null)
-            {
-                Debug.LogError("DeckCardListItemPrefabが割り当てられていません。");
                 return;
             }
 
-            // デッキ内のカードをカード番号でソートして表示
-            var sortedDeck = _currentDeck.OrderBy(kvp => _cardDataMap[kvp.Key].card_no);
-
-            // 各デッキエントリに対応するリスト項目を生成し、UIに設定
-            foreach (var deckEntry in sortedDeck)
+            _currentDeck[cardData.card_no]--;
+            if (_currentDeck[cardData.card_no] <= 0)
             {
-                WeissCardData cardData = _cardDataMap[deckEntry.Key];
-                int count = deckEntry.Value;
+                _currentDeck.Remove(cardData.card_no);
+            }
 
+            UpdateDeckUI();
+            _cardDetailViewInstance?.UpdateCardCount(cardData);
+        }
+
+        private void UpdateDeckUI()
+        {
+            foreach (Transform child in deckListContentParent)
+            {
+                Destroy(child.gameObject);
+            }
+
+            if (deckCardListItemPrefab == null)
+            {
+                return;
+            }
+
+            IOrderedEnumerable<KeyValuePair<string, int>> sortedDeck = _currentDeck.OrderBy(kvp => _cardDataMap[kvp.Key].card_no);
+            foreach (KeyValuePair<string, int> deckEntry in sortedDeck)
+            {
                 GameObject newItemObject = Instantiate(deckCardListItemPrefab, deckListContentParent);
                 DeckCardListItem newItem = newItemObject.GetComponent<DeckCardListItem>();
                 if (newItem != null)
                 {
-                    newItem.Setup(cardData, count);
+                    newItem.Setup(_cardDataMap[deckEntry.Key], deckEntry.Value);
                 }
             }
-            
-            // デッキ枚数テキストを更新
-            if(deckCountText != null)
+
+            if (deckCountText != null)
             {
                 deckCountText.text = $"{_currentDeck.Values.Sum()} / {MAX_DECK_SIZE}";
             }
 
-            // カード詳細ビューが開いている場合はその枚数表示も更新
             _cardDetailViewInstance?.UpdateCardCount();
         }
 
-        /// <summary>
-        /// 指定されたカードデータの詳細ビューを表示します。
-        /// </summary>
-        /// <param name="cardData">詳細を表示するカードデータ。</param>
         public void ShowCardDetail(WeissCardData cardData)
         {
-            // WeissCardDataから一時的なWeissCardインスタンスを作成して詳細表示
             WeissCard dummyCard = new WeissCard(cardData, null);
             _cardDetailViewInstance?.Show(dummyCard, GetCardCountInDeck(cardData));
         }
 
-        /// <summary>
-        /// 指定されたカードが現在デッキに何枚入っているかを取得します。
-        /// </summary>
-        /// <param name="cardData">枚数を取得するカードデータ。</param>
-        /// <returns>デッキ内のカード枚数。</returns>
         public int GetCardCountInDeck(WeissCardData cardData)
         {
-            if (cardData == null) return 0;
+            if (cardData == null)
+            {
+                return 0;
+            }
+
             return _currentDeck.TryGetValue(cardData.card_no, out int count) ? count : 0;
         }
     }

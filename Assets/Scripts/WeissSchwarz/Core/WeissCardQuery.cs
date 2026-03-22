@@ -1,5 +1,6 @@
 using GameCore.Database;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using TCG.Weiss;
 
@@ -10,6 +11,21 @@ namespace TCG.Weiss
     /// </summary>
     public class WeissCardQuery : CardQuery<WeissCardData>
     {
+        private static readonly Dictionary<string, string[]> ColorAliases = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Yellow", new[] { "Yellow", "黄", "黄色" } },
+            { "Green", new[] { "Green", "緑", "緑色" } },
+            { "Red", new[] { "Red", "赤", "赤色" } },
+            { "Blue", new[] { "Blue", "青", "青色" } },
+        };
+
+        private static readonly Dictionary<string, string[]> CardTypeAliases = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Character", new[] { "Character", "Character Card", "キャラ", "キャラクター" } },
+            { "Event", new[] { "Event", "イベント" } },
+            { "Climax", new[] { "Climax", "クライマックス" } },
+        };
+
         /// <summary>
         /// 指定した文字列がカード名に含まれているかでフィルタリングします。
         /// </summary>
@@ -17,7 +33,7 @@ namespace TCG.Weiss
         {
             if (!string.IsNullOrEmpty(name))
             {
-                Filters.Add(c => c.Name.Contains(name, StringComparison.OrdinalIgnoreCase));
+                Filters.Add(c => !string.IsNullOrEmpty(c.Name) && c.Name.Contains(name, StringComparison.OrdinalIgnoreCase));
             }
             return this;
         }
@@ -53,7 +69,8 @@ namespace TCG.Weiss
         {
             if (!string.IsNullOrEmpty(color))
             {
-                Filters.Add(c => c.Color.Equals(color, StringComparison.OrdinalIgnoreCase));
+                string[] acceptedValues = ResolveAliases(ColorAliases, color);
+                Filters.Add(c => MatchesAnyAlias(c.Color, acceptedValues));
             }
             return this;
         }
@@ -65,7 +82,8 @@ namespace TCG.Weiss
         {
             if (!string.IsNullOrEmpty(cardType))
             {
-                Filters.Add(c => c.CardType.Equals(cardType, StringComparison.OrdinalIgnoreCase));
+                string[] acceptedValues = ResolveAliases(CardTypeAliases, cardType);
+                Filters.Add(c => MatchesAnyAlias(c.CardType, acceptedValues));
             }
             return this;
         }
@@ -77,7 +95,7 @@ namespace TCG.Weiss
         {
             if (!string.IsNullOrEmpty(side))
             {
-                Filters.Add(c => c.Side.Equals(side, StringComparison.OrdinalIgnoreCase));
+                Filters.Add(c => !string.IsNullOrEmpty(c.Side) && c.Side.Equals(side, StringComparison.OrdinalIgnoreCase));
             }
             return this;
         }
@@ -101,7 +119,7 @@ namespace TCG.Weiss
         {
             if (!string.IsNullOrEmpty(trigger))
             {
-                Filters.Add(c => c.TriggerIcon.Equals(trigger, StringComparison.OrdinalIgnoreCase));
+                Filters.Add(c => !string.IsNullOrEmpty(c.TriggerIcon) && c.TriggerIcon.Equals(trigger, StringComparison.OrdinalIgnoreCase));
             }
             return this;
         }
@@ -113,7 +131,7 @@ namespace TCG.Weiss
         {
             if (!string.IsNullOrEmpty(cardCode))
             {
-                Filters.Add(c => c.CardCode.Contains(cardCode, StringComparison.OrdinalIgnoreCase));
+                Filters.Add(c => !string.IsNullOrEmpty(c.CardCode) && c.CardCode.Contains(cardCode, StringComparison.OrdinalIgnoreCase));
             }
             return this;
         }
@@ -125,7 +143,9 @@ namespace TCG.Weiss
         {
             if (!string.IsNullOrEmpty(workId))
             {
-                Filters.Add(c => c.WorkId != null && c.WorkId.Equals(workId, StringComparison.OrdinalIgnoreCase));
+                Filters.Add(c =>
+                    (!string.IsNullOrEmpty(c.WorkId) && c.WorkId.Equals(workId, StringComparison.OrdinalIgnoreCase)) ||
+                    ExtractWorkIdFromCardCode(c.CardCode).Equals(workId, StringComparison.OrdinalIgnoreCase));
             }
             return this;
         }
@@ -137,9 +157,37 @@ namespace TCG.Weiss
         {
             if (!string.IsNullOrEmpty(rarity))
             {
-                Filters.Add(c => c.Rarity.Equals(rarity, StringComparison.OrdinalIgnoreCase));
+                Filters.Add(c => !string.IsNullOrEmpty(c.Rarity) && c.Rarity.Equals(rarity, StringComparison.OrdinalIgnoreCase));
             }
             return this;
+        }
+
+        private static string[] ResolveAliases(Dictionary<string, string[]> aliases, string value)
+        {
+            return aliases.TryGetValue(value, out string[] resolvedValues)
+                ? resolvedValues
+                : new[] { value };
+        }
+
+        private static bool MatchesAnyAlias(string actualValue, IEnumerable<string> acceptedValues)
+        {
+            if (string.IsNullOrEmpty(actualValue))
+            {
+                return false;
+            }
+
+            return acceptedValues.Any(value => actualValue.Equals(value, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static string ExtractWorkIdFromCardCode(string cardCode)
+        {
+            if (string.IsNullOrEmpty(cardCode))
+            {
+                return string.Empty;
+            }
+
+            int separatorIndex = cardCode.IndexOf('/');
+            return separatorIndex > 0 ? cardCode.Substring(0, separatorIndex) : cardCode;
         }
     }
 }

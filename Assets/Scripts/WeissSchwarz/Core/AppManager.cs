@@ -1,125 +1,110 @@
 using System.Collections;
 using System.IO;
-using UnityEngine;
 using TCG.Weiss.Data;
-using UnityEngine.Networking; // UnityWebRequestを使用するために必要
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace TCG.Weiss
 {
-    /// <summary>
-    /// アプリケーション全体のデータ初期化を管理するシングルトンクラス。
-    /// 主に、カードデータ（JSON）の読み込みとSQLiteデータベースへのインポートを担当する。
-    /// </summary>
     public class AppManager : MonoBehaviour
     {
-        /// <summary>
-        /// AppManagerのシングルトンインスタンス。
-        /// </summary>
         public static AppManager Instance { get; private set; }
 
-        /// <summary>
-        /// データ初期化が完了したときに発行されるイベント。
-        /// </summary>
         public static event System.Action OnDataInitialized;
 
-        // JSONファイル名は不要になり、代わりに構築済みDBファイルをコピーする
         [SerializeField] private string dbFileName = "cards.db";
 
         private void Awake()
         {
-            // シングルトンパターンの実装
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
+                return;
             }
-            else
-            {
-                Instance = this;
-                // シーンをまたいでもこのオブジェクトが破棄されないようにする
-                DontDestroyOnLoad(gameObject);
-            }
+
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
 
-        // Startメソッドはコルーチンとして定義されている。
-        // これは、ファイルI/Oやネットワーク通信などの時間のかかる非同期処理を、
-        // メインスレッドをブロックせずに行うため。
+        private static string BuildPersistentDbPath(string dbFileName)
+        {
+            string targetDir = Path.Combine(Application.persistentDataPath, "WeissSchwarz");
+            if (!Directory.Exists(targetDir))
+            {
+                Directory.CreateDirectory(targetDir);
+            }
+
+            return Path.Combine(targetDir, dbFileName);
+        }
+
+        private static string BuildStreamingAssetsDbPath(string dbFileName)
+        {
+            return Path.Combine(Application.streamingAssetsPath, "WeissSchwarz", dbFileName);
+        }
+
         IEnumerator Start()
         {
-            Debug.Log("AppManager: データの初期化を開始します...");
+            Debug.Log("AppManager: starting data initialization.");
 
-            // ランタイムで使用するパス（PersistentDataPath）で初期化
             CardDataImporter.Initialize(dbFileName);
-            
-            // ディレクトリパスの設定（WeissSchwarzサブディレクトリを使用）
-            string subDir = "WeissSchwarz";
-            string targetDir = Path.Combine(Application.persistentDataPath, subDir);
-            if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
 
-            // パスの構築
-            string targetDbPath = Path.Combine(targetDir, dbFileName);
-            string sourceDbPath = Path.Combine(Application.streamingAssetsPath, subDir, dbFileName);
+            string targetDbPath = BuildPersistentDbPath(dbFileName);
+            string sourceDbPath = BuildStreamingAssetsDbPath(dbFileName);
 
-            // TODO: 本番ではファイルのタイムスタンプやバージョン番号をチェックして、必要な場合のみコピーするように最適化する。
-            // 今回はシンプルに、DBが存在しない場合、またはStreamingAssets版の方が新しい場合にコピーする実装とする。
-            
-            bool needCopy = false;
+            Debug.Log($"AppManager: Source DB Path = {sourceDbPath}");
+            Debug.Log($"AppManager: Target DB Path = {targetDbPath}");
 
-            if (!File.Exists(targetDbPath))
+            bool copySucceeded = false;
+
+            if (Application.platform == RuntimePlatform.Android)
             {
-                needCopy = true;
-                Debug.Log("DBファイルが存在しないため、コピーを行います。");
-            }
-            else
-            {
-                // 簡易的な更新チェック: 常に上書き（開発中は便利だが、ユーザーデータとしてデッキ等を同じDBに保存している場合は注意が必要）
-                // 読み取り専用マスターDBと、ユーザーデータDBを分けるのが一般的だが、今回はファイルをコピーして使用する。
-                needCopy = true; 
-            }
-
-            if (needCopy)
-            {
-                // AndroidのStreamingAssetsは圧縮ファイル内にあるため、UnityWebRequestで読み出す必要がある
-                if (Application.platform == RuntimePlatform.Android)
+                using (UnityWebRequest www = UnityWebRequest.Get(sourceDbPath))
                 {
-                    using (UnityWebRequest www = UnityWebRequest.Get(sourceDbPath))
-                    {
-                        yield return www.SendWebRequest();
+                    yield return www.SendWebRequest();
 
-                        if (www.result == UnityWebRequest.Result.Success)
-                        {
-                            File.WriteAllBytes(targetDbPath, www.downloadHandler.data);
-                            Debug.Log($"AppManager: DBをStreamingAssetsからコピーしました。\nSrc: {sourceDbPath}\nDst: {targetDbPath}");
-                        }
-                        else
-                        {
-                            // ファイルがない場合は致命的エラーだが、開発中ならエディタツールでの生成忘れの可能性がある
-                            Debug.LogError($"AppManager: StreamingAssetsにDBファイルが見つかりません。エディタで [Tools > Generate DB] を実行してください。\nError: {www.error}");
-                        }
-                    }
-                }
-                else
-                {
-                    // iOS/Editor/StandaloneではSystem.IOが使える（ただしAndroid以外でもStreamingAssetsはFile.Copyでいける場合とWebRequest推奨の場合がある）
-                    // 確実性を重視して、パスが存在する場合のみコピー
-                    if (File.Exists(sourceDbPath))
+                    if (www.result == UnityWebRequest.Result.Success)
                     {
-                        File.Copy(sourceDbPath, targetDbPath, true);
-                        Debug.Log($"AppManager: DBをコピーしました。");
+                        File.WriteAllBytes(targetDbPath, www.downloadHandler.data);
+                        copySucceeded = true;
                     }
                     else
                     {
-                         Debug.LogError($"AppManager: StreamingAssetsにDBファイルが見つかりません: {sourceDbPath}");
+                        Debug.LogError($"AppManager: Failed to copy DB from StreamingAssets. Error: {www.error}");
                     }
                 }
             }
+            else
+            {
+                if (File.Exists(sourceDbPath))
+                {
+                    File.Copy(sourceDbPath, targetDbPath, true);
+                    copySucceeded = true;
+                }
+                else
+                {
+                    Debug.LogError($"AppManager: StreamingAssets DB not found: {sourceDbPath}");
+                }
+            }
 
-            Debug.Log("AppManager: データの初期化が完了しました。");
+            if (!copySucceeded)
+            {
+                if (File.Exists(targetDbPath))
+                {
+                    File.Delete(targetDbPath);
+                    Debug.LogWarning($"AppManager: Deleted stale persistent DB: {targetDbPath}");
+                }
+                else
+                {
+                    Debug.LogWarning("AppManager: No persistent DB to delete.");
+                }
+            }
+            else
+            {
+                Debug.Log("AppManager: DB copied to persistentDataPath.");
+            }
 
-            // データ準備完了をサブスクライバー（他のモジュール）に通知する
+            Debug.Log("AppManager: data initialization completed.");
             OnDataInitialized?.Invoke();
-
-            // 初期化後にメインのゲームシーンに遷移するなどの処理をここに追加できる
-            // UnityEngine.SceneManagement.SceneManager.LoadScene("MainScene");
         }
     }
 }
