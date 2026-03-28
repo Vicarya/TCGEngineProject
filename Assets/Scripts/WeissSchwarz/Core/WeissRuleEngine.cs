@@ -65,18 +65,15 @@ namespace TCG.Weiss
                     WeissCard playedCard = onPlayData.Card;
                     WeissPlayer player = onPlayData.Player;
 
-                    if (playedCard.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
+                    if (playedCard.Data?.Abilities != null)
                     {
-                        if (abilitiesObj is List<string> abilities)
+                        foreach (var abilityText in playedCard.Data.Abilities)
                         {
-                            foreach (var abilityText in abilities)
+                            if (abilityText.StartsWith("【自】 このカードが手札から舞台に置かれた時"))
                             {
-                                if (abilityText.StartsWith("【自】 このカードが手札から舞台に置かれた時"))
-                                {
-                                    Debug.Log($"誘発: {playedCard.Data.Name} の登場時能力: {abilityText}");
-                                    var pendingAbility = new PendingAbility(playedCard, abilityText, player);
-                                    _weissState.AbilityQueue.Add(pendingAbility);
-                                }
+                                Debug.Log($"誘発: {playedCard.Data.Name} の登場時能力: {abilityText}");
+                                var pendingAbility = new PendingAbility(playedCard, abilityText, player);
+                                _weissState.AbilityQueue.Add(pendingAbility);
                             }
                         }
                     }
@@ -90,18 +87,15 @@ namespace TCG.Weiss
                     WeissCard attacker = onAttackData.Attacker;
                     WeissPlayer player = attacker.Owner as WeissPlayer;
 
-                    if (attacker.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
+                    if (attacker.Data?.Abilities != null)
                     {
-                        if (abilitiesObj is List<string> abilities)
+                        foreach (var abilityText in attacker.Data.Abilities)
                         {
-                            foreach (var abilityText in abilities)
+                            if (abilityText.StartsWith("【自】 このカードがアタックした時"))
                             {
-                                if (abilityText.StartsWith("【自】 このカードがアタックした時"))
-                                {
-                                    Debug.Log($"誘発: {attacker.Data.Name}のアタック時能力: {abilityText}");
-                                    var pendingAbility = new PendingAbility(attacker, abilityText, player);
-                                    _weissState.AbilityQueue.Add(pendingAbility);
-                                }
+                                Debug.Log($"誘発: {attacker.Data.Name}のアタック時能力: {abilityText}");
+                                var pendingAbility = new PendingAbility(attacker, abilityText, player);
+                                _weissState.AbilityQueue.Add(pendingAbility);
                             }
                         }
                     }
@@ -228,7 +222,7 @@ namespace TCG.Weiss
                             var waitingRoom = weissAttacker.GetZone<WaitingRoomZone>();
                             var hand = weissAttacker.GetZone<IHandZone<WeissCard>>();
                             var charactersInWaitingRoom = waitingRoom.Cards
-                                .Where(c => (((c as WeissCard)?.Data) as WeissCardData)?.CardType == "キャラクター")
+                                .Where(c => (((c as WeissCard)?.Data) as WeissCardData)?.CardType == WeissCardType.Character.ToString())
                                 .ToList();
 
                             // プレイヤーに回収するキャラを選択させる
@@ -437,12 +431,9 @@ namespace TCG.Weiss
             if (counterCard == null || defendingCharacter == null) return;
 
             string assistText = null;
-            if (counterCard.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
+            if (counterCard.Data?.Abilities != null)
             {
-                if (abilitiesObj is List<string> abilities)
-                {
-                    assistText = abilities.FirstOrDefault(text => text.StartsWith("【助太刀"));
-                }
+                assistText = counterCard.Data.Abilities.FirstOrDefault(text => text.StartsWith("【助太刀"));
             }
             if (assistText == null) return;
 

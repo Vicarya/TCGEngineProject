@@ -256,15 +256,12 @@ namespace TCG.Weiss
 
             // 特殊アンコール（例：「【自】 アンコール」）の存在をチェック
             string specialEncoreText = null;
-            if (character.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
+            if (character.Data?.Abilities != null)
             {
-                if (abilitiesObj is List<string> abilities)
+                specialEncoreText = character.Data.Abilities.FirstOrDefault(text => text.StartsWith("【自】 アンコール"));
+                if (specialEncoreText != null)
                 {
-                    specialEncoreText = abilities.FirstOrDefault(text => text.StartsWith("【自】 アンコール"));
-                    if (specialEncoreText != null)
-                    {
-                        options.Add(new KeyValuePair<EncoreChoice, string>(EncoreChoice.Special, $"Special Encore: {specialEncoreText}"));
-                    }
+                    options.Add(new KeyValuePair<EncoreChoice, string>(EncoreChoice.Special, $"Special Encore: {specialEncoreText}"));
                 }
             }
 

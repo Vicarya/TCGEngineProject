@@ -11,7 +11,7 @@ def get_unique_work_ids_from_json(card_data):
     """
     work_ids = set()
     for card in card_data:
-        card_no = card.get("card_no")
+        card_no = card.get("cardCode") or card.get("card_no")
         if card_no and "/" in card_no:
             work_id = card_no.split("/")[0]
             work_ids.add(work_id)
@@ -79,7 +79,7 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.abspath(os.path.join(script_dir, '..', '..'))
     
-    default_input = os.path.join(script_dir, 'weiss_schwarz_cards.json')
+    default_input = os.path.join(project_root, 'Assets', 'StreamingAssets', 'WeissSchwarz', 'cards.json')
     default_output = os.path.join(project_root, 'Assets', 'Scripts', 'WeissSchwarz', 'Data', 'Generated', 'WorkIdData.cs')
 
     parser = argparse.ArgumentParser(description="Generate/Update a C# file with unique work IDs and user-friendly names.")

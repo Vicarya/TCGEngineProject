@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using TCG.Core;
-using System.Collections;
 
 namespace TCG.Weiss
 {
@@ -33,21 +32,16 @@ namespace TCG.Weiss
         {
             var abilities = new List<AbilityBase>();
 
-            // カードのメタデータから"abilities"キーで能力テキストのコレクションを取得
-            if (!sourceCard.Data.Metadata.TryGetValue("abilities", out object abilitiesObject))
+            if (sourceCard?.Data?.Abilities == null)
             {
                 return abilities; // 能力が見つからなければ空のリストを返す
             }
 
-            if (abilitiesObject is IEnumerable abilityCollection)
+            foreach (string abilityText in sourceCard.Data.Abilities)
             {
-                foreach (var abilityObj in abilityCollection)
+                if (!string.IsNullOrWhiteSpace(abilityText))
                 {
-                    if (abilityObj != null)
-                    {
-                        // 個々の能力テキストを処理する
-                        ProcessAbilityString(abilityObj.ToString(), sourceCard, abilities);
-                    }
+                    ProcessAbilityString(abilityText, sourceCard, abilities);
                 }
             }
 

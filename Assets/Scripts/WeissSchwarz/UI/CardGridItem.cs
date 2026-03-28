@@ -42,7 +42,7 @@ namespace TCG.Weiss.UI
         public void Initialize(WeissCardData cardData)
         {
             _cardData = cardData;
-            gameObject.name = _cardData.card_no;
+            gameObject.name = _cardData.CardCode;
 
             // ボタンのクリックイベントを設定
             _button.onClick.RemoveAllListeners();
@@ -53,7 +53,7 @@ namespace TCG.Weiss.UI
             // 存在しない場合は、この部分をコメントアウトまたは実装してください。
             if (gameObject.activeInHierarchy)
             {
-                StartCoroutine(ImageLoader.LoadImage(_cardData.image_url, _cardImage));
+                StartCoroutine(ImageLoader.LoadImage(_cardData.ImagePath, _cardImage));
             }
         }
 

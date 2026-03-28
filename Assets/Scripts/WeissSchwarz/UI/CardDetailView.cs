@@ -63,9 +63,9 @@ namespace TCG.Weiss.UI
             _currentCard = card; // 現在のカードとして保持
 
             // カード画像を非同期でロード
-            if (!string.IsNullOrEmpty(card.Data.image_url))
+            if (!string.IsNullOrEmpty(card.Data.ImagePath))
             {
-                StartCoroutine(ImageLoader.LoadImage(card.Data.image_url, cardImageView));
+                StartCoroutine(ImageLoader.LoadImage(card.Data.ImagePath, cardImageView));
             }
             else
             {
@@ -82,7 +82,7 @@ namespace TCG.Weiss.UI
             _canvasGroup.alpha = 1f;
             _canvasGroup.interactable = true;
             _canvasGroup.blocksRaycasts = true;
-            Debug.Log($"CardDetailView: {card.Data.name} の詳細を表示中。");
+            Debug.Log($"CardDetailView: {card.Data.Name} の詳細を表示中。");
         }
 
         /// <summary>
@@ -101,9 +101,9 @@ namespace TCG.Weiss.UI
             _currentCard = card; // 現在のカードとして保持
 
             // カード画像を非同期でロード
-            if (!string.IsNullOrEmpty(card.Data.image_url))
+            if (!string.IsNullOrEmpty(card.Data.ImagePath))
             {
-                StartCoroutine(ImageLoader.LoadImage(card.Data.image_url, cardImageView));
+                StartCoroutine(ImageLoader.LoadImage(card.Data.ImagePath, cardImageView));
             }
             else
             {
@@ -123,7 +123,7 @@ namespace TCG.Weiss.UI
             _canvasGroup.alpha = 1f;
             _canvasGroup.interactable = true;
             _canvasGroup.blocksRaycasts = true;
-            Debug.Log($"CardDetailView: {card.Data.name} の詳細を表示中。");
+            Debug.Log($"CardDetailView: {card.Data.Name} の詳細を表示中。");
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace TCG.Weiss.UI
         /// <param name="cardData">枚数が更新されたカードのデータ。</param>
         public void UpdateCardCount(WeissCardData cardData)
         {
-            if (_currentCard != null && _currentCard.Data.card_no == cardData.card_no)
+            if (_currentCard != null && _currentCard.Data.CardCode == cardData.CardCode)
             {
                 int count = DeckEditorManager.Instance.GetCardCountInDeck(cardData);
                 UpdateCardCount(count);
@@ -177,17 +177,17 @@ namespace TCG.Weiss.UI
             StringBuilder sb = new StringBuilder();
 
             // 基本情報
-            sb.AppendLine($"<b><size=120%>{card.Data.name}</size></b> ({card.Data.card_no})");
-            sb.AppendLine($"<color=#808080>種類: {card.Data.種類}</color>");
-            sb.AppendLine($"<color=#808080>レベル: {card.Data.レベル} / コスト: {card.Data.コスト}</color>");
-            sb.AppendLine($"<color=#808080>パワー: {card.Data.パワー} / ソウル: {card.Data.ソウル}</color>");
-            sb.AppendLine($"<color=#808080>色: {card.Data.色} / サイド: {card.Data.サイド}</color>");
-            if (card.Data.特徴 != null && card.Data.特徴.Count > 0)
+            sb.AppendLine($"<b><size=120%>{card.Data.Name}</size></b> ({card.Data.CardCode})");
+            sb.AppendLine($"<color=#808080>種類: {card.Data.CardType}</color>");
+            sb.AppendLine($"<color=#808080>レベル: {card.Data.Level} / コスト: {card.Data.Cost}</color>");
+            sb.AppendLine($"<color=#808080>パワー: {card.Data.Power} / ソウル: {card.Data.Soul}</color>");
+            sb.AppendLine($"<color=#808080>色: {card.Data.Color} / サイド: {card.Data.Side}</color>");
+            if (card.Data.Traits != null && card.Data.Traits.Count > 0)
             {
-                sb.AppendLine($"<color=#808080>特徴: {string.Join("・", card.Data.特徴)}</color>");
+                sb.AppendLine($"<color=#808080>特徴: {string.Join("・", card.Data.Traits)}</color>");
             }
-            sb.AppendLine($"<color=#808080>レアリティ: {card.Data.レアリティ}</color>");
-            sb.AppendLine($"<color=#808080>トリガー: {card.Data.トリガー}</color>");
+            sb.AppendLine($"<color=#808080>レアリティ: {card.Data.Rarity}</color>");
+            sb.AppendLine($"<color=#808080>トリガー: {card.Data.TriggerIcon}</color>");
             sb.AppendLine();
 
             // 能力情報
@@ -219,7 +219,7 @@ namespace TCG.Weiss.UI
                         // 汎用AbilityBaseの場合の処理 (WeissAbility以外)
                         if (abilityBase.SourceCard is TCG.Core.CardBase<TCG.Weiss.WeissCardData> srcWithData)
                         {
-                            sb.AppendLine($"  [汎用能力] {srcWithData.Data.name}");
+                            sb.AppendLine($"  [汎用能力] {srcWithData.Data.Name}");
                         }
                         else
                         {
@@ -230,10 +230,10 @@ namespace TCG.Weiss.UI
             }
 
             // フレーバーテキスト
-            if (!string.IsNullOrEmpty(card.Data.flavor_text))
+            if (!string.IsNullOrEmpty(card.Data.FlavorText))
             {
                 sb.AppendLine();
-                sb.AppendLine($"<i>{card.Data.flavor_text}</i>");
+                sb.AppendLine($"<i>{card.Data.FlavorText}</i>");
             }
 
             return sb.ToString();

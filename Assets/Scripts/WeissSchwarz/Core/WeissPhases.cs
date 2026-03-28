@@ -220,16 +220,13 @@ namespace TCG.Weiss {
                     {
                         var card = slot.Current;
                         // レストしていなくて、"【起】"で始まる能力を持つカードを探す
-                        if (card != null && !card.IsRested && card.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj))
+                        if (card != null && !card.IsRested && card.Data?.Abilities != null)
                         {
-                            if (abilitiesObj is List<string> abilities)
+                            foreach (var abilityText in card.Data.Abilities)
                             {
-                                foreach (var abilityText in abilities)
+                                if (abilityText.StartsWith("【起】"))
                                 {
-                                    if (abilityText.StartsWith("【起】"))
-                                    {
-                                        activatableAbilities.Add(new KeyValuePair<WeissCard, string>(card, abilityText));
-                                    }
+                                    activatableAbilities.Add(new KeyValuePair<WeissCard, string>(card, abilityText));
                                 }
                             }
                         }
@@ -410,10 +407,8 @@ namespace TCG.Weiss {
             // 1. 相手の手札にある「助太刀」能力を持つカードを探す
             var hand = opponent.GetZone<IHandZone<WeissCard>>();
             var counterCards = hand.Cards.Where(card => {
-                if (card.Data.Metadata.TryGetValue("ability_text", out object abilitiesObj)) {
-                    if (abilitiesObj is List<string> abilities) {
-                        return abilities.Any(text => text.Contains("【助太刀】"));
-                    }
+                if (card.Data?.Abilities != null) {
+                    return card.Data.Abilities.Any(text => text.Contains("【助太刀】"));
                 }
                 return false;
             }).ToList();
@@ -543,7 +538,7 @@ namespace TCG.Weiss {
                         // 3b. 特殊アンコール（例：手札のキャラ1枚を控え室に置く）
                         // 本来は能力テキストからコストを正確に解釈する必要がある
                         var hand = player.GetZone<IHandZone<WeissCard>>();
-                        var characterInHand = hand.Cards.FirstOrDefault(c => ((c as WeissCard)?.Data as WeissCardData)?.CardType == "キャラクター");
+                        var characterInHand = hand.Cards.FirstOrDefault(c => ((c as WeissCard)?.Data as WeissCardData)?.CardType == WeissCardType.Character.ToString());
 
                         if (characterInHand != null)
                         {

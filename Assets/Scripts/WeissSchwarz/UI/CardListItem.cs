@@ -31,8 +31,8 @@ namespace TCG.Weiss.UI
         public void SetCardData(WeissCardData data)
         {
             _cardData = data;
-            if (cardNameText != null) cardNameText.text = data.name;
-            if (cardNoText != null) cardNoText.text = data.card_no;
+            if (cardNameText != null) cardNameText.text = data.Name;
+            if (cardNoText != null) cardNoText.text = data.CardCode;
         }
 
         /// <summary>

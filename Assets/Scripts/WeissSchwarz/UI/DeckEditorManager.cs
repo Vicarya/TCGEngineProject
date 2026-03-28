@@ -142,7 +142,7 @@ namespace TCG.Weiss.UI
         private void HandleDataInitialized()
         {
             _allCardData = Data.CardDataImporter.GetAllCardData();
-            _cardDataMap = _allCardData.ToDictionary(card => card.card_no, card => card);
+            _cardDataMap = _allCardData.ToDictionary(card => card.CardCode, card => card);
             _hasLoadedData = true;
 
             if (_isUiReady)
@@ -288,7 +288,7 @@ namespace TCG.Weiss.UI
             for (int i = startIndex; i < endIndex; i++)
             {
                 WeissCardData cardData = _filteredCardData[i];
-                GameObject cardObject = new GameObject(cardData.card_no, typeof(RectTransform));
+                GameObject cardObject = new GameObject(cardData.CardCode, typeof(RectTransform));
                 cardObject.transform.SetParent(cardGridContentParent, false);
                 CardGridItem gridItem = cardObject.AddComponent<CardGridItem>();
                 gridItem.Initialize(cardData);
@@ -424,28 +424,28 @@ namespace TCG.Weiss.UI
                 return;
             }
 
-            _currentDeck.TryGetValue(cardData.card_no, out int currentCopies);
+            _currentDeck.TryGetValue(cardData.CardCode, out int currentCopies);
             if (currentCopies >= MAX_COPIES_PER_CARD)
             {
                 return;
             }
 
-            _currentDeck[cardData.card_no] = currentCopies + 1;
+            _currentDeck[cardData.CardCode] = currentCopies + 1;
             UpdateDeckUI();
             _cardDetailViewInstance?.UpdateCardCount(cardData);
         }
 
         public void RemoveCardFromDeck(WeissCardData cardData)
         {
-            if (cardData == null || !_currentDeck.ContainsKey(cardData.card_no))
+            if (cardData == null || !_currentDeck.ContainsKey(cardData.CardCode))
             {
                 return;
             }
 
-            _currentDeck[cardData.card_no]--;
-            if (_currentDeck[cardData.card_no] <= 0)
+            _currentDeck[cardData.CardCode]--;
+            if (_currentDeck[cardData.CardCode] <= 0)
             {
-                _currentDeck.Remove(cardData.card_no);
+                _currentDeck.Remove(cardData.CardCode);
             }
 
             UpdateDeckUI();
@@ -464,7 +464,7 @@ namespace TCG.Weiss.UI
                 return;
             }
 
-            IOrderedEnumerable<KeyValuePair<string, int>> sortedDeck = _currentDeck.OrderBy(kvp => _cardDataMap[kvp.Key].card_no);
+            IOrderedEnumerable<KeyValuePair<string, int>> sortedDeck = _currentDeck.OrderBy(kvp => _cardDataMap[kvp.Key].CardCode);
             foreach (KeyValuePair<string, int> deckEntry in sortedDeck)
             {
                 GameObject newItemObject = Instantiate(deckCardListItemPrefab, deckListContentParent);
@@ -496,7 +496,7 @@ namespace TCG.Weiss.UI
                 return 0;
             }
 
-            return _currentDeck.TryGetValue(cardData.card_no, out int count) ? count : 0;
+            return _currentDeck.TryGetValue(cardData.CardCode, out int count) ? count : 0;
         }
     }
 }

@@ -1,7 +1,7 @@
-using UnityEngine;
 using TCG.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TCG.Weiss {
     /// <summary>
@@ -36,32 +36,30 @@ namespace TCG.Weiss {
         public List<string> Abilities;
         /// <summary>カードが持つ特徴（例：「音楽」「武器」など）のリスト。</summary>
         public List<string> Traits;
+        /// <summary>公式カード詳細ページのURL。</summary>
+        public string DetailPageUrl;
 
-        // --- 互換性維持・エイリアスのためのプロパティ ---
-        // 以下のプロパティは、古いコードや、異なる命名規則を持つ外部データソース（JSONなど）との
-        // 後方互換性を維持するために定義されたエイリアス（別名）です。
-        // 例えば、`card_no`へのアクセスは、内部的には基底クラスの`CardCode`プロパティにリダイレクトされます。
-        // また、一部のプロパティはデータバインディングの容易さのため、int型とstring型で相互変換を行っています。
+        /// <summary>
+        /// ランタイムで必要な既定値や派生値を補完します。
+        /// </summary>
+        public void EnsureRuntimeDefaults()
+        {
+            Abilities ??= new List<string>();
+            Traits ??= new List<string>();
 
-        public string card_no { get => CardCode; set => CardCode = value; }
-        public string name { get => Name; set => Name = value; }
-        public string detail_page_url { get; set; }
-        public string image_url { get => ImagePath; set => ImagePath = value; }
+            if (string.IsNullOrEmpty(WorkId) && !string.IsNullOrEmpty(CardCode))
+            {
+                int separatorIndex = CardCode.IndexOf('/');
+                WorkId = separatorIndex > 0 ? CardCode.Substring(0, separatorIndex) : CardCode;
+            }
+        }
 
-        // Japanese aliases (C# allows Unicode identifiers)
-        public string サイド { get => Side; set => Side = value; }
-        public string 種類 { get => CardType; set => CardType = value; }
-
-        // Numeric fields exposed as strings for compatibility with importer/UI
-        public string レベル { get => Level.ToString(); set => Level = int.TryParse(value, out var v) ? v : 0; }
-        public string 色 { get => Color; set => Color = value; }
-        public string パワー { get => Power.ToString(); set => Power = int.TryParse(value, out var v) ? v : 0; }
-        public string ソウル { get => Soul.ToString(); set => Soul = int.TryParse(value, out var v) ? v : 0; }
-        public string コスト { get => Cost.ToString(); set => Cost = int.TryParse(value, out var v) ? v : 0; }
-        public string レアリティ { get => Rarity; set => Rarity = value; }
-        public string トリガー { get => TriggerIcon; set => TriggerIcon = value; }
-        public List<string> 特徴 { get => Traits; set => Traits = value; }
-        public string flavor_text { get => FlavorText; set => FlavorText = value; }
-        public List<string> abilities { get => Abilities; set => Abilities = value; }
+        /// <summary>
+        /// カードが持つ能力テキストを常にnullではないコレクションとして返します。
+        /// </summary>
+        public IEnumerable<string> GetAbilityTexts()
+        {
+            return Abilities ?? Enumerable.Empty<string>();
+        }
     }
 }

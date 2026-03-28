@@ -12,7 +12,7 @@ Features:
 - Create indexes after import (configurable)
 
 Usage:
-  python import_to_sqlite.py --input weiss_schwarz_cards.fixed.json --db ws_cards.db
+  python import_to_sqlite.py --input Assets/StreamingAssets/WeissSchwarz/cards.json --db ws_cards.db
 
 If ijson is not installed the script will fall back to a memory-load (not recommended for very large files).
 """
@@ -115,22 +115,22 @@ def safe_int(v):
 
 
 def normalize_card(card: dict) -> tuple:
-    card_no = card.get('card_no') or card.get('cardNo') or card.get('cardNo'.upper())
+    card_no = card.get('cardCode') or card.get('card_no') or card.get('cardNo') or card.get('cardNo'.upper())
     name = card.get('name')
-    work_id = infer_work_id(card_no) if card_no else None
-    detail = card.get('detail_page_url')
-    image = card.get('image_url')
-    side = card.get('サイド') or card.get('side') or ''
-    color = card.get('色') or card.get('color') or ''
-    type_ = card.get('種類') or card.get('type')
-    level = safe_int(card.get('レベル') or card.get('level'))
-    power = safe_int(card.get('パワー') or card.get('power'))
-    cost = safe_int(card.get('コスト') or card.get('cost'))
-    rarity = card.get('レアリティ') or card.get('rarity')
-    trigger = card.get('トリガー') or card.get('trigger')
-    flavor = card.get('flavor_text') or card.get('フレーバー') or card.get('flavor')
+    work_id = card.get('workId') or (infer_work_id(card_no) if card_no else None)
+    detail = card.get('detailPageUrl') or card.get('detail_page_url')
+    image = card.get('imageUrl') or card.get('image_url')
+    side = card.get('side') or card.get('サイド') or ''
+    color = card.get('color') or card.get('色') or ''
+    type_ = card.get('cardType') or card.get('種類') or card.get('type')
+    level = safe_int(card.get('level') or card.get('レベル'))
+    power = safe_int(card.get('power') or card.get('パワー'))
+    cost = safe_int(card.get('cost') or card.get('コスト'))
+    rarity = card.get('rarity') or card.get('レアリティ')
+    trigger = card.get('trigger') or card.get('トリガー')
+    flavor = card.get('flavorText') or card.get('flavor_text') or card.get('フレーバー') or card.get('flavor')
     abilities = card.get('abilities') or []
-    traits = card.get('特徴') or []
+    traits = card.get('traits') or card.get('特徴') or []
     metadata = card
     updated_at = datetime.utcnow().isoformat()
 

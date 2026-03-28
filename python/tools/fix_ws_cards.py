@@ -2,184 +2,248 @@
 """
 fix_ws_cards.py
 
-Post-process a Weiss Schwarz cards JSON export to fill missing
-`サイド` and `色` by inferring from card numbers and by guessing
-icon URLs under the same domain (e.g. /wordpress/wp-content/images/cardlist/_partimages/*.gif).
+Convert raw Weiss Schwarz scraping output into the normalized card JSON
+shape used by the Unity runtime model (`WeissCardData`).
 
 Usage:
-  python fix_ws_cards.py [input.json] [output.json] [--verify]
+  python fix_ws_cards.py [input.json] [output.json]
 
-If --verify is passed the script will perform HTTP HEAD requests to
-confirm icon URLs exist (requires `requests`). If network isn't
-available or `requests` isn't installed the script will still write
-guesses but won't verify them.
+Default input:
+  python/tools/weiss_schwarz_cards.json
+
+Default output:
+  Assets/StreamingAssets/WeissSchwarz/cards.json
 """
 from __future__ import annotations
+
 import json
 import os
 import re
 import sys
-from urllib.parse import urlparse, urljoin
-
-try:
-    import requests
-except Exception:
-    requests = None
+from urllib.parse import urlparse
 
 
 COLOR_MAP = {
-    "red": "赤",
-    "blue": "青",
-    "yellow": "黄",
-    "green": "緑",
-    "purple": "紫",
-    "white": "白",
-    "black": "黒",
+    "red": "Red",
+    "blue": "Blue",
+    "yellow": "Yellow",
+    "green": "Green",
+    "purple": "Purple",
+    "white": "White",
+    "black": "Black",
+    "赤": "Red",
+    "青": "Blue",
+    "黄": "Yellow",
+    "緑": "Green",
+    "紫": "Purple",
+    "白": "White",
+    "黒": "Black",
 }
 
 SIDE_MAP = {
-    "W": "ヴァイス",
-    "S": "シュヴァルツ",
+    "W": "Weiss",
+    "S": "Schwarz",
+    "ヴァイス": "Weiss",
+    "シュヴァルツ": "Schwarz",
+    "Weiss": "Weiss",
+    "Schwarz": "Schwarz",
+}
+
+CARD_TYPE_MAP = {
+    "キャラ": "Character",
+    "キャラクター": "Character",
+    "Character": "Character",
+    "イベント": "Event",
+    "Event": "Event",
+    "クライマックス": "Climax",
+    "Climax": "Climax",
+}
+
+TRIGGER_MAP = {
+    "": "None",
+    "-": "None",
+    "なし": "None",
+    "None": "None",
 }
 
 
-def url_exists(url: str, timeout: float = 5.0) -> bool:
-    if not requests:
-        return False
-    try:
-        r = requests.head(url, allow_redirects=True, timeout=timeout)
-        return r.status_code == 200
-    except Exception:
-        return False
+def safe_int(value, default=0):
+    if value is None:
+        return default
+    if isinstance(value, int):
+        return value
+    text = str(value).strip()
+    if not text:
+        return default
+    match = re.search(r"-?\d+", text)
+    if not match:
+        return default
+    return int(match.group(0))
 
 
-def infer_side_from_card_no(card_no: str) -> tuple[str, str] | None:
-    # Attempt to capture a capital letter immediately after the first '/'
-    # e.g. DC/W01-001 -> 'W' :ヴァイス
-    if not card_no:
-        return None
-    m = re.search(r"/([A-Z])", card_no)
-    if not m:
-        return None
-    letter = m.group(1)
-    if letter in SIDE_MAP:
-        return letter, SIDE_MAP[letter]
-    return None
+def ensure_list(value):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str):
+        value = value.strip()
+        return [value] if value else []
+    return [str(value)]
 
 
-def build_partimage_base(image_url: str) -> str | None:
-    # Derive base domain for partimages from example image_url
-    # input: https://ws-tcg.com/wordpress/wp-content/images/cardlist/d/dc_w01/dc_w01_001.png
-    # output: https://ws-tcg.com/wordpress/wp-content/images/cardlist/_partimages/
-    if not image_url:
-        return None
-    p = urlparse(image_url)
-    if not p.scheme or not p.netloc:
-        return None
-    # path up to /wordpress/wp-content/images/cardlist/
-    m = re.search(r"(.*/wordpress/wp-content/images/cardlist/)", p.path)
-    if not m:
-        # fallback to site root + expected path
-        base = f"{p.scheme}://{p.netloc}/wordpress/wp-content/images/cardlist/_partimages/"
-        return base
-    prefix = m.group(1)
-    return f"{p.scheme}://{p.netloc}{prefix}_partimages/"
+def infer_work_id(card_code: str) -> str:
+    if not card_code:
+        return ""
+    separator_index = card_code.find("/")
+    return card_code[:separator_index] if separator_index > 0 else card_code
 
 
-def process_cards(cards: list[dict], verify: bool = False) -> list[dict]:
-    for card in cards:
-        # Ensure keys exist
-        side = card.get("サイド") or ""
-        color = card.get("色") or ""
-        image_url = card.get("image_url") or card.get("detail_page_url") or ""
-        card_no = card.get("card_no") or ""
+def infer_side_from_card_code(card_code: str) -> str:
+    if not card_code:
+        return ""
+    match = re.search(r"/([A-Z])", card_code)
+    if not match:
+        return ""
+    return SIDE_MAP.get(match.group(1), "")
 
-        part_base = build_partimage_base(image_url)
 
-        # サイド inference
-        if not side or str(side).strip() == "":
-            inferred = infer_side_from_card_no(card_no)
-            if inferred:
-                letter, name = inferred
-                guessed_img = None
-                if part_base:
-                    guessed_img = urljoin(part_base, f"{letter.lower()}.gif")
-                    if verify and url_exists(guessed_img):
-                        card["サイド_img"] = guessed_img
-                        card["サイド"] = name
-                    elif verify and not url_exists(guessed_img):
-                        # verified absent, still keep the textual inference
-                        card["サイド"] = name
-                        card.setdefault("サイド_img_candidates", []).append(guessed_img)
-                    else:
-                        # no verification requested or requests unavailable
-                        card["サイド"] = name
-                        if guessed_img:
-                            card.setdefault("サイド_img_candidates", []).append(guessed_img)
-                else:
-                    card["サイド"] = name
+def infer_from_image_filename(url: str) -> str:
+    if not url:
+        return ""
+    parsed = urlparse(url)
+    filename = os.path.basename(parsed.path).lower()
+    return os.path.splitext(filename)[0]
 
-        # 色 inference
-        if not color or str(color).strip() == "":
-            found = False
-            candidates = []
-            if part_base:
-                for cname, jname in COLOR_MAP.items():
-                    guessed = urljoin(part_base, f"{cname}.gif")
-                    candidates.append((cname, jname, guessed))
-                # If verify requested, check which exists
-                if verify and requests:
-                    for cname, jname, guessed in candidates:
-                        if url_exists(guessed):
-                            card["色_img"] = guessed
-                            card["色"] = jname
-                            found = True
-                            break
-                # If not verified or nothing matched, at least provide candidates
-                if not found:
-                    card.setdefault("色_img_candidates", [g for _, _, g in candidates])
-            # else: cannot build candidates; leave blank
 
-    return cards
+def normalize_color(card: dict) -> str:
+    raw_color = card.get("color") or card.get("色")
+    if raw_color:
+        return COLOR_MAP.get(str(raw_color).strip(), str(raw_color).strip())
+
+    image_hint = infer_from_image_filename(card.get("色_img", ""))
+    return COLOR_MAP.get(image_hint, "")
+
+
+def normalize_side(card: dict) -> str:
+    raw_side = card.get("side") or card.get("サイド")
+    if raw_side:
+        return SIDE_MAP.get(str(raw_side).strip(), str(raw_side).strip())
+
+    image_hint = infer_from_image_filename(card.get("サイド_img", "")).upper()
+    if image_hint in SIDE_MAP:
+        return SIDE_MAP[image_hint]
+
+    return infer_side_from_card_code(card.get("cardCode") or card.get("card_no") or "")
+
+
+def normalize_card_type(card: dict) -> str:
+    raw_type = card.get("cardType") or card.get("type") or card.get("種類")
+    if not raw_type:
+        return ""
+    raw_type = str(raw_type).strip()
+    return CARD_TYPE_MAP.get(raw_type, raw_type)
+
+
+def normalize_trigger(card: dict) -> str:
+    raw_trigger = card.get("trigger") or card.get("トリガー") or ""
+    raw_trigger = str(raw_trigger).strip()
+    return TRIGGER_MAP.get(raw_trigger, raw_trigger)
+
+
+def normalize_traits(card: dict) -> list[str]:
+    raw_traits = card.get("traits")
+    if raw_traits is None:
+        raw_traits = card.get("特徴")
+
+    traits = []
+    for value in ensure_list(raw_traits):
+        text = str(value).strip()
+        if not text or text == "特徴なし":
+            continue
+        traits.append(text)
+    return traits
+
+
+def normalize_abilities(card: dict) -> list[str]:
+    raw_abilities = card.get("abilities")
+    if raw_abilities is None:
+        raw_abilities = card.get("text")
+
+    abilities = []
+    for value in ensure_list(raw_abilities):
+        text = str(value).strip()
+        if text:
+            abilities.append(text)
+    return abilities
+
+
+def build_model_card(raw_card: dict) -> dict:
+    card_code = (raw_card.get("cardCode") or raw_card.get("card_no") or "").strip()
+
+    return {
+        "cardCode": card_code,
+        "name": (raw_card.get("name") or "").strip(),
+        "workId": (raw_card.get("workId") or infer_work_id(card_code)).strip(),
+        "detailPageUrl": (raw_card.get("detailPageUrl") or raw_card.get("detail_page_url") or "").strip(),
+        "imageUrl": (raw_card.get("imageUrl") or raw_card.get("image_url") or "").strip(),
+        "side": normalize_side(raw_card),
+        "cardType": normalize_card_type(raw_card),
+        "level": safe_int(raw_card.get("level") or raw_card.get("レベル")),
+        "cost": safe_int(raw_card.get("cost") or raw_card.get("コスト")),
+        "power": safe_int(raw_card.get("power") or raw_card.get("パワー")),
+        "soul": safe_int(raw_card.get("soul") or raw_card.get("ソウル")),
+        "color": normalize_color(raw_card),
+        "rarity": (raw_card.get("rarity") or raw_card.get("レアリティ") or "").strip(),
+        "trigger": normalize_trigger(raw_card),
+        "flavorText": (
+            raw_card.get("flavorText")
+            or raw_card.get("flavor_text")
+            or raw_card.get("フレーバー")
+            or ""
+        ).strip(),
+        "traits": normalize_traits(raw_card),
+        "abilities": normalize_abilities(raw_card),
+    }
+
+
+def process_cards(cards: list[dict]) -> list[dict]:
+    return [build_model_card(card) for card in cards]
 
 
 def main(argv: list[str] | None = None) -> int:
     argv = argv if argv is not None else sys.argv[1:]
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(script_dir, "..", ".."))
+
     if len(argv) >= 1:
-        inp = argv[0]
+        input_path = argv[0]
     else:
-        inp = os.path.join(os.path.dirname(__file__), "weiss_schwarz_cards.json")
+        input_path = os.path.join(script_dir, "weiss_schwarz_cards.json")
+
     if len(argv) >= 2:
-        outp = argv[1]
+        output_path = argv[1]
     else:
-        outp = os.path.join(os.path.dirname(__file__), "weiss_schwarz_cards.fixed.json")
-    verify = "--verify" in argv
+        output_path = os.path.join(project_root, "Assets", "StreamingAssets", "WeissSchwarz", "cards.json")
 
-    if verify and not requests:
-        print("[warning] --verify requested but `requests` not available; continuing without verification.")
-        verify = False
-
-    if not os.path.exists(inp):
-        print(f"Input file not found: {inp}")
+    if not os.path.exists(input_path):
+        print(f"Input file not found: {input_path}")
         return 2
 
-    with open(inp, "r", encoding="utf-8") as f:
+    with open(input_path, "r", encoding="utf-8") as f:
         cards = json.load(f)
 
-    # Backup original
-    backup = inp + ".bak"
-    if not os.path.exists(backup):
-        with open(backup, "w", encoding="utf-8") as b:
-            json.dump(cards, b, ensure_ascii=False, indent=2)
+    normalized_cards = process_cards(cards)
 
-    fixed = process_cards(cards, verify=verify)
+    output_dir = os.path.dirname(output_path)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
 
-    with open(outp, "w", encoding="utf-8") as f:
-        json.dump(fixed, f, ensure_ascii=False, indent=2)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(normalized_cards, f, ensure_ascii=False, indent=2)
 
-    print(f"Wrote fixed file to: {outp}")
-    if os.path.exists(backup):
-        print(f"Backup saved at: {backup}")
+    print(f"Wrote normalized runtime cards JSON to: {output_path}")
+    print(f"Card count: {len(normalized_cards)}")
     return 0
 
 

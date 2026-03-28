@@ -55,3 +55,6 @@ ExportedObj/
 # LargeResources
 *.db
 *.db.meta
+
+# Settings files
+.mcp.json

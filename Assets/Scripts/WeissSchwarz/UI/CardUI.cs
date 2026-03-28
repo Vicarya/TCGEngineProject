@@ -131,13 +131,11 @@ namespace TCG.Weiss.UI
         /// <returns>カード裏面のスプライト。</returns>
         private Sprite GetCardBackSprite()
         {
-            if (_card != null && _card.Data.Metadata.TryGetValue("サイド", out object sideObject))
-            { 
-                if (sideObject is string sideString)
-                {
-                    if (sideString == "ヴァイス") return _weissCardBackSprite;
-                    if (sideString == "シュヴァルツ") return _schwarzCardBackSprite;
-                }
+            if (_card != null)
+            {
+                string side = _card.Data.Side;
+                if (side == "Weiss" || side == "ヴァイス") return _weissCardBackSprite;
+                if (side == "Schwarz" || side == "シュヴァルツ") return _schwarzCardBackSprite;
             }
             return _weissCardBackSprite; // デフォルトとしてヴァイスの裏面を返す
         }

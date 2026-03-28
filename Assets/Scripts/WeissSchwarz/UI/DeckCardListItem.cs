@@ -44,7 +44,7 @@ namespace TCG.Weiss.UI
 
             if (cardNameText != null)
             {
-                cardNameText.text = _cardData.name;
+                cardNameText.text = _cardData.Name;
             }
 
             if (cardCountText != null)
@@ -54,7 +54,7 @@ namespace TCG.Weiss.UI
 
             if (_cardData != null)
             {
-                StartCoroutine(ImageLoader.LoadImage(_cardData.image_url, this.gameObject.GetComponent<Image>()));
+                StartCoroutine(ImageLoader.LoadImage(_cardData.ImagePath, this.gameObject.GetComponent<Image>()));
             }
         }
 
