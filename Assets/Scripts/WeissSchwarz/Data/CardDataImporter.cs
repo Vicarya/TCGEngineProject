@@ -229,7 +229,7 @@ namespace TCG.Weiss.Data
 
         private static string NormalizeTrigger(string trigger)
         {
-            if (string.IsNullOrWhiteSpace(trigger) || trigger == "-")
+            if (string.IsNullOrWhiteSpace(trigger) || trigger == "-" || trigger == "－")
             {
                 return "None";
             }

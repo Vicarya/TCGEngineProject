@@ -62,8 +62,25 @@ CARD_TYPE_MAP = {
 TRIGGER_MAP = {
     "": "None",
     "-": "None",
+    "－": "None",
     "なし": "None",
     "None": "None",
+}
+
+TRIGGER_ICON_MAP = {
+    "soul": "Soul",
+    "draw": "Draw",
+    "salvage": "Comeback",
+    "treasure": "Treasure",
+    "choice": "Choice",
+    "stock": "Stock",
+    "bounce": "Bounce",
+    "shot": "Shot",
+    "gate": "Gate",
+    "standby": "Standby",
+    "chance": "Chance",
+    "discovery": "Discovery",
+    "bushi": "Bushi",
 }
 
 
@@ -92,6 +109,16 @@ def ensure_list(value):
     return [str(value)]
 
 
+def ensure_text(value, default=""):
+    if value is None:
+        return default
+    if isinstance(value, list):
+        texts = [str(item).strip() for item in value if str(item).strip()]
+        return " ".join(texts) if texts else default
+    text = str(value).strip()
+    return text if text else default
+
+
 def infer_work_id(card_code: str) -> str:
     if not card_code:
         return ""
@@ -116,10 +143,27 @@ def infer_from_image_filename(url: str) -> str:
     return os.path.splitext(filename)[0]
 
 
+def image_list(card: dict, plural_key: str, singular_key: str) -> list[str]:
+    plural_value = card.get(plural_key)
+    if isinstance(plural_value, list):
+        return [str(item).strip() for item in plural_value if str(item).strip()]
+    if isinstance(plural_value, str) and plural_value.strip():
+        return [plural_value.strip()]
+
+    singular_value = card.get(singular_key)
+    if isinstance(singular_value, list):
+        return [str(item).strip() for item in singular_value if str(item).strip()]
+    if isinstance(singular_value, str) and singular_value.strip():
+        return [singular_value.strip()]
+
+    return []
+
+
 def normalize_color(card: dict) -> str:
     raw_color = card.get("color") or card.get("色")
     if raw_color:
-        return COLOR_MAP.get(str(raw_color).strip(), str(raw_color).strip())
+        normalized_color = ensure_text(raw_color)
+        return COLOR_MAP.get(normalized_color, normalized_color)
 
     image_hint = infer_from_image_filename(card.get("色_img", ""))
     return COLOR_MAP.get(image_hint, "")
@@ -128,7 +172,8 @@ def normalize_color(card: dict) -> str:
 def normalize_side(card: dict) -> str:
     raw_side = card.get("side") or card.get("サイド")
     if raw_side:
-        return SIDE_MAP.get(str(raw_side).strip(), str(raw_side).strip())
+        normalized_side = ensure_text(raw_side)
+        return SIDE_MAP.get(normalized_side, normalized_side)
 
     image_hint = infer_from_image_filename(card.get("サイド_img", "")).upper()
     if image_hint in SIDE_MAP:
@@ -141,14 +186,39 @@ def normalize_card_type(card: dict) -> str:
     raw_type = card.get("cardType") or card.get("type") or card.get("種類")
     if not raw_type:
         return ""
-    raw_type = str(raw_type).strip()
+    raw_type = ensure_text(raw_type)
     return CARD_TYPE_MAP.get(raw_type, raw_type)
 
 
 def normalize_trigger(card: dict) -> str:
+    trigger_icons = []
+    for url in image_list(card, "トリガー_imgs", "トリガー_img"):
+        icon_name = TRIGGER_ICON_MAP.get(infer_from_image_filename(url))
+        if icon_name:
+            trigger_icons.append(icon_name)
+
+    if trigger_icons:
+        return " ".join(trigger_icons)
+
     raw_trigger = card.get("trigger") or card.get("トリガー") or ""
-    raw_trigger = str(raw_trigger).strip()
+    raw_trigger = ensure_text(raw_trigger)
     return TRIGGER_MAP.get(raw_trigger, raw_trigger)
+
+
+def normalize_soul(card: dict) -> int:
+    raw_soul = card.get("soul")
+    if raw_soul is None:
+        raw_soul = card.get("ソウル")
+
+    normalized_soul = safe_int(raw_soul, default=-1)
+    if normalized_soul >= 0:
+        return normalized_soul
+
+    soul_icons = image_list(card, "ソウル_imgs", "ソウル_img")
+    if soul_icons:
+        return len(soul_icons)
+
+    return 0
 
 
 def normalize_traits(card: dict) -> list[str]:
@@ -179,29 +249,28 @@ def normalize_abilities(card: dict) -> list[str]:
 
 
 def build_model_card(raw_card: dict) -> dict:
-    card_code = (raw_card.get("cardCode") or raw_card.get("card_no") or "").strip()
+    card_code = ensure_text(raw_card.get("cardCode") or raw_card.get("card_no"))
 
     return {
         "cardCode": card_code,
-        "name": (raw_card.get("name") or "").strip(),
-        "workId": (raw_card.get("workId") or infer_work_id(card_code)).strip(),
-        "detailPageUrl": (raw_card.get("detailPageUrl") or raw_card.get("detail_page_url") or "").strip(),
-        "imageUrl": (raw_card.get("imageUrl") or raw_card.get("image_url") or "").strip(),
+        "name": ensure_text(raw_card.get("name")),
+        "workId": ensure_text(raw_card.get("workId") or infer_work_id(card_code)),
+        "detailPageUrl": ensure_text(raw_card.get("detailPageUrl") or raw_card.get("detail_page_url")),
+        "imageUrl": ensure_text(raw_card.get("imageUrl") or raw_card.get("image_url")),
         "side": normalize_side(raw_card),
         "cardType": normalize_card_type(raw_card),
         "level": safe_int(raw_card.get("level") or raw_card.get("レベル")),
         "cost": safe_int(raw_card.get("cost") or raw_card.get("コスト")),
         "power": safe_int(raw_card.get("power") or raw_card.get("パワー")),
-        "soul": safe_int(raw_card.get("soul") or raw_card.get("ソウル")),
+        "soul": normalize_soul(raw_card),
         "color": normalize_color(raw_card),
-        "rarity": (raw_card.get("rarity") or raw_card.get("レアリティ") or "").strip(),
+        "rarity": ensure_text(raw_card.get("rarity") or raw_card.get("レアリティ")),
         "trigger": normalize_trigger(raw_card),
-        "flavorText": (
+        "flavorText": ensure_text(
             raw_card.get("flavorText")
             or raw_card.get("flavor_text")
             or raw_card.get("フレーバー")
-            or ""
-        ).strip(),
+        ),
         "traits": normalize_traits(raw_card),
         "abilities": normalize_abilities(raw_card),
     }

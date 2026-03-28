@@ -340,7 +340,10 @@ namespace TCG.Weiss.Data.Generated
         new WorkIdMapping { Id = "YRC", Name = "ゆるキャン△" },
         new WorkIdMapping { Id = "YYS", Name = "ゆらぎ荘の幽奈さん" },
         new WorkIdMapping { Id = "ZLS", Name = "ゾンビランドサガ" },
-        new WorkIdMapping { Id = "ZM", Name = "ゼロの使い魔" }
+        new WorkIdMapping { Id = "ZM", Name = "ゼロの使い魔" },
+        new WorkIdMapping { Id = "BDY", Name = "" },
+        new WorkIdMapping { Id = "TAL", Name = "" },
+        new WorkIdMapping { Id = "VRG", Name = "" }
         };
     }
 }

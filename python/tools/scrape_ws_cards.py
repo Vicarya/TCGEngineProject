@@ -2,12 +2,13 @@ import json
 import time
 import os
 import re
+import argparse
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, SessionNotCreatedException
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
@@ -64,17 +65,22 @@ def parse_card_row(row_soup):
 
     unit_spans = td_tag.find_all('span', class_='unit')
     for span in unit_spans:
-        # If the span contains an <img>, prefer extracting the image src and mapping from filename
-        img = span.find('img')
+        # Some fields (especially soul / trigger) are represented by multiple icons.
+        # Keep the raw image list so the downstream fixer can derive model values.
+        imgs = span.find_all('img')
         text = span.text.strip()
         parts = text.split('：', 1)
         key = parts[0] if parts else ''
 
-        if img:
-            img_src = img.get('src')
-            img_url = urljoin(BASE_URL, img_src)
+        if imgs:
+            img_urls = [urljoin(BASE_URL, img.get('src')) for img in imgs if img.get('src')]
+            if not img_urls:
+                continue
+
+            first_img_src = imgs[0].get('src')
+            img_url = img_urls[0]
             # determine basename without extension
-            fname = os.path.basename(img_src).lower()
+            fname = os.path.basename(first_img_src).lower()
             name_no_ext = os.path.splitext(fname)[0]
 
             if key == 'サイド':
@@ -101,15 +107,17 @@ def parse_card_row(row_soup):
                     card_data.setdefault('色_img_candidates', []).append(img_url)
 
             elif key == 'ソウル':
+                card_data['ソウル_imgs'] = img_urls
                 card_data['ソウル_img'] = img_url
             elif key == 'トリガー':
+                card_data['トリガー_imgs'] = img_urls
                 card_data['トリガー_img'] = img_url
             else:
                 # fallback: store the raw pair if text part exists
                 if len(parts) == 2 and parts[1].strip():
                     card_data[key] = parts[1].strip()
                 else:
-                    card_data[key] = img_url
+                    card_data[key] = img_urls if len(img_urls) > 1 else img_url
         else:
             # no image; use text parsing as before
             if len(parts) == 2:
@@ -151,6 +159,10 @@ def main():
     """
     カードデータをスクレイピングするメイン処理
     """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--max-pages', type=int, default=0, help='取得するページ数の上限。0以下で無制限。')
+    args = parser.parse_args()
+
     all_cards_data = []
     driver = None
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -162,9 +174,13 @@ def main():
             print(f"エラー: chromedriver.exe が見つかりません: {chromedriver_path}")
             return
 
-        service = Service(executable_path=chromedriver_path)
         options = webdriver.ChromeOptions()
-        driver = webdriver.Chrome(service=service, options=options)
+        try:
+            service = Service(executable_path=chromedriver_path)
+            driver = webdriver.Chrome(service=service, options=options)
+        except SessionNotCreatedException:
+            print("ローカルの chromedriver.exe と Chrome のバージョンが不一致のため、Selenium Manager へフォールバックします。")
+            driver = webdriver.Chrome(options=options)
         wait = WebDriverWait(driver, 15)
 
         driver.get(SEARCH_PAGE_URL)
@@ -183,6 +199,10 @@ def main():
             to_visit = [driver.current_url]
 
             while to_visit:
+                if args.max_pages > 0 and len(visited) >= args.max_pages:
+                    print(f"\nページ上限 {args.max_pages} に到達したため取得を終了します。")
+                    break
+
                 cur = to_visit.pop(0)
                 if cur in visited:
                     continue
