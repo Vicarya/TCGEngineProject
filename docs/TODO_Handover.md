@@ -60,3 +60,33 @@
 
 ---
 このドキュメントを元に、各タスクをIssueとして管理し、開発を進めていくことを推奨します。
+
+---
+
+# Repository Pattern (SQLite)
+
+更新日: 2026-03-29
+
+## 目的
+- Core側でDB実装の共通化を行い、タイトル側は例外処理のみ実装する。
+
+## 基本パターン
+1. モデルクラスを定義する（public fieldベース）。
+2. `AutoSqliteCardRepositoryBase<T>` を継承してRepositoryを作る。
+3. コンストラクタで `tableName` と `primaryKeyColumn` を指定する。
+4. 必要に応じて以下だけoverrideする。
+   - `OnEntityLoaded`: Runtime既定値補完
+   - `OnSchemaEnsured`: 旧列名からの移行や特殊補正
+
+## 型推論ルール（Auto）
+- `string -> TEXT`
+- `int/long/short/byte/bool -> INTEGER`
+- `float/double/decimal -> REAL`
+- `List<string> -> TEXT(JSON)`
+- 上記以外は永続化対象外
+
+## 例外実装の考え方
+- 原則: DB列名 = モデル名
+- 例外: 旧スキーマ互換、特殊型変換、Runtime補完
+- 例外はタイトル側Repositoryに閉じる
+

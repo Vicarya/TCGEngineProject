@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TCG.Weiss.Data;
 using TCG.Weiss.Data.Generated;
 using TMPro;
 using UnityEngine;
@@ -141,7 +142,7 @@ namespace TCG.Weiss.UI
 
         private void HandleDataInitialized()
         {
-            _allCardData = Data.CardDataImporter.GetAllCardData();
+            _allCardData = WeissCardRuntimeStore.LoadAll();
             _cardDataMap = _allCardData.ToDictionary(card => card.CardCode, card => card);
             _hasLoadedData = true;
 

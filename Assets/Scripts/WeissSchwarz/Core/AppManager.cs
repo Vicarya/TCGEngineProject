@@ -46,7 +46,7 @@ namespace TCG.Weiss
         {
             Debug.Log("AppManager: starting data initialization.");
 
-            CardDataImporter.Initialize(dbFileName);
+            WeissCardRuntimeStore.Initialize(dbFileName);
 
             string targetDbPath = BuildPersistentDbPath(dbFileName);
             string sourceDbPath = BuildStreamingAssetsDbPath(dbFileName);

@@ -1,8 +1,7 @@
+using System.Collections.Generic;
 using TCG.Core;
-using TCG.Weiss;
+using TCG.Weiss.Data;
 using UnityEngine;
-using System.Linq;
-using TCG.Weiss.Data; // CardDataImporterを使用するために追加
 
 namespace TCG.Weiss
 {
@@ -19,6 +18,11 @@ namespace TCG.Weiss
         public static WeissCardDatabase Instance { get; private set; }
 
         /// <summary>
+        /// ロードされたすべてのカードデータへの読み取り専用アクセス。
+        /// </summary>
+        public IReadOnlyList<WeissCardData> AllCards => allCards;
+
+        /// <summary>
         /// オブジェクト初期化時に呼び出され、シングルトンインスタンスを設定し、データベースをロードします。
         /// </summary>
         private void Awake()
@@ -32,17 +36,15 @@ namespace TCG.Weiss
         /// </summary>
         public override void LoadDatabase()
         {
-            
-            // ScriptableObjectを経由せず、SQLiteから直接データをロードする
-            allCards = CardDataImporter.GetAllCardData();
+            allCards = WeissCardRuntimeStore.LoadAll();
 
             if (allCards.Count > 0)
             {
-                Debug.Log($"WeissCardDatabase: {allCards.Count}枚のカードがロードされました。");
+                Debug.Log($"WeissCardDatabase: {allCards.Count} cards loaded.");
             }
             else
             {
-                Debug.LogWarning("WeissCardDatabase: カードデータが0件です。JSONのインポートを行ってください。");
+                Debug.LogWarning("WeissCardDatabase: no cards were loaded.");
             }
         }
     }

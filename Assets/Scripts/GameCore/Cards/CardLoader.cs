@@ -1,40 +1,69 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using TCG.Weiss;
+using System.Data;
+using Mono.Data.Sqlite;
 using UnityEngine;
 
 namespace TCG.Core
 {
     /// <summary>
-    /// Resourcesフォルダ内のScriptableObjectアセットから全てのカードデータをロードします。
-    /// 【注意】現状の実装は `WeissCardData` に直接依存しており、GameCoreの汎用性が損なわれています。
-    /// 将来的には、ジェネリックなデータローダーにリファクタリングすることが望ましいです。
+    /// データベースから特定の型のカードデータをロードするための汎用的なクラス。
     /// </summary>
-    public static class CardLoader
+    public class CardLoader<TCard> where TCard : CardData
     {
-        /// <summary>
-        /// ロードされた全てのヴァイスシュヴァルツのカードデータのリスト。
-        /// </summary>
-        public static List<WeissCardData> AllCards { get; private set; } = new List<WeissCardData>();
+        private readonly string _connectionString;
 
         /// <summary>
-        /// カードデータアセットが格納されているResourcesフォルダ内のパス。
+        /// コンストラクタで接続文字列（DBのパス）を受け取ります。
         /// </summary>
-        private const string CardDataPath = "CardData";
-
-        /// <summary>
-        /// Resources/CardData フォルダから全ての `WeissCardDataAsset` ファイルをロードし、
-        /// `AllCards` リストを初期化します。
-        /// </summary>
-        public static void LoadAllCardAssets()
+        /// <param name="connectionString">SQLite接続文字列</param>
+        public CardLoader(string connectionString)
         {
-            // Resources.LoadAll を使って、指定されたパスにある全てのWeissCardDataAssetを読み込む
-            var cardAssets = Resources.LoadAll<WeissCardDataAsset>(CardDataPath);
+            _connectionString = connectionString;
+        }
 
-            // 読み込んだアセットから実際のCardDataを取り出し、リストに変換する
-            AllCards = cardAssets.Select(asset => asset.Data).ToList();
+        /// <summary>
+        /// 指定されたクエリを実行し、マッピング関数を用いてデータをロードします。
+        /// </summary>
+        /// <param name="query">実行するSELECTクエリ</param>
+        /// <param name="mapFunction">IDataReaderの各行をTCardインスタンスに変換するデリゲート</param>
+        /// <returns>ロードされたカードデータのリスト</returns>
+        public List<TCard> Load(string query, Func<IDataReader, TCard> mapFunction)
+        {
+            var results = new List<TCard>();
 
-            Debug.Log($"ヴァイスシュヴァルツのカードを {AllCards.Count} 枚ロードしました。(from: Resources/{CardDataPath})");
+            if (string.IsNullOrEmpty(_connectionString))
+            {
+                Debug.LogError($"[{typeof(TCard).Name} Loader] Connection string is null or empty.");
+                return results;
+            }
+
+            try
+            {
+                using (var dbConnection = new SqliteConnection(_connectionString))
+                {
+                    dbConnection.Open();
+                    using (var dbCommand = dbConnection.CreateCommand())
+                    {
+                        dbCommand.CommandText = query;
+                        using (IDataReader reader = dbCommand.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                TCard card = mapFunction(reader);
+                                if (card != null) results.Add(card);
+                            }
+                        }
+                    }
+                    dbConnection.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[{typeof(TCard).Name} Loader] Database load error: {ex.Message}");
+            }
+
+            return results;
         }
     }
 }

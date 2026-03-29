@@ -80,8 +80,8 @@ namespace TCG.Weiss
         /// <param name="state">セットアップ対象のGameState。</param>
         protected override void SetupGame(GameState state)
         {
-            // 手順1: カードデータベースからすべてのカードデータをロードする
-            CardLoader.LoadAllCardAssets();
+            // 手順1: カードデータベースの状態を確認
+            if (WeissCardDatabase.Instance == null) Debug.LogError("WeissCardDatabase Instance is missing!");
 
             // 手順2: プレイヤーインスタンスを2つ作成する (デバッグ用にConsoleControllerを使用)
             var player1 = new WeissPlayer("Player1", new ConsolePlayerController());
@@ -126,7 +126,7 @@ namespace TCG.Weiss
                         if (parts.Length == 2 && int.TryParse(parts[1], out int quantity))
                         {
                             string cardCode = parts[0];
-                            var cardData = CardLoader.AllCards.FirstOrDefault(c => c.CardCode == cardCode);
+                            var cardData = WeissCardDatabase.Instance.AllCards.FirstOrDefault(c => c.CardCode == cardCode);
                             if (cardData != null)
                             {
                                 for (int i = 0; i < quantity; i++)
@@ -141,7 +141,7 @@ namespace TCG.Weiss
                 {
                     Debug.LogWarning($"デッキファイルが見つかりません: {deckFilePath}。サンプルデッキを使用します。");
                     // ファイルが見つからない場合、フォールバックとしてサンプルデッキを生成
-                    foreach (var cardData in CardLoader.AllCards.Take(10))
+                    foreach (var cardData in WeissCardDatabase.Instance.AllCards.Take(10))
                     {
                         for (int i = 0; i < 5; i++)
                         {
