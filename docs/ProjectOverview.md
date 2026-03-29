@@ -1,79 +1,360 @@
-# TCG Engine Project Overview
+# TCGEngineProject Project Overview
 
-## 1. プロジェクト概要
+## 1. ドキュメントの目的
+このドキュメントは、`TCGEngineProject` の現在の実装を対象に、以下を一元整理したものです。
 
-このUnityプロジェクトは、様々なトレーディングカードゲーム（TCG）を実装するための、拡張可能で再利用性の高いTCGエンジンです。
+- フォルダ名ベースのプロジェクト全体構成
+- モジュール境界と責務
+- 主要機能の詳細設計（アーキテクチャ）
 
-中心的な `GameCore` ライブラリが汎用的なTCGの仕組みを提供し、それを拡張する形で `WeissSchwarz` のような特定のゲームルールが実装されています。将来的には `TCGPokemon` など、他のゲームへの展開も視野に入れた設計となっています。
+対象時点: 2026-03-29
 
-## 2. 設計構造
+---
 
-本プロジェクトは、大きく分けて「汎用的なコアエンジン」と「ゲーム個別の実装」の2層構造で設計されています。
+## 2. プロジェクトツリー（フォルダ名ベース）
 
-### 2.1. コアエンジン (`Assets/Scripts/GameCore`)
+### 2.1 ルート構成
 
-TCGの基本的な概念を抽象化した、ゲームに依存しないコンポーネント群です。
+```text
+TCGEngineProject/
+|- Assets/
+|- docs/
+|- Packages/
+|- ProjectSettings/
+|- UserSettings/
+|- tools/                 
+|- python/                (Pythonツール) 
+|- .vscode/
+|- Library/               (Unity生成物)
+|- Temp/                  (Unity生成物)
+|- Logs/                  (Unity生成物)
+|- obj/                   (ビルド生成物)
+|- tmp_nuget/             (一時生成物)
+|- *.csproj / *.sln
+```
 
-#### 主要コンポーネント
+### 2.2 Assets 配下
 
-*   **ゲームフロー管理 (`GameBase`, `GameState`)**
-    *   `GameBase`: ゲームの開始、ターン進行、フェーズ管理といった大まかな流れを定義する抽象クラス。
-    *   `GameState`: 現在のプレイヤー、フェーズ、ゲーム全体の状態を保持します。全てのゲームロジックはこの`GameState`オブジェクトを介して状態を参照・更新します。
+```text
+Assets/
+|- Fonts/
+|- Plugins/
+|  |- SQLite/
+|  |- x86_64/
+|- Resources/
+|  |- Images/
+|  |- Prefabs/
+|- Scenes/
+|- Scripts/
+|  |- GameCore/
+|  |  |- Abilities/
+|  |  |- Cards/
+|  |  |- Data/
+|  |  |- Events/
+|  |  |- Game/
+|  |- WeissSchwarz/
+|  |  |- Abilities/
+|  |  |  |- Core/
+|  |  |- Core/
+|  |  |- Cost/
+|  |  |- Data/
+|  |  |  |- Generated/
+|  |  |- Definitions/
+|  |  |- Effects/
+|  |  |- RuleGuides/
+|  |  |- Triggers/
+|  |  |- UI/
+|  |  |- Zones/
+|  |- TCGPokemon/
+|     |- Zone/
+|- StreamingAssets/
+|  |- WeissSchwarz/
+|     |- Decks/
+|- TextMesh Pro/
+```
 
-*   **イベント駆動アーキテクチャ (`EventBus`, `GameEvent`)**
-    *   「カードがプレイされた」「フェーズが開始した」といったゲーム内の出来事を `GameEvent` として表現します。
-    *   `EventBus` がこれらのイベントの発行と購読を管理します。これにより、各コンポーネントは他のコンポーネントを直接知ることなく、イベントを通じて連携できます（疎結合）。
+### 2.3 docs 配下
 
-*   **カードと能力 (`Card`, `AbilityBase`, `IEffect`)**
-    *   `Card`: 全てのカードの基底クラス。物理的な状態（タップされているか、どのゾーンにあるか等）を管理します。
-    *   `AbilityBase`: カードが持つ能力の基底クラス。「コスト」「トリガー条件」「効果」から構成されます。
-    *   `IEffect`: 能力が解決されたときに実行される実際の効果（カードを引く、ダメージを与える等）を定義するインターフェース。
+```text
+docs/
+|- ProjectOverview.md
+|- ProjectArchitecture.md
+|- TODO_ActionPlan.md
+|- TODO_Handover.md
+|- diagrams/
+```
 
-*   **ゾーン管理 (`IZone`, `ZoneBase`)**
-    *   `IZone`: カードが存在する場所（ゾーン）を抽象化する最も基本的なインターフェースです。
-    *   `ZoneBase`: 全てのゾーン実装の土台となる、カードリストの管理などの基本機能を提供します。
-    *   これらは`GameCore`に属する最も基本的な概念です。`IDeckZone`や`IStageZone`のような、より具体的なゾーンの役割（役割）を定義するインターフェースは、各ゲーム固有の実装（例：`WeissSchwarz`）側に配置され、関心の分離が徹底されています。
+### 2.4 補助/環境系ディレクトリ
 
-### 2.2. ゲーム個別実装 (`Assets/Scripts/WeissSchwarz`)
+- `Packages/`: Unity Package Manager 定義
+- `ProjectSettings/`: Unityプロジェクト設定
+- `UserSettings/`: ローカル環境依存設定
+- `python/`, `tools/`: データ作成・環境構築用の補助スクリプト群。詳細は 5.7 参照。
 
-`GameCore` を利用して、特定のTCG（この場合はヴァイスシュヴァルツ）のルールを実装します。
+---
 
-#### データ駆動型の能力設計
+## 3. 構成整理（責務別）
 
-このプロジェクトの最大の特徴は、カード能力をC#コードで直接記述するのではなく、**データとして定義**している点です。
+### 3.1 `TCG.Core`（共通エンジン層）
+`Assets/Scripts/GameCore`
 
-1.  **能力定義 (`AbilityDefinition`)**
-    *   能力の種類（自動、起動、常時）、発動条件、コスト、効果などをプロパティとして持つクラスです。
-    *   これにより、「【自】このカードが手札から舞台に置かれた時、あなたは自分の山札を上から1枚見て、山札の上か下に置く。」といった能力を、以下のようなデータ構造で表現できます。
-        ```csharp
-        new AbilityDefinition {
-            Type = AbilityType.Auto,
-            Condition = new ConditionDefinition { Event = "OnPlay" },
-            Effects = new List<EffectDefinition> {
-                new EffectDefinition { Kind = EffectKind.LookTopAndPlace, Count = 1 }
-            }
-        }
-        ```
+責務:
+- ゲーム進行の抽象 (`GameBase`, `GameState`, `PhaseBase`)
+- カード/ゾーン/プレイヤーの共通モデル (`Card`, `CardData`, `Player`, `IZone`, `ZoneBase`)
+- 能力解決の共通契約 (`AbilityBase`, `IEffect`, `ITriggerCondition`, `ICost`)
+- イベント通知 (`EventBus`, `GameEventType`, `BaseGameEvents`)
+- データ読み込み基盤 (`CardLoader`, `CardDatabase`, `CardQuery`)
 
-2.  **能力生成 (`AbilityFactory`)**
-    *   `AbilityDefinition` オブジェクトを読み込み、それに対応する `AbilityBase` のインスタンス（コストや効果の具体的なロジックを持つオブジェクト）を動的に生成します。
+### 3.2 `TCG.Weiss`（Weiss Schwarz ルール実装層）
+`Assets/Scripts/WeissSchwarz`
 
-この設計により、プログラマーでないゲームデザイナーでも、定義ファイルを編集するだけで新しいカードや能力を簡単に追加・修正することが可能になります。
+責務:
+- Weiss固有のゲーム状態/ターン進行 (`WeissGame`, `WeissGameState`, `WeissPhaseFactory`, 各Phase)
+- ルール解決エンジン (`WeissRuleEngine`)
+- ゾーン具体実装 (`DeckZone`, `StageZone`, `ClockZone`, `StockZone` など)
+- 能力/コスト/効果の解析と実体化 (`AbilityFactory`, `CostFactory`, `EffectFactory`)
+- データアクセス (`CardDataImporter`, `WeissCardDatabase`, `WeissCardQuery`)
+- UI連携 (`GameView`, `UIGamePlayerController`, 各Zone UI, `DeckEditorManager`)
 
-#### 主要コンポーネント
+### 3.3 `TCGPokemon`（将来拡張/試作層）
+`Assets/Scripts/TCGPokemon`
 
-*   `WeissGame`: `GameBase` を継承した、ヴァイスシュヴァルツのゲーム進行を管理するクラス。
-*   `WeissRuleEngine`: ヴァイスシュヴァルツ固有のルール判定（例: レベルアップ、色発生）を担当します。
-*   `WeissCard`: `Card` を継承し、ヴァイスシュヴァルツのカードが持つ固有のデータ（パワー、ソウル、特徴など）を管理します。
-*   `Definitions` フォルダ: `AbilityDefinition`, `CostDefinition`, `EffectDefinition` など、データ駆動設計の根幹をなす定義クラスが格納されています。
+責務:
+- 別TCG対応のための試作コード配置
+- 現状はコメントアウト主体で、本流機能ではない
 
-## 3. フォルダ構造の概要
+---
 
-*   `Assets/Scripts/GameCore`: ゲームに依存しない共通ライブラリ。
-*   `Assets/Scripts/TCGPokemon`: ポケモンカードゲーム用の実装（開発中）。
-*   `Assets/Scripts/WeissSchwarz`: ヴァイスシュヴァルツ用の実装。
-    *   `Core`: ゲーム進行やカード定義など、中核となるクラス群。
-    *   `Abilities`: 能力の定義や生成に関するクラス群。
-    *   `Zones`: ヴァイスシュヴァルツ固有のゾーン（クロック、レベル置場など）の実装。
-*   `ProjectSettings`: Unityエディタの各種設定。
-*   `Packages`: プロジェクトが依存するUnityパッケージのリスト。
+## 4. アーキテクチャ概要
+
+### 4.1 レイヤ構成
+
+```text
+[Presentation]
+  GameView / Zone UI / DeckEditor / UIGamePlayerController
+      |
+[Application/Game Specific]
+  WeissGame / WeissPhases / WeissRuleEngine / AbilityQueue
+      |
+[Domain Core]
+  GameBase / GameState / PhaseBase / Card / Zone / Ability / EventBus
+      |
+[Infrastructure]
+  AppManager / CardDataImporter / CardLoader / SQLite / StreamingAssets
+```
+
+### 4.2 依存方向
+
+- `GameCore` は `WeissSchwarz` を参照しない（共通基盤）
+- `WeissSchwarz` は `GameCore` を参照して具体化する
+- UI は `WeissSchwarz.Core` の状態を読んで描画し、`IWeissPlayerController` 経由で入力を返す
+- データ層は SQLite/JSON を `WeissCardData` に正規化して供給する
+
+---
+
+## 5. 主要機能の詳細設計（アーキテクチャ）
+
+## 5.1 起動・データ初期化フロー
+
+### 目的
+ゲーム開始前に、カードDBとUIが参照可能な初期状態を作る。
+
+### 主要コンポーネント
+- `AppManager`
+- `CardDataImporter`
+- `WeissCardDatabase`
+- `GameManager`
+
+### 処理フロー
+1. `AppManager.Start()` で `CardDataImporter.Initialize(dbFileName)` を実行
+2. `StreamingAssets/WeissSchwarz/cards.db` を `persistentDataPath` へコピー
+3. 完了後 `OnDataInitialized` を発火
+4. `WeissCardDatabase.Awake()` で `cards` テーブルを読み込みメモリ化
+5. `GameManager.Start()` で `WeissGame` を生成し、マリガン→ゲーム開始
+
+### 設計上の要点
+- DBコピー失敗時は stale DB を削除し、不整合を回避
+- エディタでは `CardDataImporter.GenerateDatabaseInEditor` で JSON から DB 再生成可能
+
+---
+
+## 5.2 ターン進行（Phase駆動）
+
+### 目的
+Weiss Schwarz の 1ターン進行を統一ルールで実行する。
+
+### 主要コンポーネント
+- `WeissPhaseFactory`
+- `PhaseBase` と各フェーズ実装
+- `WeissRuleEngine.ExecuteTurn()`
+
+### フェーズ列
+- `StandPhase`
+- `DrawPhase`
+- `ClockPhase`
+- `MainPhase`
+- `ClimaxPhase`
+- `AttackPhase`
+- `EndPhase`
+
+### 処理フロー
+1. `WeissRuleEngine` がターンフェーズツリーを構築
+2. `TurnPhaseTree.Execute(GameState)` で親→子を順次実行
+3. 各フェーズの `OnEnter` でルール処理と `GameEvent` 通知を行う
+4. `CheckTiming` 系イベントで誘発チェックタイミングを統一
+
+### 設計上の要点
+- 進行制御を `PhaseBase` に集約し、ルール追加点をフェーズ単位に限定
+- フェーズ横断通知は `EventBus` で疎結合化
+
+---
+
+## 5.3 行動解決（プレイ/攻撃/ダメージ/アンコール）
+
+### 目的
+メイン行動と戦闘解決を段階的に実施し、状態遷移を明確化する。
+
+### 主要コンポーネント
+- `MainPhase`
+- `AttackPhase`
+- `WeissRuleEngine` (`TriggerCheck`, `ApplyDamage`, `ResolveCounterAbility`)
+- `StageZone`, `ClockZone`, `LevelZone`, `WaitingRoomZone`
+
+### MainPhase（抜粋）
+- `MainPhaseAction` をコントローラから取得
+- カードプレイ時に レベル/コスト/配置可否 を検証
+- コスト支払い後に `CardPlayed` イベントを発行
+- 起動能力は `ActivateAbility` に委譲
+
+### AttackPhase（抜粋）
+- 攻撃宣言→トリガー→カウンター→ダメージ→バトル→アンコールの順
+- `AttackType`（Direct/Front/Side）で分岐
+- ダメージキャンセル/レベルアップ/リフレッシュダメージを `WeissRuleEngine` で処理
+
+### 設計上の要点
+- 戦闘解決をステップ化し、ログ/イベントと一緒に追跡可能
+- 盤面管理（`StageZone` + `StageSlot`）とリソース管理（`Stock/Clock/Level`）を明確に分離
+
+---
+
+## 5.4 能力システム（文字列定義→実行）
+
+### 目的
+カードテキスト由来の能力を実行可能オブジェクトへ変換し、ルールエンジンで解決する。
+
+### 主要コンポーネント
+- `AbilityFactory`
+- `CostFactory`
+- `EffectFactory`
+- `WeissAbility` / `AbilityBase`
+- `AbilityQueue` / `PendingAbility`
+
+### 処理フロー
+1. `WeissCard` 生成時に `AbilityFactory.CreateAbilitiesForCard` を実行
+2. 能力文字列を `AbilityType` / `Cost` / `Effect` に分解
+3. 誘発時は `WeissRuleEngine.CheckForTriggeredAbilities` が `PendingAbility` を積む
+4. `ResolveAbilityQueue` でプレイヤー順に解決対象を決定し実行
+
+### 設計上の要点
+- 文字列解釈は Factory に閉じ込め、ルール進行から分離
+- 未対応テキストは警告出力に倒し、段階的拡張を許容
+- `AbilityQueue` で同時誘発の順序選択に対応
+
+---
+
+## 5.5 UI制御とプレイヤー入力
+
+### 目的
+ゲームロジックとUI入力をインターフェースで分離し、差し替え可能にする。
+
+### 主要コンポーネント
+- `IWeissPlayerController`
+- `ConsolePlayerController`
+- `UIGamePlayerController`
+- `GameView`
+
+### 設計方針
+- ルール側は `IWeissPlayerController` のみ参照
+- UI実装は `TaskCompletionSource` で非同期入力を返却（マリガン等）
+- 表示更新は `GameView.UpdateView(player)` を入口に各Zone UIへ配信
+
+### 現状の実装状態
+- `UIGamePlayerController` は未実装メソッドが多く、現時点はダミー返却が混在
+- `ConsolePlayerController` の併用を前提とした過渡状態
+
+---
+
+## 5.6 デッキ編集機能
+
+### 目的
+カード検索・フィルタ・ページング・デッキ編集をUI上で完結させる。
+
+### 主要コンポーネント
+- `DeckEditorManager`
+- `WeissCardQuery`
+- `PaginationUI`
+
+### 処理フロー
+1. `AppManager.OnDataInitialized` を受けて全カードをロード
+2. 検索条件を `WeissCardQuery` に積み上げて絞り込み
+3. ページ単位でカードグリッド表示
+4. デッキ枚数制約（50枚/同名4枚）を満たす範囲で編集
+
+### 設計上の要点
+- フィルタ条件を Query オブジェクトに集約
+- UIイベントを `DeckEditorManager` に集約し、画面ロジックを一本化
+
+---
+
+## 5.7 補助ツール（Python/Tools）
+
+### 目的
+カードデータの収集、画像リソースの管理、環境構築の自動化など、Unityエディタ外での作業を効率化する。
+
+### 主な役割
+- **データ管理 (`python/`)**:
+    - **スクレイピング**: 外部ソースからカード情報を取得し、`cards.json` 形式で出力。
+    - **バリデーション**: JSONデータの整合性（ID重複やフォーマット）をチェック。
+    - **画像処理**: カード画像のダウンロードや、ゲーム内利用に最適なサイズへの一括リサイズ。
+- **環境構築 (`tools/`)**:
+    - プロジェクトセットアップ用のシェルスクリプトや、ビルド補助ツールの配置。
+
+### 具体的なツールと実行方法
+
+| ディレクトリ | ファイル名 | 実行方法 (例) | 説明 |
+| :--- | :--- | :--- | :--- |
+| `python/` | `card_scraper.py` | `python python/card_scraper.py --all` | 公式サイト等からカード情報を取得し `cards.json` を生成。 |
+| `python/` | `json_validator.py` | `python python/json_validator.py` | `cards.json` の構文やIDの重複、必須項目の欠落をチェック。 |
+| `python/` | `image_resizer.py` | `python python/image_resizer.py` | 取得したカード画像をUnityに最適なサイズ・形式（WebP/PNG）に一括変換。 |
+| `tools/` | `setup_env.sh` | `bash tools/setup_env.sh` | 開発環境（Git Hookや依存ライブラリ）の初期セットアップ。 |
+| `tools/` | `build_assets.py` | `python tools/build_assets.py` | アセットバンドルのビルドや、デプロイ用データのパッケージング補助。 |
+
+### 実行環境の注意
+- Python 3.10以上を推奨。
+- `python/requirements.txt` が存在する場合は、事前に `pip install -r python/requirements.txt` を実行してください。
+- Unityエディタ上からこれらのツールを呼び出すメニュー（`Tools > Weiss Schwarz > ...`）も順次実装予定です。
+
+---
+
+## 6. 主要モジュール間シーケンス（要約）
+
+```text
+AppManager -> CardDataImporter -> SQLite準備
+        -> WeissCardDatabase -> メモリロード
+GameManager -> WeissGame -> WeissRuleEngine
+         -> (Phase実行)
+         -> EventBus Raise
+         -> RuleEngine (誘発検出/解決)
+         -> UI Controller (選択入力)
+         -> GameView (表示更新)
+```
+
+---
+
+## 7. 今後の設計上の優先課題
+
+- `UIGamePlayerController` の未実装入力を実装し、Console依存を解消
+- 能力テキスト解析の対応範囲拡大（`CostFactory`/`EffectFactory`）
+- `WeissRuleEngine` のハードコード能力分岐をDefinition駆動へ移行
+- `ProjectArchitecture.md` との内容重複を解消し、設計書を一本化
+- 文字コードをUTF-8へ統一（既存ドキュメントの文字化け対策）

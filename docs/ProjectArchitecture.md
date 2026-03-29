@@ -1,151 +1,270 @@
-# TCG Engine Project
+# Project Architecture
 
-## 概要
+## 1. 目的
+本ドキュメントは、`TCG.Core` を汎用ロジック、`TCG.Weiss` を Weiss Schwarz 専用ロジックとして分離する設計思想を明文化し、継承関係・依存関係・拡張方針を整理する。
 
-このプロジェクトは、Unityで開発されたトレーディングカードゲーム（TCG）制作用の汎用エンジンです。
-特定のTCGのルールに依存しないコアシステム (`GameCore`) と、そのコアシステムを基にした具体的なTCGの実装例 (`WeissSchwarz`, `TCGPokemon`) で構成されています。
+対象時点: 2026-03-29
 
-## 特徴
+---
 
-- **汎用的なコアシステム**: `GameCore`により、様々なカードゲームの基本的な要素（カード、デッキ、ゾーン、フェーズ、アビリティ）を管理できます。
-- **拡張性**: 新しいカードゲームを追加する際は、`GameCore` のクラスを継承して、そのゲーム固有のロジックやルールを実装することで容易に拡張できます。
-- **実装例**: ヴァイスシュヴァルツとポケモンカードゲームの実装が含まれており、エンジンをどのように利用するかの具体的なサンプルとして役立ちます。
+## 2. 設計思想（Namespace境界）
 
-## アーキテクチャ原則
+### 2.1 `TCG.Core` の責務
+`TCG.Core` は「カードゲーム一般」に共通する抽象を持つ。
 
-このプロジェクトは、`GameCore`とゲーム固有モジュール（`WeissSchwarz`など）の**関心を完全に分離する**ことを目指しています。
+- ゲーム進行の抽象: `GameBase`, `GameState`, `PhaseBase`
+- プレイヤー/カード/ゾーンの抽象: `Player`, `Card`, `CardData`, `IZone<T>`, `ZoneBase<T>`
+- 能力解決の抽象: `AbilityBase`, `ICost`, `IEffect`, `ITriggerCondition`
+- イベント基盤: `EventBus`, `GameEvent`, `GameEventType`
+- データアクセス抽象: `CardLoader`, `CardDatabase<TCardData, TQuery>`, `CardQuery<TCardData>`
 
-- **`GameCore`の責務**: `Card`, `Player`, `ZoneBase`など、あらゆるカードゲームに共通する、完全に抽象化された概念のみを定義します。`GameCore`は、特定のゲームのルール、用語、UIに一切依存してはいけません。
+### 2.2 `TCG.Weiss` の責務
+`TCG.Weiss` は Weiss Schwarz 固有ルールを `TCG.Core` の抽象へマッピングする。
 
-- **ゲーム固有モジュールの責務**: `GameCore`の基本クラスを継承し、特定のゲームのルール、UI、カードデータ、ゾーンの役割（例：`IDeckZone`, `IStageZone`）などをすべて実装します。例えば、`WeissSchwarz`モジュールはヴァイスシュヴァルツを遊ぶために必要なすべての要素を含みます。
+- 固有ゲーム本体: `WeissGame`, `WeissGameState`, `WeissRuleEngine`
+- 固有フェーズ: `StandPhase`〜`EndPhase`
+- 固有カード/クエリ/DB: `WeissCard`, `WeissCardData`, `WeissCardQuery`, `WeissCardDatabase`
+- 固有ゾーン群: `DeckZone`, `StageZone`, `ClockZone`, `StockZone` など
+- 固有能力解析: `AbilityFactory`, `CostFactory`, `EffectFactory`
+- UIアダプタ: `IWeissPlayerController`, `ConsolePlayerController`, `UIGamePlayerController`
 
-最近実施されたリファクタリングは、この原則を徹底するためのものです。当初`GameCore`に存在した`IDeckZone`や`IStageZone`といったインターフェースは、その「役割」が特定のゲームに依存する可能性があるため、`WeissSchwarz`モジュールに移動されました。これにより、`GameCore`の汎用性がより高まっています。
+### 2.3 依存ルール
 
-## ディレクトリ構造
+- `TCG.Core` -> `TCG.Weiss` の参照は禁止
+- `TCG.Weiss` -> `TCG.Core` の参照は許可
+- UI層（Unity `MonoBehaviour`）は `TCG.Weiss` の外側アダプタとして扱う
+- ルール本体は `MonoBehaviour` に依存しない
 
-- `Assets/Scripts/GameCore`: TCGの汎用的なコア機能。
-- `Assets/Scripts/TCGPokemon`: ポケモンカードゲームの実装例。
-- `Assets/Scripts/WeissSchwarz`: ヴァイスシュヴァルツの実装例。
-- `Assets/Scenes`: ゲームのメインシーンなどが含まれます。
+### 2.4 名前空間の命名規則
 
-## ネームスペースと主要クラス（抜粋）
+基本方針:
+- ルートは `TCG` で統一する
+- 共通基盤は `TCG.Core` に集約する
+- タイトル固有は `TCG.<GameName>` を使う（例: `TCG.Weiss`）
 
-この節では、実際にソース上で使われているネームスペースと代表的なクラス・インターフェースを整理します。
+推奨パターン:
+- `TCG.Core`: 汎用ドメインモデル/抽象
+- `TCG.Core.<Area>`: Core内の責務分割（必要時のみ）
+- `TCG.<GameName>`: ゲーム固有のドメイン実装
+- `TCG.<GameName>.UI`: ゲーム固有UI層
+- `TCG.<GameName>.Data`: ゲーム固有データアクセス層
+- `TCG.<GameName>.<Area>`: `Core`, `Zones`, `Effects`, `Cost` など責務単位
 
-- `TCG.Core` (主に `Assets/Scripts/GameCore` 配下)
-	- Card / CardBase<TData> / CardData
-	- Player
-	- IZone / IZone<TCard> / ZoneBase
-	- GameBase / GameState / PhaseBase
-	- AbilityBase / IEffect / ITriggerCondition
-	- EventBus / GameEventType
-	- ICost / Costs
-	- Database
-		- CardDatabase<TData, TQuery> (汎用DB基底クラス)
-		- CardQuery<TData> (汎用検索クエリ基底クラス)
-		- DeckManager (汎用デッキ管理)
+`GameName` の命名:
+- PascalCase を使用（例: `Weiss`, `Pokemon`, `Yugioh`）
+- 省略語は可読性優先（チームで表記を固定）
 
-- `TCG.Weiss` (ヴァイスシュヴァルツ実装、`Assets/Scripts/WeissSchwarz`)
-	- WeissCard : CardBase<WeissCardData>
-	- WeissGame : GameBase
-	- 独自ゾーンインターフェース（例: `IDeckZone`, `IStageZone`）およびその実装
-	- 具象コストクラス（例: `StockCost`, `DiscardHandCost`）
-	- CostFactory
-	- Database
-		- WeissCardDatabase (ヴァイスシュヴァルツカードDB)
-		- WeissCardQuery (ヴァイスシュヴァルツ用検索クエリ)
+禁止事項:
+- `TCG.Core` にゲーム名を含む名前空間/型を置かない
+- `TCG.<GameName>` から別ゲーム名前空間（`TCG.OtherGame`）を参照しない
+- `Unity` 依存 (`MonoBehaviour`, `SerializeField`) を Core層に持ち込まない
 
-（将来的な拡張）`TCG.TCGPokemon` 等の別ゲーム実装も同様の命名規則で配置されます。
+ファイル配置との対応:
+- `Assets/Scripts/GameCore/**` -> `namespace TCG.Core`（または `TCG.Core.*`）
+- `Assets/Scripts/WeissSchwarz/**` -> `namespace TCG.Weiss`（または `TCG.Weiss.*`）
 
-## 代表的なクラス継承・関係の説明
+命名例:
+- 良い例: `TCG.Core`, `TCG.Weiss`, `TCG.Weiss.UI`, `TCG.Weiss.Data`
+- 避ける例: `TCG.GameCore`, `TCG.CommonWeiss`, `GameCore`, `WeissSchwarz`（ルート無し）
 
-ここでは、ドキュメントを読んだだけで構造が分かるように、主要な継承関係をテキストで示します。
+---
 
-1) カード系
+## 3. 継承・実装構造
 
-	 - Card (非ジェネリック基底)
-		 - CardBase<TData> : Card where TData : CardData
-			 - WeissCard : CardBase<WeissCardData>
+## 3.1 Core 抽象の継承軸
 
-	 説明: `Card` は物理的な状態（所有者、ゾーン、タップ状態等）を持つ最も基本的な型です。
-	 `CardBase<TData>` はカード固有データ（`CardData` 派生型）を持つためのジェネリック基底で、個々のゲーム実装はこれを継承して具体化します。
+```text
+CardData
+  ^
+  +-- WeissCardData
 
-2) ゾーン系
+Card
+  ^
+  +-- CardBase<TData>
+        ^
+        +-- WeissCard
 
-	 - IZone (インターフェース)
-		 - IZone<TCard> : IZone
-		 - ZoneBase : IZone
+Player
+  ^
+  +-- WeissPlayer
 
-	 説明: ゾーン（手札、山札、場など）の共通操作は `IZone` に定義され、`ZoneBase` が基本機能（カード追加・削除、シャッフルなど）を提供します。
-	 ゲーム固有の役割を厳密に分離したい場合、`IDeckZone` や `IHandZone` のようなより具体的なインターフェースはゲーム実装側（`WeissSchwarz`）に置かれています。
+GameBase
+  ^
+  +-- WeissGame
 
-3) ゲーム進行
+GameState
+  ^
+  +-- WeissGameState
 
-	 - GameBase (抽象)
-		 - WeissGame : GameBase
-
-	 説明: 全体のターン進行やフェーズ管理の骨組みは `GameBase` が担います。ゲーム固有ルール（勝利条件、フェーズ間の特殊処理等）は `WeissGame` のように継承先で実装します。
-
-4) コスト系
-
-	 - ICost (インターフェース)
-		 - StockCost : ICost
-		 - DiscardHandCost : ICost
-
-	 説明: `ICost` はコスト支払いのための汎用インターフェースです。`GameCore` に配置され、具体的なコストの種類には依存しません。
-	 `StockCost` や `DiscardHandCost` のようなゲーム固有の具体的なコストは、`WeissSchwarz` モジュール側で `ICost` を実装します。
-	 `CostFactory` は、カードのテキストからこれらの具象コストオブジェクトを生成する責務を持ちます。
-
-## ドキュメントのギャップと追加提案
-
-### 4.5) データベース系
-
-	 - CardQuery<TData> (抽象)
-		 - WeissCardQuery : CardQuery<WeissCardData>
-	 - CardDatabase<TData, TQuery> (抽象)
-		 - WeissCardDatabase : CardDatabase<WeissCardData, WeissCardQuery>
-
-	 説明: `CardQuery` と `CardDatabase` は、特定のカードデータ構造に依存しない汎用的な検索インターフェースを提供します。
-	 各ゲーム固有の実装（`WeissSchwarz`など）は、これらの基底クラスを継承し、具体的なカードデータ（`WeissCardData`）に基づいた検索条件やデータロード処理を実装します。これにより、UI層は統一された方法でデータベースにアクセスできます。
-
-現在の `docs` は設計方針（責務分離、データ駆動の能力設計）をよく説明していますが、以下の追記を推奨します:
-
-- クラス図（PlantUML あるいは Mermaid）を一つ追加し、主要クラス間の継承/依存関係を視覚化する。
-- クラス図（PlantUML あるいは Mermaid）を一つ追加し、主要クラス間の継承/依存関係を視覚化する。
-
-### 図: クラス図 (PlantUML)
-
-ソースツリーに PlantUML ファイルを追加しました:
-
-- `docs/diagrams/architecture.puml`
-
-このファイルはリポジトリ内で PlantUML を使って描画できます。ローカルで SVG/PNG に変換するには、PlantUML の CLI や VSCode の PlantUML 拡張を使ってください。簡単な例:
-
-```powershell
-# PlantUML.jar を使って PNG を生成する例（Java 実行環境が必要）
-java -jar plantuml.jar docs\diagrams\architecture.puml -tpng
+PhaseBase
+  ^
+  +-- SimplePhase
+  +-- StandPhase / DrawPhase / ClockPhase / MainPhase / ClimaxPhase / AttackPhase / EndPhase
 ```
 
-あるいは、VSCode の PlantUML 拡張で `.puml` ファイルを開くとプレビューできます。
-- `Assets/Scripts` 配下のディレクトリツリー（深さ 2〜3）を自動生成して貼る（README に簡易表示）。
-- 各主要インターフェース（`IZone`, `IEffect`, `ITriggerCondition` など）について、責務と主要メソッドのシグネチャ抜粋をまとめる。
+## 3.2 Zone 抽象の継承軸
 
-上記は低リスクで価値が高い改善です。必要なら私の方で PlantUML ソースや更新パッチを作成します。
+```text
+IZone
+  ^
+  +-- IZone<TCard>
 
-## 技術スタック
+IZone<TCard>
+  ^
+  +-- ZoneBase<TCard>
+        ^
+        +-- DeckZoneBase<TCard>
+              ^
+              +-- DeckZone (Weiss)
+        +-- WeissZone
+              +-- HandZone / WaitingRoomZone / StageZone / StageSlot
+              +-- ClockZone / LevelZone / StockZone / ClimaxZone
+              +-- MemoryZone / ResolutionZone / MarkerZone
+```
 
-- **エンジン**: Unity `2022.3.12f1`
-- **言語**: C#
+## 3.3 Ability 抽象の継承軸
 
-## 実行方法
+```text
+AbilityBase
+  ^
+  +-- WeissAbility
 
-1. このプロジェクトをUnity Editor (`2022.3.12f1`以降)で開きます。
-2. `Assets/Scenes/SampleScene.unity` を開きます。
-3. Unity Editorの上部にある再生ボタンをクリックして、ゲームを実行します。
+IEffect
+  +-- LookTopAndPlaceEffect / PowerBoostEffect / SoulBoostEffect / ...
 
-## 今後の展望（提案）
+ICost
+  +-- StockCost<TCard> / ClockCost<TCard> / DiscardCost / RestCost / ...
+```
 
-- UI/UXの改善
-- ネットワーク対戦機能の実装
-- より多くのTCG実装例の追加
-- デッキ構築機能
+## 3.4 Query/Database 抽象の継承軸
+
+```text
+CardQuery<TCardData>
+  ^
+  +-- WeissCardQuery
+
+CardDatabase<TCardData, TQuery>
+  ^
+  +-- WeissCardDatabase
+```
+
+注記:
+- `TCG.Core` 内に `CardQuery<TCard, TQuery>`（CRTP版）も存在し、現状は `WeissCardQuery` が `CardQuery<TCardData>` 系を利用している。
+- 別TCG展開前に Query 基底の一本化方針を決めると保守性が上がる。
+
+---
+
+## 4. レイヤ設計
+
+```text
+[Presentation]
+  GameView, ZoneUI, DeckEditorManager, UIGamePlayerController
+
+[Game Specific Domain: TCG.Weiss]
+  WeissGame, WeissRuleEngine, WeissPhases, WeissZones, WeissAbility model
+
+[Core Domain: TCG.Core]
+  GameBase/GameState/PhaseBase, Card/Zone, Ability contracts, EventBus
+
+[Infrastructure]
+  AppManager, CardDataImporter, SQLite(CardLoader), StreamingAssets
+```
+
+### 4.1 レイヤ間の接続
+
+- ルール処理のエントリは `WeissGame` / `WeissRuleEngine`
+- 入力は `IWeissPlayerController` 経由で注入（Console/UI差し替え）
+- フェーズ内イベントは `EventBus` で通知し、直接依存を減らす
+- カード定義データは `CardDataImporter` -> `WeissCardDatabase` で供給
+
+---
+
+## 5. 現在の設計評価
+
+### 5.1 良い点
+
+- CoreとWeissの責務分離は明確
+- Card/Zone/Phase/Ability の抽象軸が再利用向き
+- Player Controller をインターフェース化し、UI依存を隔離
+- EventBus によりフェーズ横断処理を疎結合化
+
+### 5.2 改善ポイント
+
+- `WeissRuleEngine` に能力文字列のハードコード分岐が残っている
+- `UIGamePlayerController` は未実装メソッドが多く、実行経路が暫定
+- `CardQuery` 基底が重複しており、拡張時に方針がぶれやすい
+
+---
+
+## 6. 別TCGへ展開する際の設計方針
+
+## 6.1 原則
+
+- 共通化できるものは `TCG.Core` へ
+- ルール固有は `TCG.<GameName>` へ
+- UIはゲームロジックから切り離し、`I<GameName>PlayerController` で橋渡し
+- 文字列直解釈より Definition/Factory 駆動を優先
+
+## 6.2 新規TCG実装の推奨構成
+
+```text
+Assets/Scripts/<GameName>/
+|- Core/
+|  |- <GameName>Game : GameBase
+|  |- <GameName>GameState : GameState
+|  |- <GameName>RuleEngine
+|  |- <GameName>Player : Player
+|  |- <GameName>Phases
+|  |- I<GameName>PlayerController
+|- Cards/
+|  |- <GameName>CardData : CardData
+|  |- <GameName>Card : CardBase<<GameName>CardData>
+|  |- <GameName>CardQuery : CardQuery<<GameName>CardData>
+|  |- <GameName>CardDatabase : CardDatabase<...>
+|- Zones/
+|  |- 固有Zone実装
+|- Abilities/
+|  |- AbilityFactory, Definition
+|- Cost/
+|- Effects/
+|- UI/
+```
+
+## 6.3 移植時の実装順序
+
+1. `CardData` / `Card` / `Query` / `Database` を定義
+2. `Player` と固有Zoneを作成
+3. フェーズを最小セットで実装（ドロー、メイン、終了など）
+4. `RuleEngine` で勝敗/ダメージ/固有処理を実装
+5. `I<GameName>PlayerController` の Console 実装で先に動作確認
+6. 最後に UI 実装を接続
+
+## 6.4 Coreへ昇格する判断基準
+
+以下を満たす場合は `TCG.Core` へ移す。
+
+- 2タイトル以上で同じ責務/データ構造が必要
+- ルール固有の語彙を含まず抽象化できる
+- API変更が既存タイトルへ破壊的影響を与えない
+
+---
+
+## 7. 実装ルール（運用ガイド）
+
+- `TCG.Core` にゲーム名（Weiss/Pokemon等）を含む型名を置かない
+- `TCG.<GameName>` から `TCG.Core` の抽象を継承/実装する
+- `MonoBehaviour` はアプリケーション境界（起動/表示/入力）でのみ使用する
+- フェーズ処理は `PhaseBase` を起点にし、フェーズ外に重複ロジックを散らさない
+- 能力・コスト・効果はFactory拡張で増やし、RuleEngineへの直書きを減らす
+
+---
+
+## 8. まとめ
+
+本プロジェクトの設計思想は「Coreに抽象、Gameに具体」を正しく採用できている。今後の別TCG展開では、
+
+- Core抽象の安定化
+- 専用ルールのFactory/Definition化
+- UI実装の完成
+
+を優先すると、再利用性と保守性を同時に高められる。
