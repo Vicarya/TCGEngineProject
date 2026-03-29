@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GameCore.Database
+namespace TCG.Core
 {
     /// <summary>
     /// カードデータを管理し、検索機能を提供する汎用データベースクラス。

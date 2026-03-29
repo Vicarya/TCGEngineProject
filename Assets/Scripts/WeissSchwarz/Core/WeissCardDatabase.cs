@@ -1,11 +1,10 @@
-using GameCore.Database;
+using TCG.Core;
 using TCG.Weiss;
 using UnityEngine;
 using System.Linq;
 using TCG.Weiss.Data; // CardDataImporterを使用するために追加
 
-// NOTE: namespaceがファイルの物理パスと一致していません (WeissSchwarz.Database vs. Assets/Scripts/WeissSchwarz/Core)。リファクタリング中の可能性があります。
-namespace WeissSchwarz.Database
+namespace TCG.Weiss
 {
     /// <summary>
     /// ヴァイスシュヴァルツのカードデータに特化したデータベース。

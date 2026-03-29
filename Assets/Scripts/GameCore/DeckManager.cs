@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace GameCore.Database
+namespace TCG.Core
 {
     /// <summary>
     /// デッキ情報を表すクラス。

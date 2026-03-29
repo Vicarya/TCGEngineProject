@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GameCore.Database
+namespace TCG.Core
 {
     /// <summary>
     /// カード検索クエリの基底クラス。
