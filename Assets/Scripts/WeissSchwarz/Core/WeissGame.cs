@@ -81,7 +81,11 @@ namespace TCG.Weiss
         protected override void SetupGame(GameState state)
         {
             // 手順1: カードデータベースの状態を確認
-            if (WeissCardDatabase.Instance == null) Debug.LogError("WeissCardDatabase Instance is missing!");
+            if (WeissCardDatabase.Instance == null)
+            {
+                Debug.LogError("CRITICAL: WeissCardDatabase Instance is missing! SetupGame aborted.");
+                return;
+            }
 
             // 手順2: プレイヤーインスタンスを2つ作成する (デバッグ用にConsoleControllerを使用)
             var player1 = new WeissPlayer("Player1", new ConsolePlayerController());
@@ -112,8 +116,8 @@ namespace TCG.Weiss
                 player.RegisterZone<IStageZone<WeissCard>>(stageZone);
                 player.RegisterZone<IStockZone<WeissCard>>(stockZone);
                 player.RegisterZone<IClimaxZone<WeissCard>>(climaxZone);
-                player.RegisterZone<MemoryZone>(memoryZone);
-                player.RegisterZone<ResolutionZone>(resolutionZone);
+                player.RegisterZone<IMemoryZone<WeissCard>>(memoryZone);
+                player.RegisterZone<IResolutionZone<WeissCard>>(resolutionZone);
 
                 // 手順4: 各プレイヤーのデッキをファイルから読み込む
                 string deckFilePath = Application.streamingAssetsPath + "/WeissSchwarz/Decks/deck1.txt";

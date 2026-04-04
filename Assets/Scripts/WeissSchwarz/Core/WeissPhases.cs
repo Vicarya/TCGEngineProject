@@ -200,7 +200,7 @@ namespace TCG.Weiss {
                         // イベントカードのプレイ処理
                         PayCost(player, data.Cost);
                         player.GetZone<IHandZone<WeissCard>>().RemoveCard(cardToPlay);
-                        player.GetZone<ResolutionZone>().AddCard(cardToPlay); // 解決ゾーンに移動
+                        player.GetZone<IResolutionZone<WeissCard>>().AddCard(cardToPlay); // 解決ゾーンに移動
                         state.EventBus.Raise(new GameEvent(BaseGameEvents.CardPlayed, new CardPlayedEventArgs(player, cardToPlay)));
                         // TODO: イベントカードの効果を解決するロジックを呼び出す
                     }
@@ -322,7 +322,7 @@ namespace TCG.Weiss {
             // アタックのループ
             while (true)
             {
-                var stage = player.GetZone<StageZone>();
+                var stage = player.GetZone<IStageZone<WeissCard>>() as StageZone;
                 // 前列にいる、レストしていないキャラがアタック可能
                 var attackableCharacters = stage.Slots
                     .Where(s => s.Current != null && !s.Current.IsRested && stage.IsFrontRow(s as StageSlot))
@@ -341,7 +341,7 @@ namespace TCG.Weiss {
 
                 var opponent = state.Players.First(p => p != player) as WeissPlayer;
                 var attackerSlot = stage.FindSlot(attacker);
-                var opponentStage = opponent.GetZone<StageZone>();
+                var opponentStage = opponent.GetZone<IStageZone<WeissCard>>() as StageZone;
                 var defendingSlot = stage.GetOpposingSlot(attackerSlot, opponentStage);
                 var defender = defendingSlot?.Current;
 
@@ -489,8 +489,8 @@ namespace TCG.Weiss {
             {
                 if (player == null) continue;
 
-                var stage = player.GetZone<StageZone>();
-                var waitingRoom = player.GetZone<WaitingRoomZone>();
+                var stage = player.GetZone<IStageZone<WeissCard>>() as StageZone;
+                var waitingRoom = player.GetZone<IDiscardPile<WeissCard>>() as WaitingRoomZone;
                 
                 // このプレイヤーのリバースしているキャラをすべて取得
                 var reversedCharacters = stage.Slots

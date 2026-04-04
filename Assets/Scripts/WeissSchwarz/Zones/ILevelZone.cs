@@ -4,13 +4,28 @@ using TCG.Core;
 namespace TCG.Weiss
 {
     /// <summary>
-    /// レベル置場ゾーンが公開する機能を定義するインターフェース。
+    /// レベルゾーンの公開契約。
     /// </summary>
     public interface ILevelZone<TCard> : IZone<TCard> where TCard : Card
     {
-        /// <summary>
-        /// レベル置場にあるカードと、その向き（表向きか裏向きか）のリストを取得します。
-        /// </summary>
         IReadOnlyList<(TCard Card, bool FaceUp)> LevelCards { get; }
+    }
+
+    /// <summary>
+    /// Weiss用のレベルゾーン実装。
+    /// </summary>
+    public class LevelZone : WeissZone, ILevelZone<WeissCard>
+    {
+        private readonly List<(WeissCard Card, bool FaceUp)> levelCards = new();
+
+        public LevelZone(Player owner) : base("Level", owner, isPublic: true) { }
+
+        public void AddCard(WeissCard card, bool faceUp = true)
+        {
+            levelCards.Add((card, faceUp));
+        }
+
+        public IReadOnlyList<(WeissCard Card, bool FaceUp)> LevelCards => levelCards;
+        public int Count => levelCards.Count;
     }
 }

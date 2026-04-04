@@ -24,7 +24,7 @@ namespace TCG.Weiss.UI
         /// 既存のカードUIオブジェクトをクリアし、新しいメモリーゾーンのカードに対応するUIオブジェクトを生成・配置します。
         /// </summary>
         /// <param name="memoryZone">ゲームロジックからのメモリーゾーンデータ。</param>
-        public void UpdateZone(MemoryZone memoryZone)
+        public void UpdateZone(IMemoryZone<WeissCard> memoryZone)
         {
             // 既存のUIオブジェクトを全て破棄
             foreach (var cardUI in _cardUIs)
