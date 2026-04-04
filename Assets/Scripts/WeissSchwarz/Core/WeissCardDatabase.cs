@@ -22,18 +22,18 @@ namespace TCG.Weiss
         /// </summary>
         public IReadOnlyList<WeissCardData> AllCards => allCards;
 
-        /// <summary>
-        /// オブジェクト初期化時に呼び出され、シングルトンインスタンスを設定し、データベースをロードします。
-        /// </summary>
-        private void Awake()
+        public static WeissCardDatabase EnsureInitialized()
         {
-            Instance = this;
-            LoadDatabase();
+            if (Instance != null)
+            {
+                return Instance;
+            }
+
+            Instance = new WeissCardDatabase();
+            Instance.LoadDatabase();
+            return Instance;
         }
 
-        /// <summary>
-        /// データベースにすべてのカードデータをロードします。
-        /// </summary>
         public override void LoadDatabase()
         {
             allCards = WeissCardRuntimeStore.LoadAll();

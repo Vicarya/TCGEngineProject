@@ -2,6 +2,8 @@ using TCG.Core;
 using TCG.Weiss;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
+using UnityEngine.EventSystems;
 
 namespace TCG.Weiss.UI
 {
@@ -10,10 +12,11 @@ namespace TCG.Weiss.UI
     /// カードの表/裏、レスト状態、クリックへの応答などを制御します。
     /// 表と裏のGameObjectを分けることで、アニメーションなどを実装しやすい階層構造を採用しています。
     /// </summary>
-    public class CardUI : MonoBehaviour
+    public class CardUI : MonoBehaviour, IPointerClickHandler
     {
         [Header("カードデータ")]
         private WeissCard _card; // このUIが表現するWeissCardインスタンスへの参照
+        public WeissCard Card => _card;
 
         // カードの裏面やデフォルト画像のスプライト
         private Sprite _weissCardBackSprite;
@@ -24,10 +27,18 @@ namespace TCG.Weiss.UI
         [SerializeField] private GameObject cardFrontObject; // カード表面のImageコンポーネントを持つGameObject
         [SerializeField] private GameObject cardBackObject;  // カード裏面のImageコンポーネントを持つGameObject
         [SerializeField] private Button cardButton; // カードクリックを検出するためのButtonコンポーネント
+        [SerializeField] private GameObject selectedOverlayObject; // 選択中ハイライト表示
 
         // ImageコンポーネントはAwake()で子オブジェクトから取得
         private Image _cardFrontImage;
         private Image _cardBackImage;
+        private bool _isSelectionMode;
+        private bool _isSelected;
+        private readonly Color _normalTint = Color.white;
+        private readonly Color _selectedTint = new Color(1f, 0.55f, 0.55f, 1f);
+
+        public bool IsSelected => _isSelected;
+        public event Action<CardUI> CardClicked;
 
         [Header("リソースパス")]
         [SerializeField] private string weissCardBackPath = "Images/WeissCardBack"; // ヴァイスサイドのカード裏面画像パス
@@ -47,6 +58,7 @@ namespace TCG.Weiss.UI
 
             // ボタンクリックリスナーを追加
             cardButton?.onClick.AddListener(OnCardClicked);
+            SetSelected(false);
 
             // 必要なコンポーネントやリソースが見つからない場合の警告
             if (_cardFrontImage == null) Debug.LogError("カード表面のGameObjectにImageコンポーネントが見つかりません。", this);
@@ -72,10 +84,56 @@ namespace TCG.Weiss.UI
         /// </summary>
         private void OnCardClicked()
         {
+            CardClicked?.Invoke(this);
+
+            if (_isSelectionMode)
+            {
+                ToggleSelected();
+                return;
+            }
+
             if (_card != null)
             {
                 GameView.Instance.ShowCardDetail(_card);
             }
+        }
+
+        /// <summary>
+        /// Button未割り当てでもクリックを拾えるようにするフォールバック。
+        /// </summary>
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (cardButton == null && eventData.button == PointerEventData.InputButton.Left)
+            {
+                OnCardClicked();
+            }
+        }
+
+        public void SetSelectionMode(bool enabled)
+        {
+            _isSelectionMode = enabled;
+            if (!enabled)
+            {
+                SetSelected(false);
+            }
+        }
+
+        public void SetSelected(bool selected)
+        {
+            _isSelected = selected;
+            if (selectedOverlayObject != null)
+            {
+                selectedOverlayObject.SetActive(selected);
+            }
+
+            var tint = selected ? _selectedTint : _normalTint;
+            if (_cardFrontImage != null) _cardFrontImage.color = tint;
+            if (_cardBackImage != null) _cardBackImage.color = tint;
+        }
+
+        public void ToggleSelected()
+        {
+            SetSelected(!_isSelected);
         }
 
         /// <summary>

@@ -1,6 +1,8 @@
 using TCG.Core;
 using TCG.Weiss; // For IHandZone, IStageZone, etc.
 using UnityEngine;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace TCG.Weiss.UI
 {
@@ -29,10 +31,8 @@ namespace TCG.Weiss.UI
         [Header("Card Detail View")]
         [SerializeField] private CardDetailView cardDetailView;
 
-        [Header("Interaction Buttons")]
-        [SerializeField] private GameObject mulliganConfirmButton;
-
-        private UIGamePlayerController _activeController;
+        [Header("Decision Modal")]
+        [SerializeField] private DecisionModalController decisionModalController;
 
         /// <summary>
         /// UnityのAwakeイベントで呼び出されます。
@@ -50,8 +50,6 @@ namespace TCG.Weiss.UI
                 Instance = this;
             }
 
-            // マリガン確認ボタンは初期状態で非アクティブに設定
-            mulliganConfirmButton?.SetActive(false);
             // カード詳細ビューも初期状態で非表示に設定
             cardDetailView?.Hide(); 
         }
@@ -73,35 +71,37 @@ namespace TCG.Weiss.UI
             cardDetailView?.Hide();
         }
 
-        /// <summary>
-        /// マリガン選択フェーズを開始し、UIを更新します。
-        /// </summary>
-        /// <param name="controller">マリガンを行うプレイヤーのUIコントローラー。</param>
-        public void BeginMulliganSelection(UIGamePlayerController controller)
+        public Task<List<WeissCard>> RequestMulliganAsync(WeissPlayer player)
         {
-            _activeController = controller; // 現在のマリガン操作を担当するコントローラーを保持
-            handZoneUI.EnterMulliganSelectionMode(); // 手札UIをマリガン選択モードに切り替える
-            mulliganConfirmButton?.SetActive(true); // マリガン確定ボタンを表示
-            Debug.Log("GameView: Mulligan selection started. Confirm button is now visible.");
+            if (decisionModalController == null)
+            {
+                Debug.LogWarning("GameView: decisionModalController is not assigned. Mulligan will be skipped.");
+                return Task.FromResult(new List<WeissCard>());
+            }
+
+            return decisionModalController.ShowMulliganAsync(player, handZoneUI);
         }
 
-        /// <summary>
-        /// マリガン確定ボタンがクリックされたときに呼び出されます。
-        /// 選択されたカードをコントローラーに渡し、UIをリセットします。
-        /// </summary>
-        public void ConfirmMulliganClicked()
+        public Task<bool> RequestYesNoAsync(string title, string question, bool defaultValue = false)
         {
-            if (_activeController == null) return; // コントローラーが設定されていなければ何もしない
+            if (decisionModalController == null)
+            {
+                Debug.LogWarning("GameView: decisionModalController is not assigned. Yes/No fallback will be used.");
+                return Task.FromResult(defaultValue);
+            }
 
-            // 手札UIからマリガンで選択されたカードのリストを取得
-            var selectedCards = handZoneUI.GetSelectedCardsForMulligan();
-            // 取得したカードリストをアクティブなコントローラーに渡し、マリガン処理を実行
-            _activeController.ConfirmMulligan(selectedCards);
+            return decisionModalController.ShowYesNoAsync(title, question);
+        }
 
-            // UI要素をクリーンアップ
-            mulliganConfirmButton?.SetActive(false); // マリガン確定ボタンを非表示
-            _activeController = null; // アクティブコントローラーをクリア
-            Debug.Log("GameView: Mulligan confirmed. UI has been reset.");
+        public Task<MainPhaseAction> RequestMainPhaseActionAsync()
+        {
+            if (decisionModalController == null)
+            {
+                Debug.LogWarning("GameView: decisionModalController is not assigned. EndPhase will be returned.");
+                return Task.FromResult(MainPhaseAction.EndPhase);
+            }
+
+            return decisionModalController.ShowMainPhaseActionAsync();
         }
 
         /// <summary>

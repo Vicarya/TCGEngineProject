@@ -1,68 +1,112 @@
-
-using TCG.Core;
 using UnityEngine;
+using TCG.Core;
+using TCG.Weiss.UI;
 
 namespace TCG.Weiss
 {
     /// <summary>
-    /// Unityのシーンに配置され、ゲーム全体のライフサイクルを管理するシングルトンMonoBehaviour。
-    /// WeissGameのインスタンスを生成・保持し、Unityのライフサイクル（Start, Update）とゲームロジックのループを結びつける役割を持つ。
+    /// Unity シーン上で WeissGame のライフサイクルを管理するエントリポイント。
     /// </summary>
     public class GameManager : MonoBehaviour
     {
         /// <summary>
-        /// GameManagerのシングルトンインスタンス。
+        /// GameManager のシングルトンインスタンス。
         /// </summary>
         public static GameManager Instance { get; private set; }
 
         /// <summary>
-        /// 現在進行中のゲームインスタンス（WeissGame）への参照。
+        /// 実行中のゲームインスタンス。
         /// </summary>
-        public WeissGame Game { get { return _game; } }
-        
-        // ゲームロジックの本体となるWeissGameのインスタンス。
-        private WeissGame _game;
+        public WeissGame Game => _game;
 
-        /// <summary>
-        /// オブジェクトの初期化時に呼び出され、シングルトンパターンを実装します。
-        /// </summary>
-        void Awake()
+        private WeissGame _game;
+        private bool _isTurnExecuting;
+
+        private void Awake()
         {
             if (Instance != null && Instance != this)
             {
-                Destroy(this.gameObject);
+                Destroy(gameObject);
+                return;
             }
-            else
-            {
-                Instance = this;
-            }
-        }
 
-        /// <summary>
-        /// 最初のフレーム更新前に呼び出され、ゲームの非同期初期化処理を実行します。
-        /// async voidを使用し、awaitで非同期のマリガン処理の完了を待機します。
-        /// </summary>
-        async void Start()
-        {
-            // ゲームインスタンスを作成し、セットアップを実行
+            Instance = this;
             _game = new WeissGame();
+        }
 
-            // 非同期でマリガン処理を実行し、完了を待つ
-            await _game.PerformMulliganPhase();
+        private async void Start()
+        {
+            try
+            {
+                // 起動順による null を防ぐため、先に DB を初期化しておく。
+                WeissCardDatabase.EnsureInitialized();
 
-            // ゲームを開始する
-            _game.StartGame();
+                _game.StartGame();
+                RefreshView();
+                _game.GameState.EventBus.SubscribeToAll(_ => RefreshView());
+                await _game.PerformMulliganPhase();
 
-            Debug.Log("Game Managerが起動し、ゲームが初期化されました。");
+                // 初期表示を同期
+                RefreshView();
+
+                // 1ターン目を実行
+                ExecuteCurrentTurn();
+
+                Debug.Log("Game Manager が起動し、ゲームを初期化しました。");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e);
+                Debug.LogError("Game Manager: 初期化中に致命的なエラーが発生したため、進行を停止しました。");
+            }
+        }
+
+        private void Update()
+        {
+            _game?.Update();
         }
 
         /// <summary>
-        /// 毎フレーム呼び出され、ゲームのメインループを駆動します。
+        /// 現在のターンプレイヤーの1ターンを実行し、終了後に画面を更新する。
         /// </summary>
-        void Update()
+        private void ExecuteCurrentTurn()
         {
-            // WeissGameのUpdateメソッドを呼び出すことで、ゲームの状態を更新し続ける。
-            _game?.Update();
+            if (_isTurnExecuting || _game == null || _game.GameState == null || _game.RuleEngine == null)
+            {
+                return;
+            }
+
+            var active = _game.GameState.ActivePlayer;
+            if (active == null)
+            {
+                Debug.LogWarning("GameManager: ActivePlayer is null. Turn execution skipped.");
+                return;
+            }
+
+            _isTurnExecuting = true;
+            try
+            {
+                _game.RuleEngine.ExecuteTurn(active);
+            }
+            finally
+            {
+                _isTurnExecuting = false;
+                RefreshView();
+            }
+        }
+
+        private void RefreshView()
+        {
+            if (_game?.GameState == null || GameView.Instance == null)
+            {
+                return;
+            }
+
+            var active = _game.GameState.ActivePlayer;
+            if (active != null)
+            {
+                GameView.Instance.UpdateView(active);
+            }
         }
     }
 }

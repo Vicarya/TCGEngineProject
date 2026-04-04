@@ -63,7 +63,7 @@
 
 | タスク ID | タスク内容 | 担当者 | ステータス |
 | :--- | :--- | :--- | :--- |
-| **T-M3.1** | **マリガン選択UIの実装**: ゲーム開始時に、手札からマリガンするカードをUIで選択できるようにする。 | UIチーム | `未着手` |
+| **T-M3.1** | **マリガン選択UIの実装**: ゲーム開始時に、手札からマリガンするカードをUIで選択できるようにする。 | UIチーム | `完了` |
 | **T-M3.2** | **レベルアップカード選択UIの実装**: レベルアップ時、クロック置場のカードからレベル置場に送る1枚をUIで選択できるようにする。 | UIチーム | `未着手` |
 | **T-M3.3** | **クロックフェイズ選択UIの実装**: クロックフェイズで、手札からクロック置場に置くカードをUIで選択できるようにする。 | UIチーム | `未着手` |
 | **T-M3.4** | **メインフェイズ行動選択UIの実装**: メインフェイズで「カードプレイ」「能力起動」「フェイズ終了」をUIで選択できるようにする。 | UIチーム | `未着手` |
@@ -115,7 +115,55 @@
 | **T-M6.1** | **カード詳細表示UIのC#スクリプト作成 (`CardDetailView.cs`)** | Gemini | `完了` |
 | **T-M6.2** | **`GameView.cs` へのカード詳細表示機能統合** | Gemini | `完了` |
 | **T-M6.3** | **`CardUI.cs` へのクリックイベント追加** | Gemini | `完了` |
-| **T-M6.4** | **Unity Editorでのカード詳細UIプレハブ作成と設定** | UIチーム | `未着手` |
+| **T-M6.4** | **Unity Editorでのカード詳細UIプレハブ作成と設定** | UIチーム | `進行中` |
+
+### 実装確認メモ (2026-04-05)
+- `T-M3.1` は実装完了。中央モーダル(`DecisionModalController`) + 手札選択(`HandZoneUI`/`CardUI`)でマリガン選択が可能。
+- `GameManager` の開始順を修正し、初期手札表示後にマリガン待機へ入る動作に修正済み。
+- `CardUI` は選択中カードを赤色表示するよう更新済み。`cardButton` 未割り当て時もクリックを拾えるフォールバックを実装済み。
+- `T-M6.4` は `CardDetail.prefab` 参照設定は完了。`CardUIPrefab.cardButton` は推奨設定だが、現状はフォールバックで動作。
+- `T-M7.10`（デッキ保存/読み込み）は `DeckEditorManager` 内に保存・読込処理が見当たらず、引き続き `未着手` 判定。
+
+### 次の実装計画 (2026-04-05)
+1. **M3 同期入力APIの非同期化設計**
+- `IWeissPlayerController` のうち、UI待機が必要な入力 (`ChooseMainPhaseAction`, `AskYesNo` など) を `Task<T>` 化する設計に更新。
+- 影響範囲 (`WeissPhases`, `WeissRuleEngine`, `ConsolePlayerController`, `UIGamePlayerController`) を明示し、段階移行できる差分に分割する。
+2. **M3 フェーズ実行の非同期化**
+- `PhaseBase.Execute` 系の呼び出し経路を非同期対応し、メインフェーズ/能力確認でモーダル待機できるようにする。
+- 先行実装は `T-M3.4`（メインフェーズ行動選択）と `T-M3.13`（Yes/No確認）を対象にする。
+3. **M3 中央モーダルの拡張**
+- `DecisionModalController` の `ShowMainPhaseActionAsync` / `ShowYesNoAsync` を実戦導線に接続。
+- モーダル表示中の入力遮断ポリシー（背景レイキャスト有無）を仕様化する。
+4. **M3 後続タスク展開**
+- `T-M3.8`, `T-M3.9`, `T-M3.11` を同じモーダル基盤へ段階実装する。
+- 完了条件は「UI待機」「選択結果反映」「キャンセル時挙動」の3点で統一する。
+
+### 次タスク分解（着手順）
+| 分解ID | 内容 | 対象ファイル | 完了条件 |
+| :--- | :--- | :--- | :--- |
+| **A-M3.1** | `IWeissPlayerController` の部分非同期化（`ChooseMainPhaseAction`, `AskYesNo`） | `Assets/Scripts/WeissSchwarz/Core/IWeissPlayerController.cs` | インターフェース定義が `Task<T>` に更新される |
+| **A-M3.2** | `ConsolePlayerController` / `UIGamePlayerController` を新シグネチャへ追従 | `Assets/Scripts/WeissSchwarz/Core/ConsolePlayerController.cs`, `Assets/Scripts/WeissSchwarz/UI/UIGamePlayerController.cs` | コンパイルエラーなく `Task.FromResult/await` で実装される |
+| **A-M3.3** | フェーズ実行の async 対応 (`PhaseBase`, `MainPhase` 先行) | `Assets/Scripts/GameCore/Game/PhaseBase.cs`, `Assets/Scripts/WeissSchwarz/Core/WeissPhases.cs` | `MainPhase` の入力待機が `await` で処理される |
+| **A-M3.4** | RuleEngine / GameManager の async 実行導線化 | `Assets/Scripts/WeissSchwarz/Core/WeissRuleEngine.cs`, `Assets/Scripts/WeissSchwarz/Core/GameManager.cs` | `ExecuteTurnAsync` を `GameManager` が待機実行する |
+| **A-M3.5** | 中央モーダルへの実接続 (`MainPhaseAction`, `YesNo`) | `Assets/Scripts/WeissSchwarz/UI/DecisionModalController.cs`, `Assets/Scripts/WeissSchwarz/UI/GameView.cs` | メインフェイズとYes/Noでモーダル待機が発生する |
+| **A-M3.6** | 動作確認とステータス更新 | `docs/TODO_ActionPlan.md` | `T-M3.4`, `T-M3.13` の状態更新と確認メモ記録 |
+
+### 引き継ぎ情報（初見実装者向け）
+- **まず読む**: `docs/TODO_ActionPlan.md`（本書）→ `docs/DecisionModal_Setup.md` → `Agent.md`
+- **非同期移行の設計書**: 本ドキュメント内「次タスク分解（着手順）」を参照
+- **現在の入口クラス**
+  - 開始フロー: `Assets/Scripts/WeissSchwarz/Core/GameManager.cs`
+  - 対話UI集約: `Assets/Scripts/WeissSchwarz/UI/DecisionModalController.cs`
+  - UI入力実装: `Assets/Scripts/WeissSchwarz/UI/UIGamePlayerController.cs`
+  - 手札選択: `Assets/Scripts/WeissSchwarz/UI/HandZoneUI.cs`, `Assets/Scripts/WeissSchwarz/UI/CardUI.cs`
+- **シーン/プレハブ確認ポイント**
+  - `SampleScene` の `GameView.decisionModalController` 参照
+  - `Assets/Resources/Prefabs/ModalOverlay.prefab` の Text/Button 参照割り当て
+  - `Assets/Resources/Prefabs/CardUIPrefab.prefab` の `cardButton`（推奨）
+- **着手前の動作確認**
+  - ゲーム開始時に手札が表示される
+  - マリガンモーダルでカード選択（赤色表示）と決定ができる
+  - ログが `TurnStarted` のみで停止しない
 
 ---
 

@@ -1,65 +1,51 @@
 # TCG Engine - TODO引き継ぎドキュメント
 
+最終更新: 2026-04-05
+
+## 運用ルール
+- このドキュメントは**作業ごとに更新する運用資料**として扱う。
+- 実装完了・仕様変更・設計変更があった場合、同日の更新履歴を必ず追記する。
+- 詳細タスク管理は `docs/TODO_ActionPlan.md` を併用する。
+
 ## 概要
 
-このドキュメントは、TCG Engineプロジェクトの現状と、今後の開発で実装が必要なタスク（TODO）をまとめたものです。
+このドキュメントは、TCG Engineプロジェクトの「今どこまで進んでいて、次に何をやるか」を初見実装者向けに要約した引き継ぎ資料です。
 
 ## 現状のアーキテクチャ
 
-- **`GameCore`**: カード、ゾーン、プレイヤー、フェーズなど、TCGの汎用的な要素を定義するコアライブラリ。
-- **`WeissSchwarz`**: `GameCore`を継承し、ヴァイスシュヴァルツ固有のカード、ゾーン、ルール、フェーズを実装。
-- **ゲームフロー**: `WeissGame` -> `WeissRuleEngine` -> `WeissPhaseFactory` -> 各フェーズクラス (`StandPhase`, `AttackPhase`など) の順でゲームが進行します。
-- **ルール処理**: ダメージ計算やレベルアップなどの主要なルールは `WeissRuleEngine` に集約されています。
-- **プレイヤー入力**: `IPlayerController` インターフェースを介してプレイヤーの選択（カードをプレイするなど）を処理する設計です。
+- **`GameCore`**: TCG汎用基盤（カード/ゾーン/フェーズ/EventBus）。
+- **`WeissSchwarz`**: ゲーム固有実装（ルール・フェーズ・能力・UI）。
+- **ゲーム進行**: `GameManager` -> `WeissGame` -> `WeissRuleEngine` -> `WeissPhaseFactory`。
+- **UI入力設計**: `IWeissPlayerController` 経由。  
+  現在はマリガンのみ中央モーダル(`DecisionModalController`)で実運用。
 
-## 今後の開発タスク (TODOリスト)
+## 現在の進捗（2026-04-05時点）
+- マリガンUIは実装済み（手札表示・カード選択・決定/スキップ）。
+- `Player1` は `UIGamePlayerController`、`Player2` は `ConsolePlayerController`。
+- `CardUI` は選択中を赤色表示。`cardButton` 未割り当て時のクリックフォールバックあり。
+- メインフェイズ/YesNoなどはまだ同期APIのため、UI待機を完全実現できていない。
 
-### 1. ゲームの基本設定 (`WeissGame.cs`)
+## 次の実装タスク（着手順）
+1. `IWeissPlayerController` の部分非同期化  
+   - `ChooseMainPhaseAction`, `AskYesNo` を `Task<T>` に変更。
+2. `ConsolePlayerController` と `UIGamePlayerController` を新シグネチャへ追従。
+3. `PhaseBase` / `WeissPhases` の実行を async 化（`MainPhase` 先行）。
+4. `WeissRuleEngine` / `GameManager` のターン実行を async 導線へ移行。
+5. `DecisionModalController` を `MainPhaseAction` / `YesNo` の実導線に接続。
 
-- [ ] **ゲーム初期化処理の実装**: `SetupGame` メソッド内に、以下の処理を実装する。
-    - プレイヤーインスタンスの作成と登録。
-    - 各プレイヤーのゾーン（Deck, Hand, Stageなど）の初期化。
-    - デッキデータの読み込みとシャッフル。
-    - 初期手札5枚のドロー処理。
-    - 初期手札の引き直し（マリガン）処理。
+## 初見実装者の確認ポイント
+- `SampleScene` の `GameView.decisionModalController` が設定されているか。
+- `ModalOverlay.prefab` の Text/Button が `DecisionModalController` に割り当て済みか。
+- `CardUIPrefab` の `cardButton` は可能なら割り当てる（未設定でもフォールバック動作）。
+- モーダル背景の `Raycast Target` が手札クリックを阻害していないか。
 
-### 2. プレイヤーの意思決定 (`IPlayerController` とその実装)
+## 主要参照ドキュメント
+- 詳細タスク: `docs/TODO_ActionPlan.md`
+- モーダル設定: `docs/DecisionModal_Setup.md`
+- 非同期移行手順: `docs/TODO_ActionPlan.md` の「次タスク分解（着手順）」
 
-- [ ] **`IPlayerController` の実装**: プレイヤーの入力を受け付ける具体的なクラスを作成する（例：コンソール入力、UI入力、AIなど）。
-- [ ] **各フェーズでの選択処理の実装**:
-    - `ClockPhase`: 手札からクロックに置くカードを選択する。
-    - `ClimaxPhase`: 手札からプレイするクライマックスカードを選択する。
-    - `AttackPhase`:
-        - アタックを行うか、フェイズを終了するか選択する。
-        - 攻撃するキャラを選択する。
-        - フロントアタックかサイドアタックかを選択する。
-    - `EndPhase`: 手札が上限を超えている場合に捨てるカードを選択する。
-    - `WeissRuleEngine`: レベルアップ時にレベル置場に置くカードを選択する。
-
-### 3. ゲームルールの詳細実装
-
-- [ ] **メインフェイズ (`MainPhase.cs`)**:
-    - プレイヤーがアクション（キャラのプレイ、イベントの使用など）を繰り返し行えるアクションループを実装する。
-- [ ] **アタックフェイズ (`AttackPhase.cs`)**:
-    - **ダイレクトアタック**: アタッカーのソウルを+1する処理を実装する。
-    - **ダメージステップ**: アタッカーのソウル値に基づいたダメージ計算と、`RuleEngine.ApplyDamage`の呼び出しを実装する。
-    - **バトルステップ**: アタッカーと防御キャラのパワーを比較し、パワーが低い方をリバース状態にする処理を実装する。
-    - **カウンターステップ**: 防御側プレイヤーにカウンターカードの使用機会を与える処理を実装する。
-    - **アンコールステップ**: リバースしたキャラのアンコール処理を行う `EncorePhase` を作成し、`AttackPhase` の最後から遷移させる。
-    - **ルール制約**: 「先攻プレイヤーの第1ターンは1回しかアタックできない」というルールを実装する。
-
-### 4. カード能力と効果 (`AbilityFactory.cs`, `ConcentrateEffect.cs`)
-
-- [ ] **効果（Effect）の実装**: `ConcentrateEffect` などの具体的なカード効果のロジックを実装する。
-- [ ] **能力（Ability）の拡充**: `AbilityFactory` で、様々な種類のコスト、効果、トリガー条件を解決できるように拡張する。
-
-### 5. リファクタリングと改善
-
-- [ ] **`StageSlot.cs` の改善**: 現在 `WeissZone` を継承しているが、カードを1枚しか持たないため、よりシンプルなクラスへのリファクタリングを検討する。
-- [ ] **`WaitingRoomZone.Clear()` の修正**: 現在はカードリストを空にするだけだが、リフレッシュ処理などでカードを別のゾーンに移動させるロジックに変更する。
-
----
-このドキュメントを元に、各タスクをIssueとして管理し、開発を進めていくことを推奨します。
+## 更新履歴
+- 2026-04-05: 本ドキュメントを「旧資料」扱いから「現行引き継ぎ資料」へ運用変更。最新進捗・次タスク・確認ポイントを更新。
 
 ---
 

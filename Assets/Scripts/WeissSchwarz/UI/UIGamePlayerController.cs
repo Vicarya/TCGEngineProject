@@ -15,23 +15,6 @@ namespace TCG.Weiss
     /// </summary>
     public class UIGamePlayerController : IWeissPlayerController
     {
-        // マリガン選択の完了を待機するためのTaskCompletionSource。
-        // UIからの入力があるまで処理をブロックし、結果を受け取るとTaskを完了させます。
-        private TaskCompletionSource<List<WeissCard>> _mulliganCompletionSource;
-
-        /// <summary>
-        /// UIからのマリガン選択結果を受け取り、保留中のマリガンタスクを完了させます。
-        /// </summary>
-        /// <param name="selectedCards">マリガンするために選択されたカードのリスト。</param>
-        public void ConfirmMulligan(List<WeissCard> selectedCards)
-        {
-            if (_mulliganCompletionSource != null && !_mulliganCompletionSource.Task.IsCompleted)
-            {
-                // TaskCompletionSourceを通じて、選択されたカードを非同期処理の結果として設定します。
-                _mulliganCompletionSource.SetResult(selectedCards);
-            }
-        }
-
         /// <summary>
         /// ターン状態をリセットする際に呼び出されます。
         /// 必要に応じて、UI固有のリセット処理をここに追加できます。
@@ -138,16 +121,14 @@ namespace TCG.Weiss
         public async Task<List<WeissCard>> ChooseMulliganCards(WeissPlayer player, List<WeissCard> hand)
         {
             Debug.Log($"UIGamePlayerController: {player.Name}'s Mulligan Phase. Waiting for UI input.");
-            // 新しいTaskCompletionSourceを作成し、UIからの結果を待ちます。
-            _mulliganCompletionSource = new TaskCompletionSource<List<WeissCard>>();
+            if (GameView.Instance == null)
+            {
+                Debug.LogWarning("UIGamePlayerController: GameView.Instance is null. Mulligan will be skipped.");
+                return new List<WeissCard>();
+            }
 
-            // GameViewにマリガン選択モードへの移行を通知し、このコントローラー自身を渡します。
-            // これにより、GameViewはUI操作を通じてConfirmMulliganを呼び出すことができます。
-            GameView.Instance.BeginMulliganSelection(this);
-
-            // UIからの入力があるまで、ここで非同期に待機します。
-            var selectedCards = await _mulliganCompletionSource.Task;
-            _mulliganCompletionSource = null; // タスク完了後、TaskCompletionSourceをクリーンアップ
+            // 中央モーダルにマリガン入力を委譲して待機する。
+            var selectedCards = await GameView.Instance.RequestMulliganAsync(player);
 
             Debug.Log($"UIGamePlayerController: Mulligan confirmed with {selectedCards.Count} cards.");
             return selectedCards;

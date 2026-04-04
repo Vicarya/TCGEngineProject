@@ -22,6 +22,7 @@ namespace TCG.Weiss.UI
         [SerializeField] private float cardSpacing = 100f;
 
         private List<CardUI> _cardUIs = new List<CardUI>();
+        private bool _isMulliganSelectionMode;
 
         // --- Mulligan Selection ---
         /// <summary>
@@ -31,8 +32,25 @@ namespace TCG.Weiss.UI
         public void EnterMulliganSelectionMode()
         {
             Debug.Log("HandZoneUI: Entering mulligan selection mode.");
-            // TODO: 各CardUIにクリックリスナーを追加し、選択状態を切り替えられるようにする実装が必要です。
-            // Implementation to follow: add click listeners to each CardUI
+            _isMulliganSelectionMode = true;
+            foreach (var cardUI in _cardUIs)
+            {
+                cardUI.SetSelectionMode(true);
+                cardUI.SetSelected(false);
+            }
+        }
+
+        /// <summary>
+        /// マリガン選択モードを終了し、カード選択状態をクリアします。
+        /// </summary>
+        public void ExitMulliganSelectionMode()
+        {
+            _isMulliganSelectionMode = false;
+            foreach (var cardUI in _cardUIs)
+            {
+                cardUI.SetSelectionMode(false);
+                cardUI.SetSelected(false);
+            }
         }
 
         /// <summary>
@@ -42,9 +60,21 @@ namespace TCG.Weiss.UI
         public List<WeissCard> GetSelectedCardsForMulligan()
         {
             Debug.Log("HandZoneUI: Getting selected cards for mulligan.");
-            // TODO: _cardUIsリストから選択状態のカードを特定し、そのWeissCardオブジェクトを返す実装が必要です。
-            // Implementation to follow: get selected cards from _cardUIs
-            return new List<WeissCard>();
+            var selectedCards = new List<WeissCard>();
+            if (!_isMulliganSelectionMode)
+            {
+                return selectedCards;
+            }
+
+            foreach (var cardUI in _cardUIs)
+            {
+                if (cardUI != null && cardUI.IsSelected && cardUI.Card != null)
+                {
+                    selectedCards.Add(cardUI.Card);
+                }
+            }
+
+            return selectedCards;
         }
         // --------------------------
 
@@ -96,4 +126,3 @@ namespace TCG.Weiss.UI
         }
     }
 }
-

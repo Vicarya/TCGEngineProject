@@ -81,14 +81,15 @@ namespace TCG.Weiss
         protected override void SetupGame(GameState state)
         {
             // 手順1: カードデータベースの状態を確認
-            if (WeissCardDatabase.Instance == null)
+            var cardDatabase = WeissCardDatabase.EnsureInitialized();
+            if (cardDatabase == null)
             {
-                Debug.LogError("CRITICAL: WeissCardDatabase Instance is missing! SetupGame aborted.");
-                return;
+                throw new System.InvalidOperationException("CRITICAL: WeissCardDatabase Instance is missing! SetupGame cannot proceed.");
             }
 
-            // 手順2: プレイヤーインスタンスを2つ作成する (デバッグ用にConsoleControllerを使用)
-            var player1 = new WeissPlayer("Player1", new ConsolePlayerController());
+            // 手順2: プレイヤーインスタンスを2つ作成する
+            // Player1はUI入力、Player2はデバッグ用の自動入力を使用する。
+            var player1 = new WeissPlayer("Player1", new UIGamePlayerController());
             var player2 = new WeissPlayer("Player2", new ConsolePlayerController());
 
             state.Players.Add(player1);
@@ -130,7 +131,7 @@ namespace TCG.Weiss
                         if (parts.Length == 2 && int.TryParse(parts[1], out int quantity))
                         {
                             string cardCode = parts[0];
-                            var cardData = WeissCardDatabase.Instance.AllCards.FirstOrDefault(c => c.CardCode == cardCode);
+                            var cardData = cardDatabase.AllCards.FirstOrDefault(c => c.CardCode == cardCode);
                             if (cardData != null)
                             {
                                 for (int i = 0; i < quantity; i++)
@@ -145,7 +146,7 @@ namespace TCG.Weiss
                 {
                     Debug.LogWarning($"デッキファイルが見つかりません: {deckFilePath}。サンプルデッキを使用します。");
                     // ファイルが見つからない場合、フォールバックとしてサンプルデッキを生成
-                    foreach (var cardData in WeissCardDatabase.Instance.AllCards.Take(10))
+                    foreach (var cardData in cardDatabase.AllCards.Take(10))
                     {
                         for (int i = 0; i < 5; i++)
                         {
