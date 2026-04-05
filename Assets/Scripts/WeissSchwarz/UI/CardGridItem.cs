@@ -48,6 +48,30 @@ namespace TCG.Weiss.UI
             _button.onClick.RemoveAllListeners();
             _button.onClick.AddListener(OnCardClick);
 
+            // 画像の歪みを防ぎ、クライマックスなら回転させる
+            if (_cardImage != null)
+            {
+                _cardImage.preserveAspect = true;
+                _cardImage.sprite = null; // ロード前にクリア
+
+                RectTransform rect = _cardImage.rectTransform;
+                if (rect != null)
+                {
+                    // 位置ズレ防止のためアンカーを中央に
+                    rect.anchorMin = new Vector2(0.5f, 0.5f);
+                    rect.anchorMax = new Vector2(0.5f, 0.5f);
+                    rect.pivot = new Vector2(0.5f, 0.5f);
+                    rect.anchoredPosition = Vector2.zero;
+
+                    bool isClimax = _cardData.CardType == "Climax" || _cardData.CardType == "クライマックス";
+                    rect.localRotation = isClimax ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
+                    
+                    // スケールを1.4fに修正（巨大化を防止）
+                    float scale = isClimax ? 1.4f : 1f;
+                    rect.localScale = new Vector3(scale, scale, 1f);
+                }
+            }
+
             // 画像の非同期読み込みを開始
             // ImageLoader.cs がプロジェクトに存在することを想定
             // 存在しない場合は、この部分をコメントアウトまたは実装してください。

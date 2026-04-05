@@ -62,15 +62,8 @@ namespace TCG.Weiss.UI
             }
             _currentCard = card; // 現在のカードとして保持
 
-            // カード画像を非同期でロード
-            if (!string.IsNullOrEmpty(card.Data.ImagePath))
-            {
-                StartCoroutine(ImageLoader.LoadImage(card.Data.ImagePath, cardImageView));
-            }
-            else
-            {
-                cardImageView.sprite = null; // 画像URLがない場合は以前の画像をクリア
-            }
+            // カード画像と回転を設定
+            LoadCardImage(card);
 
             // カード詳細を整形して表示
             cardDetailText.text = FormatCardDetails(card);
@@ -79,6 +72,7 @@ namespace TCG.Weiss.UI
             SetDeckEditorUIActive(false);
 
             // CanvasGroupを介してUIを表示状態にする
+            EnsureViewIsActive();
             _canvasGroup.alpha = 1f;
             _canvasGroup.interactable = true;
             _canvasGroup.blocksRaycasts = true;
@@ -100,15 +94,8 @@ namespace TCG.Weiss.UI
             }
             _currentCard = card; // 現在のカードとして保持
 
-            // カード画像を非同期でロード
-            if (!string.IsNullOrEmpty(card.Data.ImagePath))
-            {
-                StartCoroutine(ImageLoader.LoadImage(card.Data.ImagePath, cardImageView));
-            }
-            else
-            {
-                cardImageView.sprite = null; // 以前の画像をクリア
-            }
+            // カード画像と回転を設定
+            LoadCardImage(card);
 
             // カード詳細を整形して表示
             cardDetailText.text = FormatCardDetails(card);
@@ -178,16 +165,16 @@ namespace TCG.Weiss.UI
 
             // 基本情報
             sb.AppendLine($"<b><size=120%>{card.Data.Name}</size></b> ({card.Data.CardCode})");
-            sb.AppendLine($"<color=#808080>種類: {card.Data.CardType}</color>");
-            sb.AppendLine($"<color=#808080>レベル: {card.Data.Level} / コスト: {card.Data.Cost}</color>");
-            sb.AppendLine($"<color=#808080>パワー: {card.Data.Power} / ソウル: {card.Data.Soul}</color>");
-            sb.AppendLine($"<color=#808080>色: {card.Data.Color} / サイド: {card.Data.Side}</color>");
+            sb.AppendLine($"<color=#111111>種類: {card.Data.CardType}</color>");
+            sb.AppendLine($"<color=#111111>レベル: {card.Data.Level} / コスト: {card.Data.Cost}</color>");
+            sb.AppendLine($"<color=#111111>パワー: {card.Data.Power} / ソウル: {card.Data.Soul}</color>");
+            sb.AppendLine($"<color=#111111>色: {card.Data.Color} / サイド: {card.Data.Side}</color>");
             if (card.Data.Traits != null && card.Data.Traits.Count > 0)
             {
-                sb.AppendLine($"<color=#808080>特徴: {string.Join("・", card.Data.Traits)}</color>");
+                sb.AppendLine($"<color=#111111>特徴: {string.Join("・", card.Data.Traits)}</color>");
             }
-            sb.AppendLine($"<color=#808080>レアリティ: {card.Data.Rarity}</color>");
-            sb.AppendLine($"<color=#808080>トリガー: {card.Data.TriggerIcon}</color>");
+            sb.AppendLine($"<color=#111111>レアリティ: {card.Data.Rarity}</color>");
+            sb.AppendLine($"<color=#111111>トリガー: {card.Data.TriggerIcon}</color>");
             sb.AppendLine();
 
             // 能力情報
@@ -307,6 +294,62 @@ namespace TCG.Weiss.UI
             {
                 DeckEditorManager.Instance?.RemoveCardFromDeck(_currentCard.Data);
             }
+        }
+
+        private void EnsureViewIsActive()
+        {
+            if (!gameObject.activeSelf)
+            {
+                gameObject.SetActive(true);
+            }
+
+            if (_canvasGroup == null)
+            {
+                _canvasGroup = GetComponent<CanvasGroup>();
+            }
+        }
+
+        private void LoadCardImage(WeissCard card)
+        {
+            EnsureViewIsActive();
+            if (cardImageView == null) return;
+
+            // 画像の歪みを防ぐ設定
+            cardImageView.preserveAspect = true;
+
+            // 回転とスケールの修正
+            RectTransform rect = cardImageView.rectTransform;
+            if (rect != null)
+            {
+                // アンカーを中央に固定することで、ピボット変更による位置ズレを防ぐ
+                rect.anchorMin = new Vector2(0.5f, 0.5f);
+                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.anchoredPosition = Vector2.zero;
+
+                bool isClimax = card.Data != null && (card.Data.CardType == "Climax" || card.Data.CardType == "クライマックス");
+                rect.localRotation = isClimax ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
+
+                float scale = isClimax ? 1.4f : 1f;
+                rect.localScale = new Vector3(scale, scale, 1f);
+            }
+
+            // ロードが始まる前に前の画像を消す（「切り替わらない」ように見えるのを防ぐ）
+            cardImageView.sprite = null;
+
+            if (card.Data == null || string.IsNullOrEmpty(card.Data.ImagePath))
+            {
+                return;
+            }
+
+            if (!isActiveAndEnabled)
+            {
+                Debug.LogWarning("CardDetailView: 画像ロードはビューがアクティブでないためスキップされました。");
+                return;
+            }
+
+            // 非同期ロード開始
+            StartCoroutine(ImageLoader.LoadImage(card.Data.ImagePath, cardImageView));
         }
     }
 }

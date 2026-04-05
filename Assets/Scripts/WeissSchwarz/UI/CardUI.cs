@@ -160,6 +160,9 @@ namespace TCG.Weiss.UI
                 var cardData = _card.Data;
                 Sprite spriteToDisplay = null;
 
+                // アスペクト比を維持
+                if (_cardFrontImage != null) _cardFrontImage.preserveAspect = true;
+
                 if (!string.IsNullOrEmpty(cardData.ImagePath))
                 {
                     spriteToDisplay = Resources.Load<Sprite>(cardData.ImagePath);
@@ -175,12 +178,38 @@ namespace TCG.Weiss.UI
             else
             {
                 // 裏向きの場合、カードの裏面画像を表示（サイドによって切り替え）
-                if(_cardBackImage != null) _cardBackImage.sprite = GetCardBackSprite();
+                if (_cardBackImage != null)
+                {
+                    _cardBackImage.preserveAspect = true;
+                    _cardBackImage.sprite = GetCardBackSprite();
+                }
             }
-            
-            // レスト状態に応じてカードの回転を更新
-            // カードがレスト状態であれば90度回転、そうでなければ元の角度に戻す
-            transform.localRotation = _card.IsRested ? Quaternion.Euler(0, 0, 90) : Quaternion.identity;
+
+            // 回転状態の更新
+            float zRotation = 0f;
+            bool isClimax = _card.Data != null && (_card.Data.CardType == "Climax" || _card.Data.CardType == "クライマックス");
+
+            if (_card.IsRested || (isFaceUp && isClimax))
+            {
+                // レスト状態、または表向きのクライマックスは時計回りに90度（-90）回転
+                zRotation = -90f;
+            }
+
+            RectTransform rect = GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                // 位置ズレ防止のためアンカーを中央にリセット
+                rect.anchorMin = new Vector2(0.5f, 0.5f);
+                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.anchoredPosition = Vector2.zero;
+                
+                rect.localRotation = Quaternion.Euler(0, 0, zRotation);
+
+                // 補正係数を 1.4f (88/63) に調整。これでキャラクターカードと同じ高さになります。
+                float scaleComp = (isFaceUp && isClimax) ? 1.4f : 1f;
+                rect.localScale = new Vector3(scaleComp, scaleComp, 1f);
+            }
         }
 
         /// <summary>

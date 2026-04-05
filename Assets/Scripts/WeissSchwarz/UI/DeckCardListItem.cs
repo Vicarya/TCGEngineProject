@@ -52,9 +52,27 @@ namespace TCG.Weiss.UI
                 cardCountText.text = $"x{count}";
             }
 
-            if (_cardData != null)
+            var image = GetComponent<Image>();
+            if (image != null && _cardData != null)
             {
-                StartCoroutine(ImageLoader.LoadImage(_cardData.ImagePath, this.gameObject.GetComponent<Image>()));
+                // アスペクト比維持と回転の設定
+                image.preserveAspect = true;
+                image.sprite = null;
+
+                RectTransform rect = image.rectTransform;
+                if (rect != null)
+                {
+                    bool isClimax = _cardData.CardType == "Climax" || _cardData.CardType == "クライマックス";
+                    rect.pivot = new Vector2(0.5f, 0.5f);
+                    rect.anchoredPosition = Vector2.zero;
+                    rect.localRotation = isClimax ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
+
+                    // クライマックスカードのスケールを 1.4f に統一
+                    float scale = isClimax ? 1.4f : 1f;
+                    rect.localScale = new Vector3(scale, scale, 1f);
+                }
+
+                StartCoroutine(ImageLoader.LoadImage(_cardData.ImagePath, image));
             }
         }
 
