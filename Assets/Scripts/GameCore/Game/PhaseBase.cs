@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 namespace TCG.Core {
     /// <summary>
     /// ゲームのターンを構成する個々の「フェーズ」（例：ドローフェイズ、アタックフェイズ）を表現する抽象基底クラス。
@@ -49,8 +50,9 @@ namespace TCG.Core {
         /// デフォルトではPhaseStartedイベントを発行します。
         /// </summary>
         /// <param name="state">現在のゲーム状態。</param>
-        public virtual void OnEnter(TCG.Core.GameState state) {
+        public virtual Task OnEnter(TCG.Core.GameState state) {
             state.EventBus.Raise(new GameEvent(BaseGameEvents.PhaseStarted, this));
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -58,8 +60,9 @@ namespace TCG.Core {
         /// デフォルトではPhaseEndedイベントを発行します。
         /// </summary>
         /// <param name="state">現在のゲーム状態。</param>
-        public virtual void OnExit(TCG.Core.GameState state) {
+        public virtual Task OnExit(TCG.Core.GameState state) {
             state.EventBus.Raise(new GameEvent(BaseGameEvents.PhaseEnded, this));
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -67,13 +70,13 @@ namespace TCG.Core {
         /// デフォルトの実装では、OnEnterを呼び出し、全てのサブフェーズを順番に実行し、最後にOnExitを呼び出します。
         /// </summary>
         /// <param name="state">現在のゲーム状態。</param>
-        public virtual void Execute(TCG.Core.GameState state) {
-            OnEnter(state);
+        public virtual async Task Execute(TCG.Core.GameState state) {
+            await OnEnter(state);
             foreach (var sp in subPhases)
             {
-                sp.Execute(state);
+                await sp.Execute(state);
             }
-            OnExit(state);
+            await OnExit(state);
         }
     }
 }

@@ -73,9 +73,11 @@ namespace TCG.Weiss.UI
 
             // CanvasGroupを介してUIを表示状態にする
             EnsureViewIsActive();
-            _canvasGroup.alpha = 1f;
-            _canvasGroup.interactable = true;
-            _canvasGroup.blocksRaycasts = true;
+            var canvasGroup = GetCanvasGroup();
+            if (canvasGroup == null) return;
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
             Debug.Log($"CardDetailView: {card.Data.Name} の詳細を表示中。");
         }
 
@@ -107,9 +109,11 @@ namespace TCG.Weiss.UI
             UpdateCardCount(countInDeck);
 
             // CanvasGroupを介してUIを表示状態にする
-            _canvasGroup.alpha = 1f;
-            _canvasGroup.interactable = true;
-            _canvasGroup.blocksRaycasts = true;
+            var canvasGroup = GetCanvasGroup();
+            if (canvasGroup == null) return;
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
             Debug.Log($"CardDetailView: {card.Data.Name} の詳細を表示中。");
         }
 
@@ -120,9 +124,11 @@ namespace TCG.Weiss.UI
         public void Hide()
         {
             StopAllCoroutines(); // 画像ロード中のコルーチンを停止
-            _canvasGroup.alpha = 0f; // 透明にして非表示
-            _canvasGroup.interactable = false; // 非インタラクティブに
-            _canvasGroup.blocksRaycasts = false; // レイキャストをブロックしない
+            var canvasGroup = GetCanvasGroup();
+            if (canvasGroup == null) return;
+            canvasGroup.alpha = 0f; // 透明にして非表示
+            canvasGroup.interactable = false; // 非インタラクティブに
+            canvasGroup.blocksRaycasts = false; // レイキャストをブロックしない
             _currentCard = null; // 現在のカード情報をクリア
             Debug.Log("CardDetailView: 非表示にしました。");
         }
@@ -303,10 +309,22 @@ namespace TCG.Weiss.UI
                 gameObject.SetActive(true);
             }
 
+            GetCanvasGroup();
+        }
+
+        private CanvasGroup GetCanvasGroup()
+        {
             if (_canvasGroup == null)
             {
                 _canvasGroup = GetComponent<CanvasGroup>();
             }
+
+            if (_canvasGroup == null)
+            {
+                Debug.LogError("CardDetailView: CanvasGroup component is missing.");
+            }
+
+            return _canvasGroup;
         }
 
         private void LoadCardImage(WeissCard card)

@@ -4,6 +4,7 @@ using System;
 using TCG.Weiss;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace TCG.Weiss {
     /// <summary>
@@ -48,7 +49,7 @@ namespace TCG.Weiss {
         /// <summary>
         /// フェーズ開始時、アクティブプレイヤーの場のキャラを全てスタンドさせます。
         /// </summary>
-        public override void OnEnter(GameState state) {
+        public override Task OnEnter(GameState state) {
             base.OnEnter(state);
             state.TurnCounter++;
             var player = state.ActivePlayer as WeissPlayer;
@@ -65,6 +66,7 @@ namespace TCG.Weiss {
             state.EventBus.Raise(new GameEvent(new GameEventType("AllCharactersStood"), player));
             // イベント発行: 「スタンドフェイズの始め」のチェックタイミング
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "AfterStand"));
+            return Task.CompletedTask;
         }
     }
 
@@ -76,7 +78,7 @@ namespace TCG.Weiss {
         /// <summary>
         /// フェーズ開始時、山札からカードを1枚引きます。
         /// </summary>
-        public override void OnEnter(GameState state) {
+        public override Task OnEnter(GameState state) {
             base.OnEnter(state);
             var player = state.ActivePlayer;
 
@@ -93,6 +95,7 @@ namespace TCG.Weiss {
             state.EventBus.Raise(new GameEvent(BaseGameEvents.CardDrawn, new { Player = player, Card = card }));
             // イベント発行: 「ドローフェイズの終わり」のチェックタイミング
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "AfterDraw"));
+            return Task.CompletedTask;
         }
     }
 
@@ -104,7 +107,7 @@ namespace TCG.Weiss {
         /// <summary>
         /// フェーズ開始時、プレイヤーにクロックアクション（手札をクロックに置いて2ドロー）の選択を促します。
         /// </summary>
-        public override void OnEnter(GameState state) {
+        public override Task OnEnter(GameState state) {
             base.OnEnter(state);
             var player = state.ActivePlayer as WeissPlayer;
 
@@ -127,6 +130,7 @@ namespace TCG.Weiss {
                 state.EventBus.Raise(new GameEvent(new GameEventType("CardClocked"), new { Player = player, Card = chosen }));
             }
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "AfterClock"));
+            return Task.CompletedTask;
         }
     }
 
@@ -139,9 +143,9 @@ namespace TCG.Weiss {
         /// <summary>
         /// フェーズ開始時、プレイヤーが「フェイズ終了」を選択するまで、行動の選択をループで促します。
         /// </summary>
-        public override void OnEnter(GameState state)
+        public override async Task OnEnter(GameState state)
         {
-            base.OnEnter(state);
+            await base.OnEnter(state);
             var player = state.ActivePlayer as WeissPlayer;
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfMainPhase"));
@@ -149,7 +153,7 @@ namespace TCG.Weiss {
             // プレイヤーがメインフェイズを終了するまでループ
             while (true)
             {
-                var action = player.Controller.ChooseMainPhaseAction(player);
+                var action = await player.Controller.ChooseMainPhaseAction(player);
 
                 if (action == MainPhaseAction.EndPhase)
                 {
@@ -280,7 +284,7 @@ namespace TCG.Weiss {
         /// <summary>
         /// フェーズ開始時、プレイヤーにクライマックスカードをプレイするかの選択を促します。
         /// </summary>
-        public override void OnEnter(GameState state) {
+        public override Task OnEnter(GameState state) {
             base.OnEnter(state);
             var player = state.ActivePlayer as WeissPlayer;
 
@@ -295,6 +299,7 @@ namespace TCG.Weiss {
                 state.EventBus.Raise(new GameEvent(WeissGameEvents.ClimaxPlayed, new { Player = player, Card = chosen }));
             }
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "AfterClimax"));
+            return Task.CompletedTask;
         }
     }
 
@@ -308,7 +313,7 @@ namespace TCG.Weiss {
         /// <summary>
         /// フェーズ開始時、プレイヤーがアタックを終了するまで、アタックの一連の流れをループで処理します。
         /// </summary>
-        public override void OnEnter(GameState state)
+        public override Task OnEnter(GameState state)
         {
             base.OnEnter(state);
             var player = state.ActivePlayer as WeissPlayer;
@@ -390,6 +395,7 @@ namespace TCG.Weiss {
 
             // 7. アンコールステップ
             ExecuteEncoreStep(state);
+            return Task.CompletedTask;
         }
 
         private int ExecuteTriggerStep(GameState state, WeissRuleEngine ruleEngine)
@@ -578,7 +584,7 @@ namespace TCG.Weiss {
         /// <summary>
         /// フェーズ開始時、手札が7枚を超える場合は超過分を捨てさせ、クライマックス置場のカードを控え室に置きます。
         /// </summary>
-        public override void OnEnter(GameState state) {
+        public override Task OnEnter(GameState state) {
             base.OnEnter(state);
             var player = state.ActivePlayer as WeissPlayer;
 
@@ -601,6 +607,7 @@ namespace TCG.Weiss {
             }
             state.EventBus.Raise(new GameEvent(new GameEventType("ClimaxCleared"), player));
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "AfterEnd"));
+            return Task.CompletedTask;
         }
     }
 }

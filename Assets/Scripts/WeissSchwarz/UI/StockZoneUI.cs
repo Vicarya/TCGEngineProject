@@ -1,27 +1,40 @@
 using System.Collections.Generic;
-using System.Linq;
 using TCG.Weiss;
 using UnityEngine;
 
 namespace TCG.Weiss.UI
 {
     /// <summary>
-    /// Manages the UI representation of the Stock Zone.
+    /// プレイヤーのストック置場のUI表示を管理するクラスです。
+    /// ゲームの論理的なストックゾーンの状態をUIに反映させます。
     /// </summary>
     public class StockZoneUI : MonoBehaviour
     {
         [Header("UI References")]
+        [Tooltip("ストックに表示するカードUIのプレハブ。")]
         [SerializeField] private GameObject cardPrefab; // Should have a CardUI component
+        [Tooltip("カードUIを配置するコンテナTransform。")]
         [SerializeField] private Transform cardContainer;
 
         [Header("Layout Settings")]
-        [SerializeField] private Vector2 cardOffset = new Vector2(10, -5); // How much each card in the stack is offset
+        [Tooltip("カード間のオフセット（フォールバック用）。")]
+        [SerializeField] private Vector2 cardOffset = new Vector2(10, -5);
+        [Tooltip("子オブジェクトのTransformをレイアウトスロットとして使用するかどうか。")]
+        [SerializeField] private bool useChildTransformsAsLayoutSlots = true;
+        [Tooltip("レイアウトに使用したテンプレートオブジェクトを非表示にするかどうか。")]
+        [SerializeField] private bool hideLayoutTemplateObjects = true;
 
-        private List<CardUI> _cardUIs = new List<CardUI>();
+        private readonly List<CardUI> _cardUIs = new List<CardUI>();
+        private readonly List<RectTransform> _layoutSlots = new List<RectTransform>();
+
+        private void Awake()
+        {
+            CacheLayoutSlotsFromChildren();
+        }
 
         /// <summary>
         /// 提供されたストックゾーンの状態に合わせてUI表示を更新します。
-        /// 既存のカードUIオブジェクトをクリアし、新しいストックゾーンのカードに対応するUIオブジェクトを生成・配置します。
+        /// 既存のカードUIオブジェクトをクリアし、現在のカードに対応するUIオブジェクトを生成・配置します。
         /// </summary>
         /// <param name="stockZone">ゲームロジックからのストックゾーンデータ。</param>
         public void UpdateZone(StockZone stockZone)
@@ -31,13 +44,18 @@ namespace TCG.Weiss.UI
             {
                 Destroy(cardUI.gameObject);
             }
-            _cardUIs.Clear(); // リストもクリア
+            _cardUIs.Clear();
 
-            // ストックゾーンがnullの場合は何もしない
-            if (stockZone == null) return;
+            if (stockZone == null || cardPrefab == null || cardContainer == null)
+            {
+                return;
+            }
 
-            // ストックはLIFO（後入れ先出し）ですが、UIではカードの枚数を視覚的に示すため、
-            // 生成順に重ねて表示します。
+            if (useChildTransformsAsLayoutSlots && _layoutSlots.Count == 0)
+            {
+                CacheLayoutSlotsFromChildren();
+            }
+
             for (int i = 0; i < stockZone.Cards.Count; i++)
             {
                 var card = stockZone.Cards[i];
@@ -45,28 +63,80 @@ namespace TCG.Weiss.UI
                 var cardObject = Instantiate(cardPrefab, cardContainer);
                 var cardUI = cardObject.GetComponent<CardUI>();
 
-                if (cardUI != null)
+                if (cardUI == null)
                 {
-                    // ストックに置かれているカードは常に裏向きです。
-                    card.IsFaceUp = false;
-                    cardUI.SetCard(card); // カードデータをCardUIに設定
-                    _cardUIs.Add(cardUI); // 生成したCardUIをリストに追加
-
-                    // 重ねて表示するためのレイアウトを適用
-                    var rectTransform = cardObject.GetComponent<RectTransform>();
-                    if (rectTransform != null)
-                    {
-                        // 各カードを少しずつオフセットして、重ねて表示されるように位置を調整
-                        rectTransform.anchoredPosition = i * cardOffset;
-                    }
-                }
-                else
-                {
-                    // CardUIコンポーネントが見つからない場合はエラーをログに記録し、オブジェクトを破棄
-                    Debug.LogError("Card prefab is missing CardUI component!");
+                    Debug.LogError("StockZoneUI: card prefab is missing CardUI component.");
                     Destroy(cardObject);
+                    continue;
+                }
+
+                card.IsFaceUp = false;
+                cardUI.SetCard(card);
+                _cardUIs.Add(cardUI);
+                ApplyLayout(cardObject.GetComponent<RectTransform>(), i);
+            }
+        }
+
+        private void CacheLayoutSlotsFromChildren()
+        {
+            _layoutSlots.Clear();
+            if (!useChildTransformsAsLayoutSlots || cardContainer == null)
+            {
+                return;
+            }
+
+            foreach (Transform child in cardContainer)
+            {
+                var rect = child as RectTransform;
+                if (rect != null)
+                {
+                    _layoutSlots.Add(rect);
                 }
             }
+        }
+
+        private void ApplyLayout(RectTransform cardRect, int index)
+        {
+            if (cardRect == null)
+            {
+                return;
+            }
+
+            if (useChildTransformsAsLayoutSlots && index < _layoutSlots.Count && _layoutSlots[index] != null)
+            {
+                var slot = _layoutSlots[index];
+                cardRect.anchorMin = slot.anchorMin;
+                cardRect.anchorMax = slot.anchorMax;
+                cardRect.pivot = slot.pivot;
+                cardRect.sizeDelta = slot.sizeDelta;
+                cardRect.anchoredPosition = slot.anchoredPosition;
+                cardRect.localRotation = slot.localRotation;
+                cardRect.localScale = slot.localScale;
+
+                if (hideLayoutTemplateObjects && slot.gameObject.activeSelf)
+                {
+                    slot.gameObject.SetActive(false);
+                }
+                return;
+            }
+
+            if (useChildTransformsAsLayoutSlots && _layoutSlots.Count >= 2 && _layoutSlots[0] != null && _layoutSlots[1] != null)
+            {
+                var slot0 = _layoutSlots[0];
+                var slot1 = _layoutSlots[1];
+                var delta = slot1.anchoredPosition - slot0.anchoredPosition;
+
+                cardRect.anchorMin = slot1.anchorMin;
+                cardRect.anchorMax = slot1.anchorMax;
+                cardRect.pivot = slot1.pivot;
+                cardRect.sizeDelta = slot1.sizeDelta;
+                cardRect.localRotation = slot1.localRotation;
+                cardRect.localScale = slot1.localScale;
+                cardRect.anchoredPosition = slot0.anchoredPosition + (delta * index);
+                return;
+            }
+
+            cardRect.anchoredPosition = index * cardOffset;
         }
     }
 }

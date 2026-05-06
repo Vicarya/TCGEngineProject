@@ -1,30 +1,42 @@
 using System.Collections.Generic;
-using System.Linq;
 using TCG.Weiss;
 using UnityEngine;
 
 namespace TCG.Weiss.UI
 {
     /// <summary>
-    /// Manages the UI representation of the Waiting Room (Discard Pile).
+    /// プレイヤーの控え室のUI表示を管理するクラスです。
+    /// ゲームの論理的な控え室（DiscardPile）の状態をUIに反映させます。
     /// </summary>
     public class WaitingRoomUI : MonoBehaviour
     {
         [Header("UI References")]
+        [Tooltip("控え室に表示するカードUIのプレハブ。")]
         [SerializeField] private GameObject cardPrefab; // Should have a CardUI component
+        [Tooltip("カードUIを配置するコンテナTransform。")]
         [SerializeField] private Transform cardContainer;
 
         [Header("Layout Settings")]
-        [SerializeField] private float cardSpacing = 20f;
-        [SerializeField] private int maxCardsToShow = 10; // To prevent performance issues
+        [Tooltip("UI上にスタックして表示する最大枚数。")]
+        [SerializeField] private int maxCardsToShow = 10;
+        [Tooltip("子オブジェクトのTransformをレイアウトスロットとして使用するかどうか。")]
+        [SerializeField] private bool useChildTransformsAsLayoutSlots = true;
+        [Tooltip("レイアウトに使用したテンプレートオブジェクトを非表示にするかどうか。")]
+        [SerializeField] private bool hideLayoutTemplateObjects = true;
 
-        private List<CardUI> _cardUIs = new List<CardUI>();
+        private readonly List<CardUI> _cardUIs = new List<CardUI>();
+        private readonly List<RectTransform> _layoutSlots = new List<RectTransform>();
+
+        private void Awake()
+        {
+            CacheLayoutSlotsFromChildren();
+        }
 
         /// <summary>
         /// 提供された控え室ゾーンの状態に合わせてUI表示を更新します。
-        /// 既存のカードUIオブジェクトをクリアし、新しい控え室のカードに対応するUIオブジェクトを生成・配置します。
+        /// 既存のカードUIオブジェクトをクリアし、現在のカードに対応するUIオブジェクトを生成・配置します。
         /// </summary>
-        /// <param name="waitingRoomZone">ゲームロジックからの控え室ゾーンデータ。</param>
+        /// <param name="waitingRoomZone">ゲームロジックからの控え室データ。</param>
         public void UpdateZone(WaitingRoomZone waitingRoomZone)
         {
             // 既存のUIオブジェクトを全て破棄
@@ -32,44 +44,88 @@ namespace TCG.Weiss.UI
             {
                 Destroy(cardUI.gameObject);
             }
-            _cardUIs.Clear(); // リストもクリア
+            _cardUIs.Clear();
 
-            // 控え室ゾーンがnullの場合は何もしない
-            if (waitingRoomZone == null) return;
-
-            // 控え室のカードは多数になる可能性があるため、表示上のパフォーマンスを考慮し、
-            // 最大表示枚数（maxCardsToShow）に制限して表示します。
-            var cardsToShow = waitingRoomZone.Cards.Take(maxCardsToShow);
-            int i = 0;
-            foreach(var card in cardsToShow)
+            if (waitingRoomZone == null || cardPrefab == null || cardContainer == null)
             {
+                return;
+            }
+
+            if (useChildTransformsAsLayoutSlots && _layoutSlots.Count == 0)
+            {
+                CacheLayoutSlotsFromChildren();
+            }
+
+            int showCount = Mathf.Min(maxCardsToShow, waitingRoomZone.Cards.Count);
+            for (int i = 0; i < showCount; i++)
+            {
+                var card = waitingRoomZone.Cards[i];
                 // カードプレハブをカードコンテナの子としてインスタンス化
                 var cardObject = Instantiate(cardPrefab, cardContainer);
                 var cardUI = cardObject.GetComponent<CardUI>();
 
-                if (cardUI != null)
+                if (cardUI == null)
                 {
-                    // 控え室のカードは常に表向きです。
-                    card.IsFaceUp = true;
-                    cardUI.SetCard(card); // カードデータをCardUIに設定
-                    _cardUIs.Add(cardUI); // 生成したCardUIをリストに追加
-
-                    // 基本的な水平レイアウトを適用
-                    var rectTransform = cardObject.GetComponent<RectTransform>();
-                    if (rectTransform != null)
-                    {
-                        // カードの間隔を考慮して位置を設定
-                        rectTransform.anchoredPosition = new Vector2(i * cardSpacing, 0);
-                    }
-                }
-                else
-                {
-                    // CardUIコンポーネントが見つからない場合はエラーをログに記録し、オブジェクトを破棄
-                    Debug.LogError("Card prefab is missing CardUI component!");
+                    Debug.LogError("WaitingRoomUI: card prefab is missing CardUI component.");
                     Destroy(cardObject);
+                    continue;
                 }
-                i++;
+
+                card.IsFaceUp = true;
+                cardUI.SetCard(card);
+                _cardUIs.Add(cardUI);
+                ApplyStackLayout(cardObject.GetComponent<RectTransform>());
             }
+        }
+
+        private void CacheLayoutSlotsFromChildren()
+        {
+            _layoutSlots.Clear();
+            if (!useChildTransformsAsLayoutSlots || cardContainer == null)
+            {
+                return;
+            }
+
+            foreach (Transform child in cardContainer)
+            {
+                var rect = child as RectTransform;
+                if (rect != null)
+                {
+                    _layoutSlots.Add(rect);
+                }
+            }
+        }
+
+        private void ApplyStackLayout(RectTransform cardRect)
+        {
+            if (cardRect == null)
+            {
+                return;
+            }
+
+            if (useChildTransformsAsLayoutSlots && _layoutSlots.Count >= 1 && _layoutSlots[0] != null)
+            {
+                var slot = _layoutSlots[0];
+                CopyTransform(cardRect, slot);
+                if (hideLayoutTemplateObjects && slot.gameObject.activeSelf)
+                {
+                    slot.gameObject.SetActive(false);
+                }
+                return;
+            }
+
+            cardRect.anchoredPosition = Vector2.zero;
+        }
+
+        private static void CopyTransform(RectTransform target, RectTransform source)
+        {
+            target.anchorMin = source.anchorMin;
+            target.anchorMax = source.anchorMax;
+            target.pivot = source.pivot;
+            target.sizeDelta = source.sizeDelta;
+            target.anchoredPosition = source.anchoredPosition;
+            target.localRotation = source.localRotation;
+            target.localScale = source.localScale;
         }
     }
 }

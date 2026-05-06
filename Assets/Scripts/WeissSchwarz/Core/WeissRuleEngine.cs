@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TCG.Core;
 using TCG.Weiss;
 using UnityEngine;
@@ -157,7 +158,7 @@ namespace TCG.Weiss
                 var player = ability.ResolvingPlayer;
                 
                 // プレイヤーに能力を使うかどうか確認
-                bool useAbility = player.Controller.AskYesNo(player, $"能力を使いますか？ \"{ability.AbilityText}\" ");
+                bool useAbility = player.Controller.AskYesNo(player, $"能力を使いますか？ \"{ability.AbilityText}\" ").GetAwaiter().GetResult();
                 if (useAbility)
                 {
                     var stock = player.GetZone<IStockZone<WeissCard>>();
@@ -180,9 +181,9 @@ namespace TCG.Weiss
         /// 指定されたプレイヤーの1ターンを実行します。
         /// </summary>
         /// <param name="turnPlayer">ターンプレイヤー。</param>
-        public void ExecuteTurn(Player turnPlayer) {
+        public async Task ExecuteTurnAsync(Player turnPlayer) {
             GameState.CurrentPlayerIndex = GameState.Players.IndexOf(turnPlayer);
-            TurnPhaseTree.Execute(GameState); // スタンドフェイズからエンドフェイズまで順次実行
+            await TurnPhaseTree.Execute(GameState); // スタンドフェイズからエンドフェイズまで順次実行
         }
 
         /// <summary>

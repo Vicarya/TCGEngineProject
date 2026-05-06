@@ -31,12 +31,16 @@ namespace TCG.Weiss
         /// </summary>
         /// <param name="player">現在のプレイヤー。</param>
         /// <returns>プレイヤーが選択したメインフェイズのアクション。</returns>
-        public MainPhaseAction ChooseMainPhaseAction(WeissPlayer player)
+        public async Task<MainPhaseAction> ChooseMainPhaseAction(WeissPlayer player)
         {
             Debug.Log($"UIGamePlayerController: {player.Name}'s Main Phase. Waiting for UI input.");
-            // This method should ideally block and wait for UI input.
-            // For now, return a default action.
-            return MainPhaseAction.EndPhase;
+            if (GameView.Instance == null)
+            {
+                Debug.LogWarning("UIGamePlayerController: GameView.Instance is null. EndPhase will be returned.");
+                return MainPhaseAction.EndPhase;
+            }
+
+            return await GameView.Instance.RequestMainPhaseActionAsync();
         }
 
         /// <summary>
@@ -189,10 +193,16 @@ namespace TCG.Weiss
         /// <param name="player">質問対象のプレイヤー。</param>
         /// <param name="question">プレイヤーに提示する質問文。</param>
         /// <returns>プレイヤーがYesを選択した場合はtrue、Noの場合はfalse。</returns>
-        public bool AskYesNo(WeissPlayer player, string question)
+        public async Task<bool> AskYesNo(WeissPlayer player, string question)
         {
             Debug.Log($"UIGamePlayerController: {player.Name}: Ask Yes/No: {question}. Waiting for UI input.");
-            return false; // Simulate No for now
+            if (GameView.Instance == null)
+            {
+                Debug.LogWarning("UIGamePlayerController: GameView.Instance is null. No will be returned.");
+                return false;
+            }
+
+            return await GameView.Instance.RequestYesNoAsync("確認", question, false);
         }
 
         /// <summary>

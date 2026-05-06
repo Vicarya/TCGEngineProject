@@ -19,7 +19,7 @@ namespace TCG.Weiss
         /// <summary>
         /// メインフェイズにどのアクション（カードプレイ、能力起動、フェイズ終了）を実行するか選択します。
         /// </summary>
-        MainPhaseAction ChooseMainPhaseAction(WeissPlayer player);
+        Task<MainPhaseAction> ChooseMainPhaseAction(WeissPlayer player);
 
         /// <summary>
         /// 手札からプレイまたは効果で使用するカードを1枚選択します。
@@ -79,7 +79,7 @@ namespace TCG.Weiss
         /// <summary>
         /// カードの効果などによって発生する、Yes/Noの選択をプレイヤーに要求します。
         /// </summary>
-        bool AskYesNo(WeissPlayer player, string question);
+        Task<bool> AskYesNo(WeissPlayer player, string question);
 
         /// <summary>
         /// カードの効果の対象となるカードを1枚選択します。

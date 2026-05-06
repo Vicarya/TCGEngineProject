@@ -1,29 +1,42 @@
 using System.Collections.Generic;
-using System.Linq;
 using TCG.Weiss;
 using UnityEngine;
 
 namespace TCG.Weiss.UI
 {
     /// <summary>
-    /// Manages the UI representation of the Memory Zone.
+    /// プレイヤーの思い出置場のUI表示を管理するクラスです。
+    /// ゲームの論理的な思い出ゾーンの状態をUIに反映させます。
     /// </summary>
     public class MemoryZoneUI : MonoBehaviour
     {
         [Header("UI References")]
+        [Tooltip("思い出置場に表示するカードUIのプレハブ。")]
         [SerializeField] private GameObject cardPrefab; // Should have a CardUI component
+        [Tooltip("カードUIを配置するコンテナTransform。")]
         [SerializeField] private Transform cardContainer;
 
         [Header("Layout Settings")]
+        [Tooltip("カード間の水平方向の間隔（フォールバック用）。")]
         [SerializeField] private float cardSpacing = 30f;
+        [Tooltip("子オブジェクトのTransformをレイアウトスロットとして使用するかどうか。")]
+        [SerializeField] private bool useChildTransformsAsLayoutSlots = true;
+        [Tooltip("レイアウトに使用したテンプレートオブジェクトを非表示にするかどうか。")]
+        [SerializeField] private bool hideLayoutTemplateObjects = true;
 
-        private List<CardUI> _cardUIs = new List<CardUI>();
+        private readonly List<CardUI> _cardUIs = new List<CardUI>();
+        private readonly List<RectTransform> _layoutSlots = new List<RectTransform>();
+
+        private void Awake()
+        {
+            CacheLayoutSlotsFromChildren();
+        }
 
         /// <summary>
-        /// 提供されたメモリーゾーンの状態に合わせてUI表示を更新します。
-        /// 既存のカードUIオブジェクトをクリアし、新しいメモリーゾーンのカードに対応するUIオブジェクトを生成・配置します。
+        /// 提供された思い出ゾーンの状態に合わせてUI表示を更新します。
+        /// 既存のカードUIオブジェクトをクリアし、現在のカードに対応するUIオブジェクトを生成・配置します。
         /// </summary>
-        /// <param name="memoryZone">ゲームロジックからのメモリーゾーンデータ。</param>
+        /// <param name="memoryZone">ゲームロジックからの思い出ゾーンデータ。</param>
         public void UpdateZone(IMemoryZone<WeissCard> memoryZone)
         {
             // 既存のUIオブジェクトを全て破棄
@@ -31,12 +44,18 @@ namespace TCG.Weiss.UI
             {
                 Destroy(cardUI.gameObject);
             }
-            _cardUIs.Clear(); // リストもクリア
+            _cardUIs.Clear();
 
-            // メモリーゾーンがnullの場合は何もしない
-            if (memoryZone == null) return;
+            if (memoryZone == null || cardPrefab == null || cardContainer == null)
+            {
+                return;
+            }
 
-            // メモリーゾーン内の各カードに対して新しいUIオブジェクトを生成
+            if (useChildTransformsAsLayoutSlots && _layoutSlots.Count == 0)
+            {
+                CacheLayoutSlotsFromChildren();
+            }
+
             for (int i = 0; i < memoryZone.MemoryCards.Count; i++)
             {
                 var memoryCardInfo = memoryZone.MemoryCards[i];
@@ -46,30 +65,78 @@ namespace TCG.Weiss.UI
                 var cardObject = Instantiate(cardPrefab, cardContainer);
                 var cardUI = cardObject.GetComponent<CardUI>();
 
-                if (cardUI != null)
+                if (cardUI == null)
                 {
-                    // Set the face-up state before setting the card data
-                    // メモリーカードの表示状態（表向きか裏向きか）を設定してからカードデータを設定します。
-                    // これにより、UIが正確なカードの向きを反映するようにします。
-                    card.IsFaceUp = memoryCardInfo.FaceUp;
-                    cardUI.SetCard(card); // カードデータをCardUIに設定
-                    _cardUIs.Add(cardUI); // 生成したCardUIをリストに追加
-
-                    // 基本的な水平レイアウトを適用
-                    var rectTransform = cardObject.GetComponent<RectTransform>();
-                    if (rectTransform != null)
-                    {
-                        // カードの間隔を考慮して位置を設定
-                        rectTransform.anchoredPosition = new Vector2(i * cardSpacing, 0);
-                    }
-                }
-                else
-                {
-                    // CardUIコンポーネントが見つからない場合はエラーをログに記録し、オブジェクトを破棄
-                    Debug.LogError("Card prefab is missing CardUI component!");
+                    Debug.LogError("MemoryZoneUI: card prefab is missing CardUI component.");
                     Destroy(cardObject);
+                    continue;
+                }
+
+                card.IsFaceUp = memoryCardInfo.FaceUp;
+                cardUI.SetCard(card);
+                _cardUIs.Add(cardUI);
+                ApplyLayout(cardObject.GetComponent<RectTransform>(), i);
+            }
+        }
+
+        private void CacheLayoutSlotsFromChildren()
+        {
+            _layoutSlots.Clear();
+            if (!useChildTransformsAsLayoutSlots || cardContainer == null)
+            {
+                return;
+            }
+
+            foreach (Transform child in cardContainer)
+            {
+                var rect = child as RectTransform;
+                if (rect != null)
+                {
+                    _layoutSlots.Add(rect);
                 }
             }
+        }
+
+        private void ApplyLayout(RectTransform cardRect, int index)
+        {
+            if (cardRect == null)
+            {
+                return;
+            }
+
+            if (useChildTransformsAsLayoutSlots && index < _layoutSlots.Count && _layoutSlots[index] != null)
+            {
+                CopyTransform(cardRect, _layoutSlots[index]);
+                if (hideLayoutTemplateObjects && _layoutSlots[index].gameObject.activeSelf)
+                {
+                    _layoutSlots[index].gameObject.SetActive(false);
+                }
+                return;
+            }
+
+            if (useChildTransformsAsLayoutSlots && _layoutSlots.Count >= 2 && _layoutSlots[0] != null && _layoutSlots[1] != null)
+            {
+                var slot0 = _layoutSlots[0];
+                var slot1 = _layoutSlots[1];
+                var delta = slot1.anchoredPosition - slot0.anchoredPosition;
+
+                CopyTransform(cardRect, slot1);
+                cardRect.anchoredPosition = slot0.anchoredPosition + (delta * index);
+                return;
+            }
+
+            cardRect.anchoredPosition = new Vector2(index * cardSpacing, 0f);
+        }
+
+        private static void CopyTransform(RectTransform target, RectTransform source)
+        {
+            target.anchorMin = source.anchorMin;
+            target.anchorMax = source.anchorMax;
+            target.pivot = source.pivot;
+            target.sizeDelta = source.sizeDelta;
+            target.anchoredPosition = source.anchoredPosition;
+            target.localRotation = source.localRotation;
+            target.localScale = source.localScale;
         }
     }
 }

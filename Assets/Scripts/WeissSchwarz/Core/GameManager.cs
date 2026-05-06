@@ -50,7 +50,7 @@ namespace TCG.Weiss
                 RefreshView();
 
                 // 1ターン目を実行
-                ExecuteCurrentTurn();
+                await ExecuteCurrentTurnAsync();
 
                 Debug.Log("Game Manager が起動し、ゲームを初期化しました。");
             }
@@ -69,7 +69,7 @@ namespace TCG.Weiss
         /// <summary>
         /// 現在のターンプレイヤーの1ターンを実行し、終了後に画面を更新する。
         /// </summary>
-        private void ExecuteCurrentTurn()
+        private async System.Threading.Tasks.Task ExecuteCurrentTurnAsync()
         {
             if (_isTurnExecuting || _game == null || _game.GameState == null || _game.RuleEngine == null)
             {
@@ -86,7 +86,7 @@ namespace TCG.Weiss
             _isTurnExecuting = true;
             try
             {
-                _game.RuleEngine.ExecuteTurn(active);
+                await _game.RuleEngine.ExecuteTurnAsync(active);
             }
             finally
             {

@@ -33,7 +33,7 @@ namespace TCG.Weiss
         /// </summary>
         /// <param name="player">アクションを選択するプレイヤー。</param>
         /// <returns>選択されたメインフェイズのアクション。</returns>
-        public MainPhaseAction ChooseMainPhaseAction(WeissPlayer player)
+        public Task<MainPhaseAction> ChooseMainPhaseAction(WeissPlayer player)
         {
             Debug.Log($"--- {player.Name}のメインフェイズ ---");
             Debug.Log("アクションを選択してください:");
@@ -46,12 +46,12 @@ namespace TCG.Weiss
             {
                 _hasAutoUsedAbilityThisTurn = true;
                 Debug.Log("プレイヤー入力をシミュレート: 2 (能力を使用)");
-                return MainPhaseAction.UseAbility;
+                return Task.FromResult(MainPhaseAction.UseAbility);
             }
             
             // それ以外の場合はフェイズを終了する
             Debug.Log("プレイヤー入力をシミュレート: 3 (フェイズ終了)");
-            return MainPhaseAction.EndPhase;
+            return Task.FromResult(MainPhaseAction.EndPhase);
         }
 
         /// <summary>
@@ -311,11 +311,11 @@ namespace TCG.Weiss
         /// <param name="player">プレイヤー。</param>
         /// <param name="question">問いかける質問文。</param>
         /// <returns>プレイヤーの選択（Yesならtrue）。</returns>
-        public bool AskYesNo(WeissPlayer player, string question)
+        public Task<bool> AskYesNo(WeissPlayer player, string question)
         {
             // (略) AIロジック: 常にYesと答える
             Debug.Log("プレイヤー入力をシミュレート: 1 (Yes)");
-            return true;
+            return Task.FromResult(true);
         }
 
         /// <summary>
