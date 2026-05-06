@@ -190,3 +190,19 @@
 | **T-M7.8** | **カードの検索・フィルタリング機能実装**: カード名、種類、レベル等でリストを絞り込めるUIとロジックを実装する。 (汎用的な検索基盤クラス `CardQuery`, `CardDatabase` を実装し、`DeckEditorManager` がそれを利用する形に修正) | Gemini | `完了` |
 | **T-M7.9** | **デッキへのカード追加・削除機能実装**: カードリストから選択したカードをデッキリストに追加、またはデッキリストから削除するUIとロジックを実装する。(50枚制限、同名カード4枚制限含む) | Gemini | `完了` |
 | **T-M7.10**| **デッキの保存・読み込み機能実装**: 編成したデッキをファイルやDBに保存し、次回起動時に読み込めるようにする。 | | `未着手` |
+## WeissBattleScene 追加計画 (2026-05-06)
+
+- 対戦準備フェーズ
+  - 人間プレイヤーと NPC プレイヤーを `PlayerControlMode` と controller 実装で分離する。
+  - 50 枚デッキのロード、デッキ検証、先攻後攻決定、初期手札、マリガンを `WeissBattleScene` の標準開始処理にする。
+- カード移動アニメ
+  - zone 移動時にカード UI を線形補間で移動させる最小構成のアニメーションを追加する。
+  - まずは `CardMoved` イベントを受けて移動演出できる構造を優先し、演出の高度化は後続タスクに分離する。
+
+### 着手済みメモ (2026-05-06)
+
+- `PlayerControlMode` を追加し、人間入力と NPC 自動操作を `Player` / `WeissPlayer` で区別できるようにした。
+- `HumanWeissPlayerController` と `SimpleNpcWeissPlayerController` を追加し、`GameManager` の設定から切り替えて `WeissGame` に注入する構造へ変更した。
+- `WeissDeckLoader` / `WeissDeckValidator` / `WeissBattleSetupOptions` を追加し、対戦準備フェーズで 50 枚デッキのロード、検証、初期手札作成、マリガン、先攻ランダム決定を行う流れを実装した。
+- 既定デッキとして `battle_ready_sample.txt` を追加した。
+- カード移動アニメは未着手。次タスクで `CardMoved` イベント起点の UI 演出を追加する。

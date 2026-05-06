@@ -13,6 +13,8 @@ namespace TCG.Weiss
         /// このプレイヤーの行動を決定するコントローラー（AI、UI経由の人間プレイヤーなど）への参照。
         /// </summary>
         public IWeissPlayerController Controller { get; }
+        public bool IsHuman => ControlMode == PlayerControlMode.Human;
+        public bool IsNpc => ControlMode == PlayerControlMode.Npc;
         
         /// <summary>
         /// エンドフェイズに適用される手札の上限枚数。デフォルトは7枚。
@@ -24,7 +26,13 @@ namespace TCG.Weiss
         /// </summary>
         /// <param name="name">プレイヤー名。</param>
         /// <param name="controller">このプレイヤーを操作するコントローラー。</param>
-        public WeissPlayer(string name, IWeissPlayerController controller) : base(name)
+        public WeissPlayer(string name, IWeissPlayerController controller)
+            : this(name, PlayerControlMode.Human, controller)
+        {
+        }
+
+        public WeissPlayer(string name, PlayerControlMode controlMode, IWeissPlayerController controller)
+            : base(name, controlMode)
         {
             Controller = controller;
         }

@@ -1,22 +1,20 @@
-using UnityEngine;
 using TCG.Core;
 using TCG.Weiss.UI;
+using UnityEngine;
 
 namespace TCG.Weiss
 {
-    /// <summary>
-    /// Unity シーン上で WeissGame のライフサイクルを管理するエントリポイント。
-    /// </summary>
     public class GameManager : MonoBehaviour
     {
-        /// <summary>
-        /// GameManager のシングルトンインスタンス。
-        /// </summary>
-        public static GameManager Instance { get; private set; }
+        [Header("Battle Setup")]
+        [SerializeField] private string player1Name = "Player1";
+        [SerializeField] private string player2Name = "Player2";
+        [SerializeField] private PlayerControlMode player1ControlMode = PlayerControlMode.Human;
+        [SerializeField] private PlayerControlMode player2ControlMode = PlayerControlMode.Npc;
+        [SerializeField] private string player1DeckId = WeissBattleSetupOptions.DefaultSceneDeckId;
+        [SerializeField] private string player2DeckId = WeissBattleSetupOptions.DefaultSceneDeckId;
 
-        /// <summary>
-        /// 実行中のゲームインスタンス。
-        /// </summary>
+        public static GameManager Instance { get; private set; }
         public WeissGame Game => _game;
 
         private WeissGame _game;
@@ -31,33 +29,28 @@ namespace TCG.Weiss
             }
 
             Instance = this;
-            _game = new WeissGame();
+            _game = new WeissGame(BuildSetupOptions());
         }
 
         private async void Start()
         {
             try
             {
-                // 起動順による null を防ぐため、先に DB を初期化しておく。
                 WeissCardDatabase.EnsureInitialized();
 
                 _game.StartGame();
                 RefreshView();
                 _game.GameState.EventBus.SubscribeToAll(_ => RefreshView());
                 await _game.PerformMulliganPhase();
-
-                // 初期表示を同期
                 RefreshView();
-
-                // 1ターン目を実行
                 await ExecuteCurrentTurnAsync();
 
-                Debug.Log("Game Manager が起動し、ゲームを初期化しました。");
+                Debug.Log("Game Manager initialized successfully.");
             }
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-                Debug.LogError("Game Manager: 初期化中に致命的なエラーが発生したため、進行を停止しました。");
+                Debug.LogError("Game Manager failed during initialization.");
             }
         }
 
@@ -66,9 +59,6 @@ namespace TCG.Weiss
             _game?.Update();
         }
 
-        /// <summary>
-        /// 現在のターンプレイヤーの1ターンを実行し、終了後に画面を更新する。
-        /// </summary>
         private async System.Threading.Tasks.Task ExecuteCurrentTurnAsync()
         {
             if (_isTurnExecuting || _game == null || _game.GameState == null || _game.RuleEngine == null)
@@ -107,6 +97,29 @@ namespace TCG.Weiss
             {
                 GameView.Instance.UpdateView(active);
             }
+        }
+
+        private WeissBattleSetupOptions BuildSetupOptions()
+        {
+            return new WeissBattleSetupOptions
+            {
+                Player1 = new WeissPlayerSetupOptions
+                {
+                    Name = player1Name,
+                    ControlMode = player1ControlMode,
+                    DeckId = string.IsNullOrWhiteSpace(player1DeckId)
+                        ? WeissBattleSetupOptions.DefaultSceneDeckId
+                        : player1DeckId
+                },
+                Player2 = new WeissPlayerSetupOptions
+                {
+                    Name = player2Name,
+                    ControlMode = player2ControlMode,
+                    DeckId = string.IsNullOrWhiteSpace(player2DeckId)
+                        ? WeissBattleSetupOptions.DefaultSceneDeckId
+                        : player2DeckId
+                }
+            };
         }
     }
 }

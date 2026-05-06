@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace TCG.Core
 {
+    public enum PlayerControlMode
+    {
+        Human,
+        Npc
+    }
+
     /// <summary>
     /// ゲームに参加するプレイヤーを表すクラス。
     /// プレイヤーの名前、ID、そしてカードが存在する様々なゾーン（手札、山札など）を管理します。
@@ -17,6 +23,7 @@ namespace TCG.Core
         /// プレイヤーの名前。
         /// </summary>
         public string Name { get; set; }
+        public PlayerControlMode ControlMode { get; }
 
         /// <summary>
         /// プレイヤーが持つゾーンを、ゾーンの役割を示すインターフェースの型をキーにして管理します。
@@ -28,7 +35,11 @@ namespace TCG.Core
         /// Playerクラスの新しいインスタンスを初期化します。
         /// </summary>
         /// <param name="name">プレイヤーの名前。</param>
-        public Player(string name) { Name = name; }
+        public Player(string name, PlayerControlMode controlMode = PlayerControlMode.Human)
+        {
+            Name = name;
+            ControlMode = controlMode;
+        }
 
         /// <summary>
         /// 指定されたインターフェース型に紐づけてゾーンのインスタンスを登録します。
