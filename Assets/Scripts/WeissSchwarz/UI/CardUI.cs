@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using TCG.Weiss;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,18 +7,13 @@ using UnityEngine.UI;
 namespace TCG.Weiss.UI
 {
     /// <summary>
-    /// ゲームフィールド上に表示される単一のヴァイスシュヴァルツカードの視覚的な表現を管理するMonoBehaviourクラス。
-    /// カードの表/裏、レスト状態、クリックへの応答などを制御します。
-    /// 表と裏のGameObjectを分けることで、アニメーションなどを実装しやすい階層構造を採用しています。
+    /// Weissカード1枚分の表示を担当するUIコンポーネントです。
+    /// 表裏の切り替え、選択状態、レスト回転、カード詳細表示を扱います。
     /// </summary>
     public class CardUI : MonoBehaviour, IPointerClickHandler
     {
         [Header("Card Data")]
         private WeissCard _card;
-
-        /// <summary>
-        /// 現在このUIに関連付けられているカードのロジックデータ。
-        /// </summary>
         public WeissCard Card => _card;
 
         [Header("Sprites")]
@@ -27,14 +22,11 @@ namespace TCG.Weiss.UI
         private Sprite _defaultCardSprite;
 
         [Header("UI Objects")]
-        [Tooltip("カードの表面を表示するGameObject。")]
         [SerializeField] private GameObject cardFrontObject;
-        [Tooltip("カードの裏面を表示するGameObject。")]
         [SerializeField] private GameObject cardBackObject;
-        [Tooltip("クリック操作を受け取るためのButtonコンポーネント。")]
         [SerializeField] private Button cardButton;
-        [Tooltip("カードが選択されている時に表示するオーバーレイオブジェクト。")]
         [SerializeField] private GameObject selectedOverlayObject;
+        [SerializeField] private bool displayClimaxHorizontally;
 
         private Image _cardFrontImage;
         private Image _cardBackImage;
@@ -45,60 +37,44 @@ namespace TCG.Weiss.UI
         private readonly Color _normalTint = Color.white;
         private readonly Color _selectedTint = new Color(1f, 0.55f, 0.55f, 1f);
 
-        /// <summary>
-        /// 現在カードが選択されているかどうか。
-        /// </summary>
         public bool IsSelected => _isSelected;
-
-        /// <summary>
-        /// カードがクリックされたときに発行されるイベント。
-        /// </summary>
         public event Action<CardUI> CardClicked;
 
-        [Header("リソースパス")]
-        [SerializeField] private string weissCardBackPath = "Images/WeissCardBack"; // ヴァイスサイドのカード裏面画像パス
-        [SerializeField] private string schwarzCardBackPath = "Images/SchwarzCardBack"; // シュヴァルツサイドのカード裏面画像パス
-        [SerializeField] private string defaultCardImagePath = "Images/DefaultCard"; // デフォルトのカード画像パス
+        [Header("Resource Paths")]
+        [SerializeField] private string weissCardBackPath = "Images/WeissCardBack";
+        [SerializeField] private string schwarzCardBackPath = "Images/SchwarzCardBack";
+        [SerializeField] private string defaultCardImagePath = "Images/DefaultCard";
+
+        private Coroutine _moveCoroutine;
 
         private void Awake()
         {
-            // Resourcesフォルダからスプライトをロード
             _weissCardBackSprite = Resources.Load<Sprite>(weissCardBackPath);
             _schwarzCardBackSprite = Resources.Load<Sprite>(schwarzCardBackPath);
             _defaultCardSprite = Resources.Load<Sprite>(defaultCardImagePath);
 
-            // 子オブジェクトからImageコンポーネントを取得
             if (cardFrontObject != null) _cardFrontImage = cardFrontObject.GetComponent<Image>();
             if (cardBackObject != null) _cardBackImage = cardBackObject.GetComponent<Image>();
 
-            // ボタンクリックリスナーを追加
             if (_cardFrontImage != null) _cardFrontImage.preserveAspect = true;
             if (_cardBackImage != null) _cardBackImage.preserveAspect = true;
+
             cardButton?.onClick.AddListener(OnCardClicked);
             SetSelected(false);
 
-            // 必要なコンポーネントやリソースが見つからない場合の警告（デバッグ用）
-            if (_cardFrontImage == null) Debug.LogError("カード表面のGameObjectにImageコンポーネントが見つかりません。", this);
-            if (_cardBackImage == null) Debug.LogError("カード裏面のGameObjectにImageコンポーネントが見つかりません。", this);
-            if (_weissCardBackSprite == null) Debug.LogWarning($"ヴァイスのカード裏面スプライトが'Resources/{weissCardBackPath}'に見つかりません。");
-            if (_schwarzCardBackSprite == null) Debug.LogWarning($"シュヴァルツのカード裏面スプライトが'Resources/{schwarzCardBackPath}'に見つかりません。");
-            if (_defaultCardSprite == null) Debug.LogWarning($"デフォルトカードスプライトが'Resources/{defaultCardImagePath}'に見つかりません。");
+            if (_cardFrontImage == null) Debug.LogError("CardUI front image is missing.", this);
+            if (_cardBackImage == null) Debug.LogError("CardUI back image is missing.", this);
+            if (_weissCardBackSprite == null) Debug.LogWarning($"Weiss card back sprite was not found at Resources/{weissCardBackPath}");
+            if (_schwarzCardBackSprite == null) Debug.LogWarning($"Schwarz card back sprite was not found at Resources/{schwarzCardBackPath}");
+            if (_defaultCardSprite == null) Debug.LogWarning($"Default card sprite was not found at Resources/{defaultCardImagePath}");
         }
 
-        /// <summary>
-        /// 表示するカードデータを設定し、ビジュアルを最新の状態に更新します。
-        /// </summary>
-        /// <param name="card">表示対象のWeissCardインスタンス。</param>
         public void SetCard(WeissCard card)
         {
             _card = card;
             UpdateCardVisuals();
         }
 
-        /// <summary>
-        /// ボタンがクリックされた際の内部処理。
-        /// 選択モード中であれば選択状態をトグルし、通常時はカード詳細を表示します。
-        /// </summary>
         private void OnCardClicked()
         {
             CardClicked?.Invoke(this);
@@ -114,11 +90,7 @@ namespace TCG.Weiss.UI
                 GameView.Instance.ShowCardDetail(_card);
             }
         }
-        
-        /// <summary>
-        /// Button未割り当てでもクリックを拾えるようにするフォールバック。
-        /// </summary>
-        /// <param name="eventData">クリックイベントのデータ。</param>
+
         public void OnPointerClick(PointerEventData eventData)
         {
             if (cardButton == null && eventData.button == PointerEventData.InputButton.Left)
@@ -127,11 +99,6 @@ namespace TCG.Weiss.UI
             }
         }
 
-        /// <summary>
-        /// 選択モード（マリガン時など）を有効または無効にします。
-        /// 無効にする際、選択状態は解除されます。
-        /// </summary>
-        /// <param name="enabled">有効にする場合はtrue。</param>
         public void SetSelectionMode(bool enabled)
         {
             _isSelectionMode = enabled;
@@ -141,10 +108,6 @@ namespace TCG.Weiss.UI
             }
         }
 
-        /// <summary>
-        /// カードの選択状態を明示的に設定します。
-        /// </summary>
-        /// <param name="selected">選択状態にする場合はtrue。</param>
         public void SetSelected(bool selected)
         {
             _isSelected = selected;
@@ -159,17 +122,20 @@ namespace TCG.Weiss.UI
             if (_cardBackImage != null) _cardBackImage.color = tint;
         }
 
-        /// <summary>
-        /// カードの選択状態を反転させます。
-        /// </summary>
         public void ToggleSelected()
         {
             SetSelected(!_isSelected);
         }
 
-        /// <summary>
-        /// カードの表裏、回転、画像などのビジュアル要素を現在のデータに基づいて更新します。
-        /// </summary>
+        public void SetDisplayClimaxHorizontally(bool enabled)
+        {
+            displayClimaxHorizontally = enabled;
+            if (_card != null)
+            {
+                UpdateCardVisuals();
+            }
+        }
+
         private void UpdateCardVisuals()
         {
             if (_card == null)
@@ -181,61 +147,102 @@ namespace TCG.Weiss.UI
             gameObject.SetActive(true);
 
             bool isFaceUp = _card.IsFaceUp;
+            bool isClimax = IsClimaxCard(_card.Data);
+
             if (cardFrontObject != null) cardFrontObject.SetActive(isFaceUp);
             if (cardBackObject != null) cardBackObject.SetActive(!isFaceUp);
 
             if (isFaceUp)
             {
-                Sprite spriteToDisplay = null;
-                var cardData = _card.Data;
-
-                if (cardData != null && !string.IsNullOrEmpty(cardData.ImagePath))
-                {
-                    spriteToDisplay = Resources.Load<Sprite>(cardData.ImagePath);
-                }
-
-                if (spriteToDisplay == null)
-                {
-                    spriteToDisplay = _defaultCardSprite; // 画像が見つからない場合はデフォルト画像
-                }
-
-                if (_cardFrontImage != null)
-                {
-                    _cardFrontImage.sprite = spriteToDisplay;
-                }
+                UpdateFrontImage(_card.Data, isClimax);
             }
             else
             {
-                // 裏向きの場合、カードの裏面画像を表示（サイドによって切り替え）
-                if (_cardBackImage != null)
-                {
-                    _cardBackImage.sprite = GetCardBackSprite();
-                }
+                UpdateBackImage();
             }
 
-            // 回転状態の更新
-            float zRotation = 0f;
-            bool isClimax = _card.Data != null &&
-                            (_card.Data.CardType == "Climax" || _card.Data.CardType == "クライマックス");
+            UpdateCardRotation();
+        }
 
-            // レスト状態、または表向きのクライマックスは時計回りに90度（-90）回転
-            if (_card.IsRested || (isFaceUp && isClimax))
+        private void UpdateFrontImage(WeissCardData cardData, bool isClimax)
+        {
+            if (_cardFrontImage == null)
             {
-                zRotation = -90f;
+                return;
             }
 
-            // Keep RectTransform layout from zone UI. Only update rotation here.
-            RectTransform rect = GetComponent<RectTransform>();
-            if (rect != null)
+            _cardFrontImage.sprite = _defaultCardSprite;
+            ApplyCardImagePresentation(_cardFrontImage.rectTransform, isClimax, displayClimaxHorizontally);
+
+            if (cardData == null || string.IsNullOrEmpty(cardData.ImagePath))
             {
-                rect.localRotation = Quaternion.Euler(0, 0, zRotation);
+                return;
+            }
+
+            if (cardData.ImagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                StartCoroutine(ImageLoader.LoadImage(cardData.ImagePath, _cardFrontImage));
+                return;
+            }
+
+            Sprite spriteToDisplay = Resources.Load<Sprite>(cardData.ImagePath);
+            if (spriteToDisplay != null)
+            {
+                _cardFrontImage.sprite = spriteToDisplay;
             }
         }
-        
-        /// <summary>
-        /// 設定されているカードのサイド情報に基づいて、適切なカード裏面スプライトを返します。
-        /// </summary>
-        /// <returns>カード裏面のスプライト。</returns>
+
+        private void UpdateBackImage()
+        {
+            if (_cardBackImage != null)
+            {
+                _cardBackImage.sprite = GetCardBackSprite();
+            }
+        }
+
+        private void UpdateCardRotation()
+        {
+            RectTransform rect = GetComponent<RectTransform>();
+            if (rect == null)
+            {
+                return;
+            }
+
+            float zRotation = _card.IsRested ? -90f : 0f;
+            rect.localRotation = Quaternion.Euler(0, 0, zRotation);
+        }
+
+        public static bool IsClimaxCard(WeissCardData cardData)
+        {
+            return cardData != null &&
+                   (cardData.CardType == "Climax" || cardData.CardType == "クライマックス");
+        }
+
+        public static void ApplyCardImagePresentation(RectTransform rect, bool isClimax, bool displayHorizontally = false)
+        {
+            if (rect == null)
+            {
+                return;
+            }
+
+            Vector2 currentSize = rect.rect.size;
+
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            if (currentSize.x > 0f && currentSize.y > 0f)
+            {
+                rect.sizeDelta = currentSize;
+            }
+            rect.anchoredPosition = Vector2.zero;
+
+            bool rotateClimaxToPortrait = isClimax && !displayHorizontally;
+            rect.localRotation = rotateClimaxToPortrait ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
+
+            float scale = isClimax ? 1.4f : 1f;
+            rect.localScale = new Vector3(scale, scale, 1f);
+        }
+
         private Sprite GetCardBackSprite()
         {
             if (_card != null && _card.Data != null)
@@ -244,7 +251,39 @@ namespace TCG.Weiss.UI
                 if (side == "Weiss" || side == "ヴァイス") return _weissCardBackSprite;
                 if (side == "Schwarz" || side == "シュヴァルツ") return _schwarzCardBackSprite;
             }
-            return _weissCardBackSprite; // デフォルトとしてヴァイスの裏面を返す
+
+            return _weissCardBackSprite;
+        }
+
+        public void MoveToPosition(Vector3 targetPosition, float duration = 0.3f)
+        {
+            if (_moveCoroutine != null)
+            {
+                StopCoroutine(_moveCoroutine);
+            }
+
+            _moveCoroutine = StartCoroutine(MoveCoroutine(targetPosition, duration));
+        }
+
+        private System.Collections.IEnumerator MoveCoroutine(Vector3 targetPosition, float duration)
+        {
+            RectTransform rect = GetComponent<RectTransform>();
+            if (rect == null) yield break;
+
+            Vector3 startPosition = rect.position;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float easeT = 1f - (1f - t) * (1f - t);
+                rect.position = Vector3.Lerp(startPosition, targetPosition, easeT);
+                yield return null;
+            }
+
+            rect.position = targetPosition;
+            _moveCoroutine = null;
         }
     }
 }

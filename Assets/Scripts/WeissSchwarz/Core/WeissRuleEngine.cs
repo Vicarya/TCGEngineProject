@@ -50,6 +50,26 @@ namespace TCG.Weiss
         }
 
         /// <summary>
+        /// カードを別のゾーンへ移動させ、移動イベントを発行します。
+        /// </summary>
+        public void MoveCard(WeissCard card, IZone fromZone, IZone toZone, Player player = null)
+        {
+            if (card == null) return;
+            
+            if (fromZone != null)
+            {
+                fromZone.RemoveCard(card);
+            }
+            
+            if (toZone != null)
+            {
+                toZone.AddCard(card);
+            }
+            
+            GameState.EventBus.Raise(new GameEvent(BaseGameEvents.CardMoved, new CardMovedEventData(card, fromZone, toZone, player ?? card.Owner)));
+        }
+
+        /// <summary>
         /// 指定されたイベントに基づき、誘発する自動能力（【自】）をチェックし、AbilityQueueに追加します。
         /// </summary>
         /// <param name="evt">発生したゲームイベント。</param>
@@ -165,7 +185,7 @@ namespace TCG.Weiss
                     var cardToStock = this.DrawCard(player); // DrawCardはリフレッシュ処理も含む
                     if (cardToStock != null)
                     {
-                        stock.AddCard(cardToStock);
+                        MoveCard(cardToStock as WeissCard, null, stock as IZone, player);
                         GameState.EventBus.Raise(new GameEvent(new GameEventType("CardToStock"), new { Card = cardToStock, Source = ability.SourceCard }));
                         Debug.Log($"能力効果: [{cardToStock.Data.Name}] が山札からストックに置かれました。");
                     }
@@ -229,14 +249,13 @@ namespace TCG.Weiss
                             // プレイヤーに回収するキャラを選択させる
                             var characterToReturn = weissAttacker.Controller.ChooseCardFromWaitingRoom(weissAttacker, charactersInWaitingRoom, true);
                             if (characterToReturn != null) {
-                                waitingRoom.RemoveCard(characterToReturn);
-                                hand.AddCard(characterToReturn);
+                                MoveCard(characterToReturn as WeissCard, waitingRoom as IZone, hand as IZone, weissAttacker);
                             }
                             break;
                         case "Draw": // ドローアイコン（風）
                             var drawnCard = this.DrawCard(attacker);
                             if (drawnCard != null) {
-                                attacker.GetZone<IHandZone<WeissCard>>().AddCard(drawnCard);
+                                MoveCard(drawnCard as WeissCard, null, attacker.GetZone<IHandZone<WeissCard>>() as IZone, attacker);
                             }
                             break;
                         // TODO: 他のアイコン（袋、本、宝、門）の処理を実装
@@ -245,7 +264,7 @@ namespace TCG.Weiss
             }
             
             // 4. めくったカードはストック置場に置かれる
-            stock.AddCard(triggeredCard);
+            MoveCard(triggeredCard as WeissCard, null, stock as IZone, attacker);
             
             if(soulBoost > 0) Debug.Log($"トリガー！ ソウル+{soulBoost}");
 
@@ -270,13 +289,13 @@ namespace TCG.Weiss
                 // 2. めくったカードがクライマックスならダメージキャンセル
                 if (weissCardData != null && weissCardData.CardType == WeissCardType.Climax.ToString()) {
                     Debug.Log($"ダメージキャンセル！ トリガーしたカード: {weissCardData.Name}");
-                    waitingRoom.AddCard(card); // キャンセルしたカードは控え室へ
+                    MoveCard(card as WeissCard, null, waitingRoom as IZone, victim); // キャンセルしたカードは控え室へ
                     GameState.EventBus.Raise(new GameEvent(WeissGameEvents.DamageCancelled, new { Player = victim, Card = card }));
                     break; // ダメージ処理を中断
                 }
 
                 // 3. クライマックスでなければ、クロックに置く
-                clock.AddCard(card);
+                MoveCard(card as WeissCard, null, clock as IZone, victim);
                 GameState.EventBus.Raise(new GameEvent(new GameEventType("DamageTaken"), new { Player = victim, Card = card }));
                 
                 // 4. レベルアップの条件を満たしているかチェック
@@ -302,13 +321,13 @@ namespace TCG.Weiss
                 var chosen = (player as WeissPlayer).Controller.ChooseLevelUpCard(player as WeissPlayer, cardsForLevelUp);
 
                 // 2. 選んだカードをレベル置場へ
-                level.AddCard(chosen);
+                MoveCard(chosen as WeissCard, clock as IZone, level as IZone, player);
                 GameState.EventBus.Raise(new GameEvent(new GameEventType("LevelUp"), new { Player = player, Card = chosen }));
 
                 // 3. 残りの6枚を控え室へ
                 clock.RemoveCards(cardsForLevelUp);
                 foreach (var c in cardsForLevelUp.Where(card => card != chosen)) {
-                    waitingRoom.AddCard(c);
+                    MoveCard(c as WeissCard, null, waitingRoom as IZone, player);
                 }
             }
         }
@@ -325,7 +344,7 @@ namespace TCG.Weiss
             if (damageCard == null) return; // ドローできなかった場合は処理終了
 
             // リフレッシュペナルティのダメージはキャンセルされない
-            clock.AddCard(damageCard);
+            MoveCard(damageCard as WeissCard, null, clock as IZone, player);
             GameState.EventBus.Raise(new GameEvent(new GameEventType("DamageTaken"), new { Player = player, Card = damageCard, IsRefreshPoint = true }));
 
             CheckAndHandleLevelUp(player);
@@ -357,8 +376,7 @@ namespace TCG.Weiss
                 var cardsToReturn = new List<WeissCard>(waitingRoom.Cards);
                 foreach(var c in cardsToReturn)
                 {
-                    waitingRoom.RemoveCard(c);
-                    (deck as DeckZone)?.AddCard(c);
+                    MoveCard(c as WeissCard, waitingRoom as IZone, deck as IZone, player);
                 }
 
                 // 2. 山札をシャッフル
@@ -407,7 +425,7 @@ namespace TCG.Weiss
                     var drawnCard = this.DrawCard(player);
                     if (drawnCard != null)
                     {
-                        hand.AddCard(drawnCard);
+                        MoveCard(drawnCard as WeissCard, null, hand as IZone, player);
                         Debug.Log($"効果でカードを1枚引きました。");
                     }
                     
@@ -472,11 +490,10 @@ namespace TCG.Weiss
             // ストックコスト
             if (stock.Cards.Count < 1) return false;
             var stockCard = stock.RemoveTopCard();
-            if (stockCard != null) waitingRoom.AddCard(stockCard);
+            if (stockCard != null) MoveCard(stockCard as WeissCard, null, waitingRoom as IZone, player);
 
             // 手札コスト（助太刀カード自身）
-            hand.RemoveCard(counterCard);
-            waitingRoom.AddCard(counterCard);
+            MoveCard(counterCard as WeissCard, hand as IZone, waitingRoom as IZone, player);
 
             Debug.Log($"助太刀コスト支払い: 1ストックと手札の[{counterCard.Data.Name}]");
             return true;

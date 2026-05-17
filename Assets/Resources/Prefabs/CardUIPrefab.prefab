@@ -63,6 +63,7 @@ MonoBehaviour:
   cardBackObject: {fileID: 7257444271125286708}
   cardButton: {fileID: 0}
   selectedOverlayObject: {fileID: 0}
+  displayClimaxHorizontally: 0
   weissCardBackPath: Images/WeissCardBack
   schwarzCardBackPath: Images/SchwarzCardBack
   defaultCardImagePath: Images/DefaultCardFront
@@ -131,7 +132,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: baa67ecf027bc3f43b089eae51e320cc, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

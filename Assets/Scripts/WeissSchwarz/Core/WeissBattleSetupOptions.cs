@@ -8,7 +8,7 @@ namespace TCG.Weiss
     public class WeissBattleSetupOptions
     {
         public const string BuiltinAutoSampleDeckId = "builtin:auto-sample";
-        public const string DefaultSceneDeckId = "battle_ready_sample";
+        public const string DefaultSceneDeckId = "rz_s116_001_050";
 
         public WeissPlayerSetupOptions Player1 = new WeissPlayerSetupOptions
         {

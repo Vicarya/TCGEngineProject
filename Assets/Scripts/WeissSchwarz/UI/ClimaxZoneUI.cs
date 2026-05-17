@@ -21,6 +21,8 @@ namespace TCG.Weiss.UI
         {
             if (climaxSlotUI == null) return;
 
+            climaxSlotUI.SetDisplayClimaxHorizontally(true);
+
             if (climaxZone != null && climaxZone.Cards.Any())
             {
                 // クライマックス置場には通常1枚しかカードが置かれないため、最初のカードを表示

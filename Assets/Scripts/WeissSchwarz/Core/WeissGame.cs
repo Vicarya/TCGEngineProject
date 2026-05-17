@@ -47,8 +47,7 @@ namespace TCG.Weiss
                 {
                     foreach (var card in cardsToMulligan)
                     {
-                        handZone.RemoveCard(card);
-                        waitingRoom.AddCard(card);
+                        RuleEngine.MoveCard(card, handZone as IZone, waitingRoom as IZone, player);
                     }
 
                     for (int i = 0; i < cardsToMulligan.Count; i++)
@@ -56,7 +55,7 @@ namespace TCG.Weiss
                         var newCard = deckZone.DrawTop();
                         if (newCard != null)
                         {
-                            handZone.AddCard(newCard);
+                            RuleEngine.MoveCard(newCard as WeissCard, null, handZone as IZone, player);
                         }
                     }
                 }
@@ -136,7 +135,7 @@ namespace TCG.Weiss
                     var card = deckZone.DrawTop();
                     if (card != null)
                     {
-                        handZone.AddCard(card);
+                        RuleEngine.MoveCard(card as WeissCard, null, handZone as IZone, player);
                     }
                 }
             }

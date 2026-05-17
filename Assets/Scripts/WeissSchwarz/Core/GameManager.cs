@@ -40,6 +40,10 @@ namespace TCG.Weiss
 
                 _game.StartGame();
                 RefreshView();
+                
+                // カード移動アニメーション用イベント購読
+                _game.GameState.EventBus.Subscribe(BaseGameEvents.CardMoved, OnCardMoved);
+                
                 _game.GameState.EventBus.SubscribeToAll(_ => RefreshView());
                 await _game.PerformMulliganPhase();
                 RefreshView();
@@ -96,6 +100,19 @@ namespace TCG.Weiss
             if (active != null)
             {
                 GameView.Instance.UpdateView(active);
+            }
+        }
+
+        private void OnCardMoved(GameEvent evt)
+        {
+            if (evt.Data is CardMovedEventData data && GameView.Instance != null)
+            {
+                var weissCard = data.Card as WeissCard;
+                if (weissCard != null)
+                {
+                    GameView.Instance.PrepareCardAnimation(weissCard);
+                    GameView.Instance.StartCardAnimation(weissCard);
+                }
             }
         }
 

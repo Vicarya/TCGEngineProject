@@ -171,5 +171,50 @@ namespace TCG.Weiss.UI
                 memoryZoneUI.UpdateZone(memoryZone);
             }
         }
+
+        private readonly Dictionary<string, Vector3> _cardOldPositions = new Dictionary<string, Vector3>();
+
+        public void PrepareCardAnimation(WeissCard card)
+        {
+            if (card == null || card.Data == null) return;
+            var allCardUIs = GetComponentsInChildren<CardUI>(true);
+            foreach (var ui in allCardUIs)
+            {
+                if (ui.Card == card)
+                {
+                    string key = card.Data.CardCode + "_" + card.GetHashCode();
+                    _cardOldPositions[key] = ui.transform.position;
+                    break;
+                }
+            }
+        }
+
+        public void StartCardAnimation(WeissCard card)
+        {
+            if (card == null || card.Data == null) return;
+            StartCoroutine(StartCardAnimationRoutine(card));
+        }
+
+        private System.Collections.IEnumerator StartCardAnimationRoutine(WeissCard card)
+        {
+            yield return new WaitForEndOfFrame();
+            
+            string key = card.Data.CardCode + "_" + card.GetHashCode();
+            if (_cardOldPositions.TryGetValue(key, out Vector3 oldPos))
+            {
+                _cardOldPositions.Remove(key);
+                var allCardUIs = GetComponentsInChildren<CardUI>(true);
+                foreach (var ui in allCardUIs)
+                {
+                    if (ui.Card == card)
+                    {
+                        Vector3 targetPos = ui.transform.position;
+                        ui.transform.position = oldPos;
+                        ui.MoveToPosition(targetPos, 0.3f);
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

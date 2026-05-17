@@ -15,5 +15,15 @@ namespace TCG.Weiss
     public class HandZone : WeissZone, IHandZone<WeissCard>
     {
         public HandZone(Player owner) : base("Hand", owner, isPublic: false) { }
+
+        public override void AddCard(WeissCard card)
+        {
+            if (card != null)
+            {
+                card.IsFaceUp = true;
+            }
+
+            base.AddCard(card);
+        }
     }
 }

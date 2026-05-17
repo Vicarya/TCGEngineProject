@@ -48,4 +48,23 @@ namespace TCG.Core {
         /// <summary>能力の使用がキャンセルされたときに発生します。</summary>
         public static readonly GameEventType AbilityCancelled = new("AbilityCancelled");
     }
+
+    /// <summary>
+    /// カードがゾーン間を移動した際のイベントデータ。
+    /// </summary>
+    public class CardMovedEventData
+    {
+        public Card Card { get; }
+        public IZone FromZone { get; }
+        public IZone ToZone { get; }
+        public Player Player { get; }
+
+        public CardMovedEventData(Card card, IZone fromZone, IZone toZone, Player player = null)
+        {
+            Card = card;
+            FromZone = fromZone;
+            ToZone = toZone;
+            Player = player;
+        }
+    }
 }

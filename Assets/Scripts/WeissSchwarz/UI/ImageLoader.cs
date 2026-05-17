@@ -26,6 +26,9 @@ namespace TCG.Weiss.UI
             // 画像のダウンロードリクエストを作成
             using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(url))
             {
+                // 一部のサーバー（公式画像サーバーなど）ではUser-Agentがないと404を返すため、標準的なブラウザのUAを設定
+                request.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+
                 yield return request.SendWebRequest();
 
                 if (request.result == UnityWebRequest.Result.Success)
