@@ -1,6 +1,6 @@
 # TCG Engine - TODO引き継ぎドキュメント
 
-最終更新: 2026-04-05
+最終更新: 2026-05-24
 
 ## 運用ルール
 - このドキュメントは**作業ごとに更新する運用資料**として扱う。
@@ -17,21 +17,24 @@
 - **`WeissSchwarz`**: ゲーム固有実装（ルール・フェーズ・能力・UI）。
 - **ゲーム進行**: `GameManager` -> `WeissGame` -> `WeissRuleEngine` -> `WeissPhaseFactory`。
 - **UI入力設計**: `IWeissPlayerController` 経由。  
-  現在はマリガンのみ中央モーダル(`DecisionModalController`)で実運用。
+  現在はマリガンに加え、メインフェイズ行動選択と Yes/No モーダルの基盤まで接続済み。
 
-## 現在の進捗（2026-04-05時点）
+## 現在の進捗（2026-05-24時点）
 - マリガンUIは実装済み（手札表示・カード選択・決定/スキップ）。
-- `Player1` は `UIGamePlayerController`、`Player2` は `ConsolePlayerController`。
+- `ChooseMainPhaseAction` / `ChooseMulliganCards` / `AskYesNo` は `Task` 化済みで、`GameManager` から `ExecuteTurnAsync` まで非同期導線が通っている。
+- `Player1` は `HumanWeissPlayerController`、`Player2` は `SimpleNpcWeissPlayerController` を経由して構成できる。
 - `CardUI` は選択中を赤色表示。`cardButton` 未割り当て時のクリックフォールバックあり。
-- メインフェイズ/YesNoなどはまだ同期APIのため、UI待機を完全実現できていない。
+- `DecisionModalController` にはマリガン、メインフェイズ行動選択、Yes/No の表示 API がある。
+- ただし `UIGamePlayerController` のカード選択系メソッドが多数未実装で、`WeissRuleEngine` には `AskYesNo(...).GetAwaiter().GetResult()` が残っているため、UI待機はまだ完全ではない。
+- カード移動アニメは `CardMoved` 起点の直線補間までは入っているが、2 段モーションや表裏切替タイミング制御は未実装。
 
 ## 次の実装タスク（着手順）
-1. `IWeissPlayerController` の部分非同期化  
-   - `ChooseMainPhaseAction`, `AskYesNo` を `Task<T>` に変更。
-2. `ConsolePlayerController` と `UIGamePlayerController` を新シグネチャへ追従。
-3. `PhaseBase` / `WeissPhases` の実行を async 化（`MainPhase` 先行）。
-4. `WeissRuleEngine` / `GameManager` のターン実行を async 導線へ移行。
-5. `DecisionModalController` を `MainPhaseAction` / `YesNo` の実導線に接続。
+1. `ChooseCardFromHand` を中心に、手札選択 UI を共通基盤化する。
+2. `ChooseAbilityToActivate` を実装し、メインフェイズの 3 ルートを完結させる。
+3. `WeissRuleEngine` の `AskYesNo(...).GetAwaiter().GetResult()` を撤去し、能力解決キューを async 化する。
+4. アタック種類、アタック継続確認、アンコールを同じモーダル基盤へ展開する。
+5. カード移動アニメを「山札 -> 手元見切れ位置 -> 目的地」の 2 段モーションへ拡張する。
+6. `DeckEditorManager` にデッキ保存/読込を追加する。
 
 ## 初見実装者の確認ポイント
 - `SampleScene` の `GameView.decisionModalController` が設定されているか。
@@ -46,6 +49,7 @@
 
 ## 更新履歴
 - 2026-04-05: 本ドキュメントを「旧資料」扱いから「現行引き継ぎ資料」へ運用変更。最新進捗・次タスク・確認ポイントを更新。
+- 2026-05-24: 実装監査に合わせて、M3 の進捗、未実装項目、カード移動アニメの現状と次タスクを更新。
 
 ---
 

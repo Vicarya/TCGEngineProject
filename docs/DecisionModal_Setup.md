@@ -30,6 +30,7 @@
 - `ShowMainPhaseActionAsync`（3択。`tertiaryButton` がない場合 `UseAbility` は未表示）
 
 ## 6. 注意
-- `ChooseMainPhaseAction` / `AskYesNo` などの同期インターフェースに対して「UI待機」を完全対応するには、フェーズ実行の非同期化が必要。
-- 現在はマリガン（もともと `Task` ベース）を優先して中央モーダル化済み。
+- `ChooseMainPhaseAction` / `AskYesNo` はすでに `Task` ベースへ移行済みで、`GameManager` からの非同期導線も通っている。
+- ただし `ChooseCardFromHand` など多くの UI 入力 API は未実装で、`WeissRuleEngine` 側にも `AskYesNo(...).GetAwaiter().GetResult()` が残っているため、UI待機はまだ完全ではない。
+- 現在の中央モーダル実運用は、マリガン、メインフェイズ行動選択、Yes/No 確認まで。
 - `ModalOverlay` の背景が手札クリックを遮る場合は、背景Imageの `Raycast Target` 設定を確認する。

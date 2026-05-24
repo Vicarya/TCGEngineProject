@@ -66,7 +66,7 @@
 | **T-M3.1** | **マリガン選択UIの実装**: ゲーム開始時に、手札からマリガンするカードをUIで選択できるようにする。 | UIチーム | `完了` |
 | **T-M3.2** | **レベルアップカード選択UIの実装**: レベルアップ時、クロック置場のカードからレベル置場に送る1枚をUIで選択できるようにする。 | UIチーム | `未着手` |
 | **T-M3.3** | **クロックフェイズ選択UIの実装**: クロックフェイズで、手札からクロック置場に置くカードをUIで選択できるようにする。 | UIチーム | `未着手` |
-| **T-M3.4** | **メインフェイズ行動選択UIの実装**: メインフェイズで「カードプレイ」「能力起動」「フェイズ終了」をUIで選択できるようにする。 | UIチーム | `未着手` |
+| **T-M3.4** | **メインフェイズ行動選択UIの実装**: メインフェイズで「カードプレイ」「能力起動」「フェイズ終了」をUIで選択できるようにする。 | UIチーム | `進行中` |
 | **T-M3.5** | **手札からのカード選択UIの実装**: カードをプレイする際、手札のリストからUIでカードを選択できるようにする。 | UIチーム | `未着手` |
 | **T-M3.6** | **クライマックスカード選択UIの実装**: クライマックスフェイズに、プレイするクライマックスカードをUIで選択できるようにする。 | UIチーム | `未着手` |
 | **T-M3.7** | **アタッカー選択UIの実装**: アタックフェイズに、攻撃するキャラをUIで選択できるようにする。 | UIチーム | `未着手` |
@@ -75,7 +75,7 @@
 | **T-M3.10**| **カウンターカード選択UIの実装**: カウンターステップで、使用する助太刀カードをUIで選択できるようにする。 | UIチーム | `未着手` |
 | **T-M3.11**| **アンコール選択UIの実装**: アンコールステップで、アンコール（標準/特殊）を行うか否かをUIで選択できるようにする。 | UIチーム | `未着手` |
 | **T-M3.12**| **起動能力の選択UIの実装**: メインフェイズで、複数の起動能力がある場合にどれを使用するかをUIで選択できるようにする。 | UIチーム | `未着手` |
-| **T-M3.13**| **任意効果の使用確認UIの実装**: 「～してもよい」と書かれた自動能力が発動した際に、使用するかどうかをUIで確認する仕組みを実装する。 | UIチーム | `未着手` |
+| **T-M3.13**| **任意効果の使用確認UIの実装**: 「～してもよい」と書かれた自動能力が発動した際に、使用するかどうかをUIで確認する仕組みを実装する。 | UIチーム | `進行中` |
 | **T-M3.14**| **同時発動した自動能力の解決順選択UIの実装**: 複数の自動能力が同時に発動した場合、プレイヤーが解決する順番をUIで選択できるようにする。 | UIチーム | `未着手` |
 | **T-M3.15**| **控え室からのカード選択UIの実装**: カード効果で控え室からカードを回収する際、対象をUIで選択できるようにする。 | UIチーム | `未着手` |
 | **T-M3.16**| **汎用的な対象選択UIの実装**: カード効果による対象選択や、公開されたカードからの選択など、汎用的な選択処理をUIで実装する。 | UIチーム | `未着手` |
@@ -124,6 +124,15 @@
 - `T-M6.4` は `CardDetail.prefab` 参照設定は完了。`CardUIPrefab.cardButton` は推奨設定だが、現状はフォールバックで動作。
 - `T-M7.10`（デッキ保存/読み込み）は `DeckEditorManager` 内に保存・読込処理が見当たらず、引き続き `未着手` 判定。
 
+### 実装監査メモ (2026-05-24)
+- `IWeissPlayerController` の `ChooseMainPhaseAction` / `ChooseMulliganCards` / `AskYesNo` は `Task` 化済み。
+- `GameManager` -> `WeissGame.PerformMulliganPhase` -> `WeissRuleEngine.ExecuteTurnAsync` の非同期導線は実装済み。
+- `DecisionModalController` / `GameView` には `ShowMainPhaseActionAsync` と `ShowYesNoAsync` があり、`UIGamePlayerController` から呼び出される。
+- ただし `UIGamePlayerController` の `ChooseCardFromHand`, `ChooseClimaxFromHand`, `ChooseAttacker`, `ChooseAttackType`, `ChooseCounterCardFromHand`, `ChooseLevelUpCard`, `ChooseAbilityToActivate`, `ChooseTargetCard`, `ChooseAbilityToResolve`, `SelectCardsToPayCost` は未実装のまま。
+- そのため `T-M3.4` は「行動選択モーダル自体」はあるが、「カードプレイ」「能力起動」まで一連で成立していないため `進行中` 判定。
+- `T-M3.13` は `Yes/No` モーダル表示基盤はあるが、`WeissRuleEngine.ResolveAbilityEffect` で `AskYesNo(...).GetAwaiter().GetResult()` を使っており、UI待機を安全に扱う非同期化が未完了のため `進行中` 判定。
+- `DeckEditorManager` にはカード追加・削除とフィルタリングはあるが、デッキ保存/読込 API は未実装のまま。
+
 ### 次の実装計画 (2026-04-05)
 1. **M3 同期入力APIの非同期化設計**
 - `IWeissPlayerController` のうち、UI待機が必要な入力 (`ChooseMainPhaseAction`, `AskYesNo` など) を `Task<T>` 化する設計に更新。
@@ -147,6 +156,31 @@
 | **A-M3.4** | RuleEngine / GameManager の async 実行導線化 | `Assets/Scripts/WeissSchwarz/Core/WeissRuleEngine.cs`, `Assets/Scripts/WeissSchwarz/Core/GameManager.cs` | `ExecuteTurnAsync` を `GameManager` が待機実行する |
 | **A-M3.5** | 中央モーダルへの実接続 (`MainPhaseAction`, `YesNo`) | `Assets/Scripts/WeissSchwarz/UI/DecisionModalController.cs`, `Assets/Scripts/WeissSchwarz/UI/GameView.cs` | メインフェイズとYes/Noでモーダル待機が発生する |
 | **A-M3.6** | 動作確認とステータス更新 | `docs/TODO_ActionPlan.md` | `T-M3.4`, `T-M3.13` の状態更新と確認メモ記録 |
+
+### 更新版 次の実装計画 (2026-05-24)
+1. **M3 手札選択系UIの実装**
+- `ChooseCardFromHand` を最優先で実装し、`T-M3.3`（クロック）, `T-M3.5`（プレイカード選択）, `EndPhase` の手札超過破棄を共通基盤で扱えるようにする。
+- `HandZoneUI` / `CardUI` の選択モードを「単一選択」「複数選択」「必須/任意」へ拡張する。
+2. **M3 能力確認の完全非同期化**
+- `WeissRuleEngine.ResolveAbilityEffect` の `GetAwaiter().GetResult()` を撤去し、能力解決キュー全体を `async` で流せるようにする。
+- `T-M3.13` は `Yes/No` モーダルの表示だけでなく、ゲーム進行が停止せずに結果反映まで完走することを完了条件にする。
+3. **M3 メインフェイズ行動の完結**
+- `T-M3.4` の残作業として、`ChooseAbilityToActivate` と `ChooseCardFromHand` を UI 実装し、「カードプレイ」「能力起動」「フェイズ終了」の 3 ルートを実運用可能にする。
+4. **M3 バトル入力の段階着手**
+- 次段で `T-M3.8`（アタック種類）, `T-M3.9`（アタック継続確認）, `T-M3.11`（アンコール）を共通モーダル基盤に載せる。
+- 先にメインフェイズ系を終わらせ、フェーズ横断の入力モデルを固めてから攻撃系へ広げる。
+5. **M7.10 デッキ保存/読込**
+- `DeckEditorManager` にデッキ定義のシリアライズ/デシリアライズ層を追加し、`StreamingAssets/WeissSchwarz/Decks` との往復を実装する。
+
+### 更新版 次タスク分解（2026-05-24）
+| 分解ID | 内容 | 対象ファイル | 完了条件 |
+| :--- | :--- | :--- | :--- |
+| **A2-M3.1** | `HandZoneUI`/`CardUI` の選択モデルを単一選択・複数選択・必須/任意対応へ拡張 | `Assets/Scripts/WeissSchwarz/UI/HandZoneUI.cs`, `Assets/Scripts/WeissSchwarz/UI/CardUI.cs` | 手札カードの汎用選択 UI が他フェーズから再利用できる |
+| **A2-M3.2** | `UIGamePlayerController.ChooseCardFromHand` を実装し、クロック/プレイ/手札超過破棄に接続 | `Assets/Scripts/WeissSchwarz/UI/UIGamePlayerController.cs`, `Assets/Scripts/WeissSchwarz/Core/WeissPhases.cs` | 手札選択待機が UI 経由で完了し、結果が各フェーズへ反映される |
+| **A2-M3.3** | `ChooseAbilityToActivate` とメインフェイズ行動完結 | `Assets/Scripts/WeissSchwarz/UI/UIGamePlayerController.cs`, `Assets/Scripts/WeissSchwarz/UI/DecisionModalController.cs` | `T-M3.4` の 3 ルートがすべて実行可能になる |
+| **A2-M3.4** | 能力解決キューの async 化 (`AskYesNo` 同期待機の撤去) | `Assets/Scripts/WeissSchwarz/Core/WeissRuleEngine.cs` | `GetAwaiter().GetResult()` が消え、任意効果確認が UI 待機で成立する |
+| **A2-M3.5** | バトル系入力の共通モーダル展開 (`T-M3.8`, `T-M3.9`, `T-M3.11`) | `Assets/Scripts/WeissSchwarz/UI/DecisionModalController.cs`, `Assets/Scripts/WeissSchwarz/UI/UIGamePlayerController.cs`, `Assets/Scripts/WeissSchwarz/Core/WeissPhases.cs` | 攻撃継続とアンコールが UI 経由で選択できる |
+| **A2-M3.6** | 動作確認とステータス更新 | `docs/TODO_ActionPlan.md` | `T-M3.3`, `T-M3.4`, `T-M3.13` の状態更新と確認メモ記録 |
 
 ### 引き継ぎ情報（初見実装者向け）
 - **まず読む**: `docs/TODO_ActionPlan.md`（本書）→ `docs/DecisionModal_Setup.md` → `Agent.md`
@@ -206,3 +240,24 @@
 - `WeissDeckLoader` / `WeissDeckValidator` / `WeissBattleSetupOptions` を追加し、対戦準備フェーズで 50 枚デッキのロード、検証、初期手札作成、マリガン、先攻ランダム決定を行う流れを実装した。
 - 既定デッキとして `battle_ready_sample.txt` を追加した。
 - カード移動アニメは未着手。次タスクで `CardMoved` イベント起点の UI 演出を追加する。
+
+### 実装監査メモ (2026-05-24)
+- `CardMoved` イベントの購読は `GameManager` に実装済み。
+- `GameView` には移動前座標保持 (`PrepareCardAnimation`) と直線補間 (`StartCardAnimation`) が実装済み。
+- `CardUI` には単一経路の `MoveToPosition` が実装済み。
+- したがって「カード移動アニメ」は完全な未着手ではなく、最小実装は着手済み。
+- 一方で現状は旧座標から新座標への直線移動のみで、山札から手元へ引き込んでから公開位置へ送る 2 段モーション、表裏切替タイミング制御、ゾーン別プリセットは未実装。
+
+### カード移動アニメ 改訂計画 (2026-05-24)
+1. **2 段モーション化**
+- `Deck -> Hand` などのドロー系移動は「山札位置 -> 画面下の見切れ位置 -> 手札スロット」の 2 セグメントに分割する。
+- プレイヤーの手元に一度引き込む見せ方を採用し、3D 回転なしでも自然な「引いた感」を出す。
+2. **表裏切替のタイミング制御**
+- 第 1 セグメント中は裏面のまま移動し、第 2 セグメント開始時に表面へ切り替える。
+- これにより、裏返すローテーション表現を省略しつつ公開タイミングを演出できる。
+3. **移動プリセットの定義**
+- `Deck -> Hand`, `Deck -> Stock`, `Hand -> Stage`, `Stage -> WaitingRoom` など主要パターンごとに、中継点・時間・公開タイミングを定義する。
+- 手札行き以外は、必要な箇所だけ 2 段モーションにし、他は直線移動を維持して実装コストを抑える。
+4. **実装分解**
+- `CardMovedEventData` の移動元/移動先からアニメ種別を決定するルータを `GameView` に追加する。
+- `CardUI` に複数ウェイポイント移動と、移動途中の表裏切替フックを追加する。
