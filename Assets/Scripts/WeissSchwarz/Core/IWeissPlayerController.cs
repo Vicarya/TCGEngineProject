@@ -22,9 +22,10 @@ namespace TCG.Weiss
         Task<MainPhaseAction> ChooseMainPhaseAction(WeissPlayer player);
 
         /// <summary>
-        /// 手札からプレイまたは効果で使用するカードを1枚選択します。
+        /// 手札からプレイまたは効果で使用するカードを1枚非同期で選択します。
+        /// UI実装ではプレイヤーのクリック確定まで待機し、NPC/テスト実装では即時完了Taskを返します。
         /// </summary>
-        WeissCard ChooseCardFromHand(WeissPlayer player, bool optional);
+        Task<WeissCard> ChooseCardFromHand(WeissPlayer player, bool optional);
 
         /// <summary>
         /// 手札からプレイするクライマックスカードを1枚選択します。

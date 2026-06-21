@@ -22,6 +22,7 @@
 ## 現在の進捗（2026-05-24時点）
 - マリガンUIは実装済み（手札表示・カード選択・決定/スキップ）。
 - `ChooseMainPhaseAction` / `ChooseMulliganCards` / `AskYesNo` は `Task` 化済みで、`GameManager` から `ExecuteTurnAsync` まで非同期導線が通っている。
+- `ChooseCardFromHand` は `HandZoneUI` の共通選択セッション経由で UI 待機できるようになり、クロックフェイズとメインフェイズの手札選択は動作する。
 - `Player1` は `HumanWeissPlayerController`、`Player2` は `SimpleNpcWeissPlayerController` を経由して構成できる。
 - `CardUI` は選択中を赤色表示。`cardButton` 未割り当て時のクリックフォールバックあり。
 - `DecisionModalController` にはマリガン、メインフェイズ行動選択、Yes/No の表示 API がある。
@@ -29,10 +30,10 @@
 - カード移動アニメは `CardMoved` 起点の直線補間までは入っているが、2 段モーションや表裏切替タイミング制御は未実装。
 
 ## 次の実装タスク（着手順）
-1. `ChooseCardFromHand` を中心に、手札選択 UI を共通基盤化する。
-2. `ChooseAbilityToActivate` を実装し、メインフェイズの 3 ルートを完結させる。
-3. `WeissRuleEngine` の `AskYesNo(...).GetAwaiter().GetResult()` を撤去し、能力解決キューを async 化する。
-4. アタック種類、アタック継続確認、アンコールを同じモーダル基盤へ展開する。
+1. `ChooseAbilityToActivate` を実装し、メインフェイズの 3 ルートを完結させる。
+2. `WeissRuleEngine` の `AskYesNo(...).GetAwaiter().GetResult()` を撤去し、能力解決キューを async 化する。
+3. アタック種類、アタック継続確認、アンコールを同じモーダル基盤へ展開する。
+4. `ChooseClimaxFromHand`、`ChooseLevelUpCard`、複数枚選択系 UI を共通選択基盤の上に拡張する。
 5. カード移動アニメを「山札 -> 手元見切れ位置 -> 目的地」の 2 段モーションへ拡張する。
 6. `DeckEditorManager` にデッキ保存/読込を追加する。
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
+using TCG.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,7 +9,7 @@ namespace TCG.Weiss.UI
 {
     /// <summary>
     /// ゲーム中の入力要求を中央モーダルで受けるための単一コントローラー。
-    /// まずはマリガン入力を対象に実装し、今後は他の選択UIもここへ集約する。
+    /// マリガン、手札選択、Yes/No、メインフェイズ行動選択を同じ表示基盤へ集約します。
     /// </summary>
     public class DecisionModalController : MonoBehaviour
     {
@@ -27,7 +28,6 @@ namespace TCG.Weiss.UI
         [SerializeField] private Button secondaryButton;
         [SerializeField] private Button tertiaryButton;
 
-        private TaskCompletionSource<List<WeissCard>> _mulliganCompletionSource;
         private TaskCompletionSource<bool> _yesNoCompletionSource;
         private TaskCompletionSource<MainPhaseAction> _mainPhaseActionCompletionSource;
         private HandZoneUI _activeHandZone;
@@ -47,33 +47,53 @@ namespace TCG.Weiss.UI
         /// </summary>
         public Task<List<WeissCard>> ShowMulliganAsync(WeissPlayer player, HandZoneUI handZoneUI)
         {
+            var handCards = player?.GetZone<IHandZone<WeissCard>>()?.Cards ?? new List<WeissCard>();
+            return ShowHandCardSelectionAsync(
+                player,
+                handZoneUI,
+                handCards,
+                minSelection: 0,
+                maxSelection: handCards.Count,
+                allowCancel: true,
+                title: "マリガン選択",
+                message: $"{player?.Name ?? "Player"}: 交換したいカードを選んでください",
+                confirmLabel: "決定",
+                cancelLabel: "スキップ");
+        }
+
+        /// <summary>
+        /// 手札カードの選択モーダルを表示し、HandZoneUI側の選択セッション完了まで待機します。
+        /// selectableCardsで選べるカードを制限し、minSelection/maxSelectionで必須枚数と上限枚数を制御します。
+        /// allowCancelがfalseの場合はキャンセルボタンを非表示にし、必要枚数を満たすまで決定できません。
+        /// </summary>
+        public Task<List<WeissCard>> ShowHandCardSelectionAsync(
+            WeissPlayer player,
+            HandZoneUI handZoneUI,
+            IReadOnlyList<WeissCard> selectableCards,
+            int minSelection,
+            int maxSelection,
+            bool allowCancel,
+            string title,
+            string message,
+            string confirmLabel,
+            string cancelLabel)
+        {
             CancelActiveRequest();
 
             _activeHandZone = handZoneUI;
-            _activeHandZone?.EnterMulliganSelectionMode();
-            _mulliganCompletionSource = new TaskCompletionSource<List<WeissCard>>();
+            var selectionTask = _activeHandZone != null
+                ? _activeHandZone.BeginCardSelectionAsync(selectableCards, minSelection, maxSelection, allowCancel)
+                : Task.FromResult(new List<WeissCard>());
 
-            if (titleText != null) titleText.text = "マリガン選択";
-            if (messageText != null) messageText.text = $"{player?.Name ?? "Player"}: 交換したいカードを選んでください";
-            if (primaryButtonText != null) primaryButtonText.text = "決定";
-            if (secondaryButtonText != null) secondaryButtonText.text = "スキップ";
+            if (titleText != null) titleText.text = title;
+            if (messageText != null) messageText.text = message;
 
-            if (primaryButton != null)
-            {
-                primaryButton.onClick.RemoveAllListeners();
-                primaryButton.onClick.AddListener(ConfirmMulligan);
-            }
-
-            if (secondaryButton != null)
-            {
-                secondaryButton.onClick.RemoveAllListeners();
-                secondaryButton.onClick.AddListener(CancelMulligan);
-            }
-
+            ConfigureButton(primaryButton, primaryButtonText, confirmLabel, ConfirmHandSelection, true);
+            ConfigureButton(secondaryButton, secondaryButtonText, cancelLabel, CancelHandSelection, allowCancel);
             SetTertiaryButton(null, null);
 
             SetVisible(true);
-            return _mulliganCompletionSource.Task;
+            return selectionTask;
         }
 
         /// <summary>
@@ -108,7 +128,7 @@ namespace TCG.Weiss.UI
 
         /// <summary>
         /// メインフェイズ行動の3択モーダルを表示します。
-        /// tertiaryButtonが未設定の場合は「能力起動」を出せないため、EndPhaseを返します。
+        /// tertiaryButtonが未設定の場合は「能力起動」ボタンだけを非表示にし、カードプレイとフェイズ終了は利用できます。
         /// </summary>
         public Task<MainPhaseAction> ShowMainPhaseActionAsync(string title = "メインフェイズ", string message = "行動を選択してください")
         {
@@ -146,39 +166,28 @@ namespace TCG.Weiss.UI
             return _mainPhaseActionCompletionSource.Task;
         }
 
-        private void ConfirmMulligan()
+        private void ConfirmHandSelection()
         {
-            var selected = _activeHandZone != null
-                ? _activeHandZone.GetSelectedCardsForMulligan()
-                : new List<WeissCard>();
-            CompleteMulligan(selected);
-        }
-
-        private void CancelMulligan()
-        {
-            CompleteMulligan(new List<WeissCard>());
-        }
-
-        private void CompleteMulligan(List<WeissCard> selectedCards)
-        {
-            _activeHandZone?.ExitMulliganSelectionMode();
-            _activeHandZone = null;
-
-            SetVisible(false);
-
-            ClearAllButtonListeners();
-
-            if (_mulliganCompletionSource != null && !_mulliganCompletionSource.Task.IsCompleted)
+            if (_activeHandZone != null && !_activeHandZone.TryConfirmSelection())
             {
-                _mulliganCompletionSource.SetResult(selectedCards ?? new List<WeissCard>());
+                return;
             }
 
-            _mulliganCompletionSource = null;
+            CloseHandSelectionModal();
+        }
+
+        private void CancelHandSelection()
+        {
+            if (_activeHandZone != null && !_activeHandZone.TryCancelSelection())
+            {
+                return;
+            }
+
+            CloseHandSelectionModal();
         }
 
         private void CompleteYesNo(bool choice)
         {
-            _activeHandZone?.ExitMulliganSelectionMode();
             _activeHandZone = null;
 
             SetVisible(false);
@@ -194,7 +203,6 @@ namespace TCG.Weiss.UI
 
         private void CompleteMainPhaseAction(MainPhaseAction action)
         {
-            _activeHandZone?.ExitMulliganSelectionMode();
             _activeHandZone = null;
 
             SetVisible(false);
@@ -210,9 +218,10 @@ namespace TCG.Weiss.UI
 
         private void CancelActiveRequest()
         {
-            if (_mulliganCompletionSource != null && !_mulliganCompletionSource.Task.IsCompleted)
+            if (_activeHandZone != null)
             {
-                CompleteMulligan(new List<WeissCard>());
+                _activeHandZone.AbortSelection();
+                CloseHandSelectionModal();
             }
 
             if (_yesNoCompletionSource != null && !_yesNoCompletionSource.Task.IsCompleted)
@@ -231,7 +240,40 @@ namespace TCG.Weiss.UI
             if (primaryButton != null) primaryButton.onClick.RemoveAllListeners();
             if (secondaryButton != null) secondaryButton.onClick.RemoveAllListeners();
             if (tertiaryButton != null) tertiaryButton.onClick.RemoveAllListeners();
+            if (secondaryButton != null) secondaryButton.gameObject.SetActive(true);
             SetTertiaryButton(null, null);
+        }
+
+        private void CloseHandSelectionModal()
+        {
+            _activeHandZone = null;
+            SetVisible(false);
+            ClearAllButtonListeners();
+        }
+
+        private void ConfigureButton(
+            Button button,
+            TMP_Text labelText,
+            string label,
+            UnityEngine.Events.UnityAction onClick,
+            bool visible)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            button.onClick.RemoveAllListeners();
+            button.gameObject.SetActive(visible);
+            if (labelText != null)
+            {
+                labelText.text = visible ? label : string.Empty;
+            }
+
+            if (visible && onClick != null)
+            {
+                button.onClick.AddListener(onClick);
+            }
         }
 
         private void SetTertiaryButton(string label, UnityEngine.Events.UnityAction onClick)

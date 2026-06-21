@@ -107,14 +107,14 @@ namespace TCG.Weiss {
         /// <summary>
         /// フェーズ開始時、プレイヤーにクロックアクション（手札をクロックに置いて2ドロー）の選択を促します。
         /// </summary>
-        public override Task OnEnter(GameState state) {
-            base.OnEnter(state);
+        public override async Task OnEnter(GameState state) {
+            await base.OnEnter(state);
             var player = state.ActivePlayer as WeissPlayer;
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfClockPhase"));
             
             // プレイヤーに、手札1枚をクロックに置くか選択させる（任意）
-            var chosen = player.Controller.ChooseCardFromHand(player, optional: true);
+            var chosen = await player.Controller.ChooseCardFromHand(player, optional: true);
             if (chosen != null) {
                 // 手札からクロックへカードを移動
                 player.GetZone<IHandZone<WeissCard>>().RemoveCard(chosen);
@@ -130,7 +130,6 @@ namespace TCG.Weiss {
                 state.EventBus.Raise(new GameEvent(new GameEventType("CardClocked"), new { Player = player, Card = chosen }));
             }
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "AfterClock"));
-            return Task.CompletedTask;
         }
     }
 
@@ -162,7 +161,7 @@ namespace TCG.Weiss {
                 else if (action == MainPhaseAction.PlayCard)
                 {
                     // === カードをプレイする処理 ===
-                    var cardToPlay = player.Controller.ChooseCardFromHand(player, optional: true);
+                    var cardToPlay = await player.Controller.ChooseCardFromHand(player, optional: true);
                     if (cardToPlay == null) continue; // プレイしない場合はループの先頭へ
 
                     var data = cardToPlay.Data as WeissCardData;
@@ -284,8 +283,8 @@ namespace TCG.Weiss {
         /// <summary>
         /// フェーズ開始時、プレイヤーにクライマックスカードをプレイするかの選択を促します。
         /// </summary>
-        public override Task OnEnter(GameState state) {
-            base.OnEnter(state);
+        public override async Task OnEnter(GameState state) {
+            await base.OnEnter(state);
             var player = state.ActivePlayer as WeissPlayer;
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfClimaxPhase"));
@@ -299,7 +298,6 @@ namespace TCG.Weiss {
                 state.EventBus.Raise(new GameEvent(WeissGameEvents.ClimaxPlayed, new { Player = player, Card = chosen }));
             }
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "AfterClimax"));
-            return Task.CompletedTask;
         }
     }
 
@@ -584,8 +582,8 @@ namespace TCG.Weiss {
         /// <summary>
         /// フェーズ開始時、手札が7枚を超える場合は超過分を捨てさせ、クライマックス置場のカードを控え室に置きます。
         /// </summary>
-        public override Task OnEnter(GameState state) {
-            base.OnEnter(state);
+        public override async Task OnEnter(GameState state) {
+            await base.OnEnter(state);
             var player = state.ActivePlayer as WeissPlayer;
 
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "StartOfEndPhase"));
@@ -593,7 +591,7 @@ namespace TCG.Weiss {
             // 手札上限チェック（7枚）
             while (player.GetZone<IHandZone<WeissCard>>().Cards.Count > player.HandLimit) {
                 // 7枚より多い場合、プレイヤーに捨てさせるカードを選択させる
-                var discard = player.Controller.ChooseCardFromHand(player, optional: false);
+                var discard = await player.Controller.ChooseCardFromHand(player, optional: false);
                 player.GetZone<IHandZone<WeissCard>>().RemoveCard(discard);
                 player.GetZone<IDiscardPile<WeissCard>>().AddCard(discard);
                 state.EventBus.Raise(new GameEvent(new GameEventType("DiscardForHandLimit"), discard));
@@ -607,7 +605,6 @@ namespace TCG.Weiss {
             }
             state.EventBus.Raise(new GameEvent(new GameEventType("ClimaxCleared"), player));
             state.EventBus.Raise(new GameEvent(new GameEventType("CheckTiming"), "AfterEnd"));
-            return Task.CompletedTask;
         }
     }
 }

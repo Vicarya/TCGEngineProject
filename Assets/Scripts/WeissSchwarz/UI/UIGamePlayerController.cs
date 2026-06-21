@@ -27,7 +27,7 @@ namespace TCG.Weiss
 
         /// <summary>
         /// メインフェイズ中のプレイヤーの行動選択を要求します。
-        /// 現在はデバッグ目的でデフォルトのアクションを返しますが、将来的にはUI入力を待機します。
+        /// GameViewの中央モーダルに委譲し、プレイヤーが選択するまで非同期で待機します。
         /// </summary>
         /// <param name="player">現在のプレイヤー。</param>
         /// <returns>プレイヤーが選択したメインフェイズのアクション。</returns>
@@ -57,14 +57,29 @@ namespace TCG.Weiss
 
         /// <summary>
         /// 手札からのカード選択を要求します。
+        /// 手札全体を選択候補としてGameViewへ渡し、任意選択時だけ未選択での進行を許可します。
         /// </summary>
         /// <param name="player">現在のプレイヤー。</param>
         /// <param name="optional">選択が任意かどうか。</param>
         /// <returns>選択されたカード、または任意の場合はnull。</returns>
-        public WeissCard ChooseCardFromHand(WeissPlayer player, bool optional)
+        public async Task<WeissCard> ChooseCardFromHand(WeissPlayer player, bool optional)
         {
             Debug.Log($"UIGamePlayerController: {player.Name}: Choose a card from hand. Waiting for UI input.");
-            return null;
+            if (GameView.Instance == null)
+            {
+                Debug.LogWarning("UIGamePlayerController: GameView.Instance is null. No hand card will be selected.");
+                return null;
+            }
+
+            var handCards = player.GetZone<IHandZone<WeissCard>>()?.Cards ?? new List<WeissCard>();
+            return await GameView.Instance.RequestHandCardSelectionAsync(
+                player,
+                handCards,
+                optional,
+                title: "手札選択",
+                message: optional
+                    ? "手札からカードを1枚選択してください。選ばずに進むこともできます。"
+                    : "手札からカードを1枚選択してください。");
         }
 
         /// <summary>

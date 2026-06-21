@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using TCG.Weiss;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -33,9 +34,14 @@ namespace TCG.Weiss.UI
 
         private bool _isSelectionMode;
         private bool _isSelected;
+        private bool _isSelectable = true;
 
         private readonly Color _normalTint = Color.white;
         private readonly Color _selectedTint = new Color(1f, 0.55f, 0.55f, 1f);
+        private readonly Color _disabledTint = new Color(1f, 1f, 1f, 0.45f);
+        private TaskCompletionSource<bool> _moveCompletionSource;
+        private string _currentFrontImagePath;
+        private int _frontImageLoadVersion;
 
         public bool IsSelected => _isSelected;
         public event Action<CardUI> CardClicked;
@@ -77,6 +83,11 @@ namespace TCG.Weiss.UI
 
         private void OnCardClicked()
         {
+            if (_isSelectionMode && !_isSelectable)
+            {
+                return;
+            }
+
             CardClicked?.Invoke(this);
 
             if (_isSelectionMode)
@@ -106,6 +117,8 @@ namespace TCG.Weiss.UI
             {
                 SetSelected(false);
             }
+
+            UpdateTint();
         }
 
         public void SetSelected(bool selected)
@@ -117,9 +130,27 @@ namespace TCG.Weiss.UI
                 selectedOverlayObject.SetActive(selected);
             }
 
-            var tint = selected ? _selectedTint : _normalTint;
-            if (_cardFrontImage != null) _cardFrontImage.color = tint;
-            if (_cardBackImage != null) _cardBackImage.color = tint;
+            UpdateTint();
+        }
+
+        /// <summary>
+        /// 選択モード中にこのカードが選択候補かどうかを設定します。
+        /// 候補外のカードは未選択へ戻し、ボタン操作を無効化して半透明表示にします。
+        /// </summary>
+        public void SetSelectable(bool selectable)
+        {
+            _isSelectable = selectable;
+            if (!selectable)
+            {
+                _isSelected = false;
+            }
+
+            if (cardButton != null)
+            {
+                cardButton.interactable = !_isSelectionMode || selectable;
+            }
+
+            UpdateTint();
         }
 
         public void ToggleSelected()
@@ -170,25 +201,63 @@ namespace TCG.Weiss.UI
             {
                 return;
             }
-
-            _cardFrontImage.sprite = _defaultCardSprite;
             ApplyCardImagePresentation(_cardFrontImage.rectTransform, isClimax, displayClimaxHorizontally);
 
             if (cardData == null || string.IsNullOrEmpty(cardData.ImagePath))
             {
+                _currentFrontImagePath = null;
+                _cardFrontImage.sprite = _defaultCardSprite;
                 return;
             }
 
-            if (cardData.ImagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            string imagePath = cardData.ImagePath;
+            if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             {
-                StartCoroutine(ImageLoader.LoadImage(cardData.ImagePath, _cardFrontImage));
+                // 非同期ロード中に同じCardUIが別カードへ再利用されることがあるため、
+                // パスとバージョンを照合して古いロード結果を捨てます。
+                if (ImageLoader.TryGetCachedSprite(imagePath, out var cachedSprite))
+                {
+                    _currentFrontImagePath = imagePath;
+                    _cardFrontImage.sprite = cachedSprite;
+                    return;
+                }
+
+                if (_currentFrontImagePath != imagePath || _cardFrontImage.sprite == null)
+                {
+                    _cardFrontImage.sprite = _defaultCardSprite;
+                }
+
+                _currentFrontImagePath = imagePath;
+                int loadVersion = ++_frontImageLoadVersion;
+                StartCoroutine(ImageLoader.LoadImage(imagePath, null, sprite =>
+                {
+                    if (this == null || _cardFrontImage == null)
+                    {
+                        return;
+                    }
+
+                    if (_currentFrontImagePath != imagePath || loadVersion != _frontImageLoadVersion)
+                    {
+                        return;
+                    }
+
+                    if (sprite != null)
+                    {
+                        _cardFrontImage.sprite = sprite;
+                    }
+                }));
                 return;
             }
 
-            Sprite spriteToDisplay = Resources.Load<Sprite>(cardData.ImagePath);
+            _currentFrontImagePath = imagePath;
+            Sprite spriteToDisplay = Resources.Load<Sprite>(imagePath);
             if (spriteToDisplay != null)
             {
                 _cardFrontImage.sprite = spriteToDisplay;
+            }
+            else
+            {
+                _cardFrontImage.sprite = _defaultCardSprite;
             }
         }
 
@@ -255,6 +324,16 @@ namespace TCG.Weiss.UI
             return _weissCardBackSprite;
         }
 
+        private void UpdateTint()
+        {
+            var tint = _isSelected
+                ? _selectedTint
+                : (_isSelectionMode && !_isSelectable ? _disabledTint : _normalTint);
+
+            if (_cardFrontImage != null) _cardFrontImage.color = tint;
+            if (_cardBackImage != null) _cardBackImage.color = tint;
+        }
+
         public void MoveToPosition(Vector3 targetPosition, float duration = 0.3f)
         {
             if (_moveCoroutine != null)
@@ -263,6 +342,18 @@ namespace TCG.Weiss.UI
             }
 
             _moveCoroutine = StartCoroutine(MoveCoroutine(targetPosition, duration));
+        }
+
+        /// <summary>
+        /// MoveToPositionと同じ補間移動をTaskとして待機できる形で開始します。
+        /// 初期配札など、複数段のカード移動を順番に再生したい処理で使用します。
+        /// </summary>
+        public Task MoveToPositionAsync(Vector3 targetPosition, float duration = 0.3f)
+        {
+            _moveCompletionSource?.TrySetCanceled();
+            _moveCompletionSource = new TaskCompletionSource<bool>();
+            MoveToPosition(targetPosition, duration);
+            return _moveCompletionSource.Task;
         }
 
         private System.Collections.IEnumerator MoveCoroutine(Vector3 targetPosition, float duration)
@@ -284,6 +375,8 @@ namespace TCG.Weiss.UI
 
             rect.position = targetPosition;
             _moveCoroutine = null;
+            _moveCompletionSource?.TrySetResult(true);
+            _moveCompletionSource = null;
         }
     }
 }

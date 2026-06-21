@@ -21,9 +21,10 @@ namespace TCG.Weiss.UI
         [SerializeField] private TextMeshProUGUI deckCountText;
 
         /// <summary>
-        /// Updates the Deck Zone display.
+        /// 山札置場の表示を更新します。
+        /// 山札が残っている場合は一番上のカードを裏向き表示にし、枚数テキストを現在枚数に同期します。
         /// </summary>
-        /// <param name="deckZone">The deck zone from the game logic.</param>
+        /// <param name="deckZone">ゲームロジック側の山札ゾーン。</param>
         public void UpdateZone(DeckZone deckZone)
         {
             if (deckZone == null)
@@ -45,12 +46,28 @@ namespace TCG.Weiss.UI
 
                 if (hasCards)
                 {
-                    // Show a representation of the deck (the top card, face down)
+                    // 山札の代表表示として、一番上のカードを必ず裏向きで表示する。
                     var topCard = deckZone.Cards.First();
                     topCard.IsFaceUp = false;
                     deckCardUI.SetCard(topCard);
                 }
             }
+        }
+
+        /// <summary>
+        /// 山札カード表示のワールド座標を取得します。
+        /// 初期配札アニメーションの開始位置として使用します。
+        /// </summary>
+        public bool TryGetDeckCardWorldPosition(out Vector3 position)
+        {
+            if (deckCardUI != null)
+            {
+                position = deckCardUI.transform.position;
+                return true;
+            }
+
+            position = Vector3.zero;
+            return false;
         }
     }
 }

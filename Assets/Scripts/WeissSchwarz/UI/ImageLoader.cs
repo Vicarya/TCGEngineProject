@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -6,55 +8,82 @@ using UnityEngine.UI;
 namespace TCG.Weiss.UI
 {
     /// <summary>
-    /// ネットワーク経由で画像をロードするための汎用ユーティリティクラス。
+    /// リモートURLのカード画像を読み込み、同じURLの画像はSpriteとして再利用するユーティリティ。
+    /// CardUIの再利用時に古い非同期結果を直接反映しないよう、必要に応じてコールバックで受け取れる形にしています。
     /// </summary>
     public static class ImageLoader
     {
+        private static readonly Dictionary<string, Sprite> SpriteCache = new Dictionary<string, Sprite>();
+
         /// <summary>
-        /// 指定されたURLから画像を非同期でロードし、対象のImageコンポーネントに設定します。
+        /// 指定URLのSpriteがすでに読み込み済みなら取得します。
+        /// 一覧更新やカードUI再生成時に、同じ画像を毎回ダウンロードしないための入口です。
         /// </summary>
-        /// <param name="url">画像のURL。</param>
-        /// <param name="targetImage">画像を表示するImageコンポーネント。</param>
-        public static IEnumerator LoadImage(string url, Image targetImage)
+        public static bool TryGetCachedSprite(string url, out Sprite sprite)
         {
-            // URLが無効、またはターゲットが存在しない場合は何もしない
-            if (string.IsNullOrEmpty(url) || targetImage == null)
+            if (string.IsNullOrEmpty(url))
+            {
+                sprite = null;
+                return false;
+            }
+
+            return SpriteCache.TryGetValue(url, out sprite) && sprite != null;
+        }
+
+        /// <summary>
+        /// 指定URLから画像を非同期に取得し、Spriteへ変換してキャッシュします。
+        /// targetImageが指定されている場合は直接反映し、onLoadedが指定されている場合は呼び出し元で反映可否を判断できます。
+        /// </summary>
+        public static IEnumerator LoadImage(string url, Image targetImage, Action<Sprite> onLoaded = null)
+        {
+            if (string.IsNullOrEmpty(url))
             {
                 yield break;
             }
 
-            // 画像のダウンロードリクエストを作成
-            using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(url))
+            if (TryGetCachedSprite(url, out var cachedSprite))
             {
-                // 一部のサーバー（公式画像サーバーなど）ではUser-Agentがないと404を返すため、標準的なブラウザのUAを設定
+                if (targetImage != null)
+                {
+                    targetImage.sprite = cachedSprite;
+                }
+
+                onLoaded?.Invoke(cachedSprite);
+                yield break;
+            }
+
+            using (var request = UnityWebRequestTexture.GetTexture(url))
+            {
+                // 一部の画像配信元はUser-AgentなしのUnityWebRequestを拒否するため、一般的なブラウザUAを付与します。
                 request.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
                 yield return request.SendWebRequest();
 
-                if (request.result == UnityWebRequest.Result.Success)
+                if (request.result != UnityWebRequest.Result.Success)
                 {
-                    // ダウンロード成功時、テクスチャを取得してスプライトを生成
-                    Texture2D texture = DownloadHandlerTexture.GetContent(request);
-                    if (texture != null)
-                    {
-                        // 中心をピボットとするスプライトを作成
-                        Sprite sprite = Sprite.Create(
-                            texture, 
-                            new Rect(0, 0, texture.width, texture.height), 
-                            Vector2.one * 0.5f
-                        );
+                    Debug.LogError($"ImageLoader: failed to load image ({url}): {request.error}");
+                    yield break;
+                }
 
-                        // 非同期処理中にターゲットが破棄されていないか確認してセット
-                        if (targetImage != null)
-                        {
-                            targetImage.sprite = sprite;
-                        }
-                    }
-                }
-                else
+                var texture = DownloadHandlerTexture.GetContent(request);
+                if (texture == null)
                 {
-                    Debug.LogError($"ImageLoader: 画像のロードに失敗しました ({url}): {request.error}");
+                    yield break;
                 }
+
+                var sprite = Sprite.Create(
+                    texture,
+                    new Rect(0, 0, texture.width, texture.height),
+                    Vector2.one * 0.5f);
+                sprite.name = $"RemoteCard:{url}";
+                SpriteCache[url] = sprite;
+
+                if (targetImage != null)
+                {
+                    targetImage.sprite = sprite;
+                }
+
+                onLoaded?.Invoke(sprite);
             }
         }
     }

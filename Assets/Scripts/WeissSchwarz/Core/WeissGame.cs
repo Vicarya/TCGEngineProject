@@ -67,6 +67,53 @@ namespace TCG.Weiss
             }
         }
 
+        /// <summary>
+        /// 各プレイヤーへ初期手札を配り、必要であればUI上の配札アニメーションを待機します。
+        /// SetupGameではデッキ構築と先攻決定だけを行い、配札はGameManagerの非同期開始フローから呼び出します。
+        /// これにより、初期配札を通常のCardMovedアニメーションに混ぜず、山札から手札への専用演出として扱えます。
+        /// </summary>
+        public async Task DealInitialHandsAsync()
+        {
+            var originalActivePlayerIndex = GameState.CurrentPlayerIndex;
+
+            foreach (WeissPlayer player in GameState.Players)
+            {
+                var deckZone = player.GetZone<IDeckZone<WeissCard>>();
+                var handZone = player.GetZone<IHandZone<WeissCard>>();
+
+                if (GameView.Instance != null)
+                {
+                    GameView.Instance.UpdateView(player);
+                }
+
+                for (int i = 0; i < _setupOptions.InitialHandSize; i++)
+                {
+                    var card = deckZone.DrawTop();
+                    if (card == null)
+                    {
+                        continue;
+                    }
+
+                    card.IsFaceUp = false;
+                    RuleEngine.MoveCard(card as WeissCard, null, handZone as IZone, player);
+
+                    if (GameView.Instance != null)
+                    {
+                        await GameView.Instance.AnimateInitialHandDealAsync(player, card as WeissCard);
+                    }
+
+                    card.IsFaceUp = true;
+                    if (GameView.Instance != null)
+                    {
+                        GameView.Instance.UpdateView(player);
+                    }
+                }
+            }
+
+            GameState.CurrentPlayerIndex = originalActivePlayerIndex;
+            GameState.EventBus.Raise(new GameEvent(BaseGameEvents.TurnStarted, GameState.ActivePlayer));
+        }
+
         protected override void SetupGame(GameState state)
         {
             var cardDatabase = WeissCardDatabase.EnsureInitialized();
@@ -130,18 +177,9 @@ namespace TCG.Weiss
                 LoadDeckIntoZone(deckDefinition, player, deckZone, cardDatabase);
                 deckZone.Shuffle();
 
-                for (int i = 0; i < _setupOptions.InitialHandSize; i++)
-                {
-                    var card = deckZone.DrawTop();
-                    if (card != null)
-                    {
-                        RuleEngine.MoveCard(card as WeissCard, null, handZone as IZone, player);
-                    }
-                }
             }
 
             state.CurrentPlayerIndex = Random.Range(0, state.Players.Count);
-            state.EventBus.Raise(new GameEvent(BaseGameEvents.TurnStarted, state.ActivePlayer));
         }
 
         private WeissPlayer CreatePlayer(WeissPlayerSetupOptions options)

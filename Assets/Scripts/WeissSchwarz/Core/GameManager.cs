@@ -40,10 +40,12 @@ namespace TCG.Weiss
 
                 _game.StartGame();
                 RefreshView();
-                
-                // カード移動アニメーション用イベント購読
+
+                await _game.DealInitialHandsAsync();
+                RefreshView();
+
+                // 初期配札後の通常移動だけを汎用アニメーションへ流す
                 _game.GameState.EventBus.Subscribe(BaseGameEvents.CardMoved, OnCardMoved);
-                
                 _game.GameState.EventBus.SubscribeToAll(_ => RefreshView());
                 await _game.PerformMulliganPhase();
                 RefreshView();

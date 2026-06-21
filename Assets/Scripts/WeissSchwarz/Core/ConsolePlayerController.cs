@@ -89,7 +89,7 @@ namespace TCG.Weiss
         /// <param name="player">プレイヤー。</param>
         /// <param name="optional">選択が任意かどうか。</param>
         /// <returns>選択されたカード。選択しない場合はnull。</returns>
-        public WeissCard ChooseCardFromHand(WeissPlayer player, bool optional)
+        public Task<WeissCard> ChooseCardFromHand(WeissPlayer player, bool optional)
         {
             Debug.Log($"--- {player.Name}: 手札からカードを選択 ---");
             var hand = player.GetZone<IHandZone<WeissCard>>().Cards;
@@ -97,7 +97,7 @@ namespace TCG.Weiss
             if (hand == null || !hand.Any())
             {
                 Debug.Log("手札にカードがありません。");
-                return null;
+                return Task.FromResult<WeissCard>(null);
             }
 
             Debug.Log("あなたの手札:");
@@ -110,13 +110,13 @@ namespace TCG.Weiss
             if (optional)
             {
                 Debug.Log("プレイヤー入力をシミュレート: 何も選択しない。");
-                return null;
+                return Task.FromResult<WeissCard>(null);
             }
             else
             {
                 var choice = hand.First();
                 Debug.Log($"プレイヤー入力をシミュレート: 最初のカードを選択 [{choice.Data.Name}]");
-                return choice;
+                return Task.FromResult(choice);
             }
         }
 

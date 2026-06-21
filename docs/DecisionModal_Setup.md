@@ -26,11 +26,12 @@
 
 ## 5. 現在実装済みのモーダル機能
 - `ShowMulliganAsync`（マリガン選択）
+- `ShowHandCardSelectionAsync`（手札からの単一/複数選択の共通入口）
 - `ShowYesNoAsync`（2択）
 - `ShowMainPhaseActionAsync`（3択。`tertiaryButton` がない場合 `UseAbility` は未表示）
 
 ## 6. 注意
 - `ChooseMainPhaseAction` / `AskYesNo` はすでに `Task` ベースへ移行済みで、`GameManager` からの非同期導線も通っている。
 - ただし `ChooseCardFromHand` など多くの UI 入力 API は未実装で、`WeissRuleEngine` 側にも `AskYesNo(...).GetAwaiter().GetResult()` が残っているため、UI待機はまだ完全ではない。
-- 現在の中央モーダル実運用は、マリガン、メインフェイズ行動選択、Yes/No 確認まで。
+- 現在の中央モーダル実運用は、マリガン、手札1枚選択、メインフェイズ行動選択、Yes/No 確認まで。
 - `ModalOverlay` の背景が手札クリックを遮る場合は、背景Imageの `Raycast Target` 設定を確認する。

@@ -65,9 +65,9 @@
 | :--- | :--- | :--- | :--- |
 | **T-M3.1** | **マリガン選択UIの実装**: ゲーム開始時に、手札からマリガンするカードをUIで選択できるようにする。 | UIチーム | `完了` |
 | **T-M3.2** | **レベルアップカード選択UIの実装**: レベルアップ時、クロック置場のカードからレベル置場に送る1枚をUIで選択できるようにする。 | UIチーム | `未着手` |
-| **T-M3.3** | **クロックフェイズ選択UIの実装**: クロックフェイズで、手札からクロック置場に置くカードをUIで選択できるようにする。 | UIチーム | `未着手` |
+| **T-M3.3** | **クロックフェイズ選択UIの実装**: クロックフェイズで、手札からクロック置場に置くカードをUIで選択できるようにする。 | UIチーム | `完了` |
 | **T-M3.4** | **メインフェイズ行動選択UIの実装**: メインフェイズで「カードプレイ」「能力起動」「フェイズ終了」をUIで選択できるようにする。 | UIチーム | `進行中` |
-| **T-M3.5** | **手札からのカード選択UIの実装**: カードをプレイする際、手札のリストからUIでカードを選択できるようにする。 | UIチーム | `未着手` |
+| **T-M3.5** | **手札からのカード選択UIの実装**: カードをプレイする際、手札のリストからUIでカードを選択できるようにする。 | UIチーム | `完了` |
 | **T-M3.6** | **クライマックスカード選択UIの実装**: クライマックスフェイズに、プレイするクライマックスカードをUIで選択できるようにする。 | UIチーム | `未着手` |
 | **T-M3.7** | **アタッカー選択UIの実装**: アタックフェイズに、攻撃するキャラをUIで選択できるようにする。 | UIチーム | `未着手` |
 | **T-M3.8** | **アタック種類選択UIの実装**: フロントアタックかサイドアタックかをUIで選択できるようにする。 | UIチーム | `未着手` |
@@ -128,6 +128,8 @@
 - `IWeissPlayerController` の `ChooseMainPhaseAction` / `ChooseMulliganCards` / `AskYesNo` は `Task` 化済み。
 - `GameManager` -> `WeissGame.PerformMulliganPhase` -> `WeissRuleEngine.ExecuteTurnAsync` の非同期導線は実装済み。
 - `DecisionModalController` / `GameView` には `ShowMainPhaseActionAsync` と `ShowYesNoAsync` があり、`UIGamePlayerController` から呼び出される。
+- `HandZoneUI` に単一選択ベースの共通手札選択セッションを追加し、`ChooseCardFromHand` は UI 待機で 1 枚選択できるようになった。
+- `ClockPhase` と `MainPhase` の手札選択は UI 経由で動作するため、`T-M3.3` と `T-M3.5` は完了判定に更新。
 - ただし `UIGamePlayerController` の `ChooseCardFromHand`, `ChooseClimaxFromHand`, `ChooseAttacker`, `ChooseAttackType`, `ChooseCounterCardFromHand`, `ChooseLevelUpCard`, `ChooseAbilityToActivate`, `ChooseTargetCard`, `ChooseAbilityToResolve`, `SelectCardsToPayCost` は未実装のまま。
 - そのため `T-M3.4` は「行動選択モーダル自体」はあるが、「カードプレイ」「能力起動」まで一連で成立していないため `進行中` 判定。
 - `T-M3.13` は `Yes/No` モーダル表示基盤はあるが、`WeissRuleEngine.ResolveAbilityEffect` で `AskYesNo(...).GetAwaiter().GetResult()` を使っており、UI待機を安全に扱う非同期化が未完了のため `進行中` 判定。
