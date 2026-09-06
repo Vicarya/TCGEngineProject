@@ -339,17 +339,17 @@ namespace TCG.Weiss.UI
             RectTransform rect = cardImageView.rectTransform;
             if (rect != null)
             {
-                // アンカーを中央に固定することで、ピボット変更による位置ズレを防ぐ
-                rect.anchorMin = new Vector2(0.5f, 0.5f);
-                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
                 rect.pivot = new Vector2(0.5f, 0.5f);
                 rect.anchoredPosition = Vector2.zero;
+                rect.offsetMin = new Vector2(12f, 12f);
+                rect.offsetMax = new Vector2(-12f, -12f);
 
                 bool isClimax = card.Data != null && (card.Data.CardType == "Climax" || card.Data.CardType == "クライマックス");
                 rect.localRotation = isClimax ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
 
-                float scale = isClimax ? 1.4f : 1f;
-                rect.localScale = new Vector3(scale, scale, 1f);
+                rect.localScale = Vector3.one;
             }
 
             // ロードが始まる前に前の画像を消す（「切り替わらない」ように見えるのを防ぐ）
